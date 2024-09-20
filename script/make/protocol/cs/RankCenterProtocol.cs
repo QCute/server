@@ -36,9 +36,10 @@ public static class RankCenterProtocol
             {
                 // 排行榜
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Rank
                     // 类型
                     var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 排名
@@ -54,8 +55,10 @@ public static class RankCenterProtocol
                     var name = encoding.GetString(reader.ReadBytes(nameLength));
                     // 服务器ID
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}});
+                    list.Add(rank);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -63,9 +66,10 @@ public static class RankCenterProtocol
             {
                 // 排行榜
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Rank
                     // 类型
                     var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 排名
@@ -81,12 +85,17 @@ public static class RankCenterProtocol
                     var name = encoding.GetString(reader.ReadBytes(nameLength));
                     // 服务器ID
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
                     // 等级
                     var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 职业
                     var classes = reader.ReadByte();
+                    // object
+                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", level}, {"classes", classes}};
+                    // object
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}});
+                    list.Add(rank);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -94,9 +103,10 @@ public static class RankCenterProtocol
             {
                 // 排行榜
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Rank
                     // 类型
                     var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 排名
@@ -112,14 +122,19 @@ public static class RankCenterProtocol
                     var name = encoding.GetString(reader.ReadBytes(nameLength));
                     // 服务器ID
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
                     // 等级
                     var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 职业
                     var classes = reader.ReadByte();
                     // 性别
                     var sex = reader.ReadByte();
+                    // object
+                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", level}, {"classes", classes}, {"sex", sex}};
+                    // object
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}, {"sex", sex}});
+                    list.Add(rank);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -127,9 +142,10 @@ public static class RankCenterProtocol
             {
                 // 排行榜
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Rank
                     // 类型
                     var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 排名
@@ -145,6 +161,7 @@ public static class RankCenterProtocol
                     var name = encoding.GetString(reader.ReadBytes(nameLength));
                     // 服务器ID
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
                     // 等级
                     var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 职业
@@ -153,8 +170,12 @@ public static class RankCenterProtocol
                     var sex = reader.ReadByte();
                     // VIP等级
                     var vipLevel = reader.ReadByte();
+                    // object
+                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", level}, {"classes", classes}, {"sex", sex}, {"vipLevel", vipLevel}};
+                    // object
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}, {"sex", sex}, {"vipLevel", vipLevel}});
+                    list.Add(rank);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -162,9 +183,10 @@ public static class RankCenterProtocol
             {
                 // 排行榜
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Rank
                     // 类型
                     var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 排名
@@ -180,6 +202,7 @@ public static class RankCenterProtocol
                     var name = encoding.GetString(reader.ReadBytes(nameLength));
                     // 服务器ID
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
                     // 等级
                     var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 职业
@@ -190,8 +213,12 @@ public static class RankCenterProtocol
                     var vipLevel = reader.ReadByte();
                     // 头像
                     var avatar = reader.ReadByte();
+                    // object
+                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", level}, {"classes", classes}, {"sex", sex}, {"vipLevel", vipLevel}, {"avatar", avatar}};
+                    // object
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}, {"sex", sex}, {"vipLevel", vipLevel}, {"avatar", avatar}});
+                    list.Add(rank);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

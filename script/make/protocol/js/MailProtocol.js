@@ -52,6 +52,7 @@ export default class MailProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Mail
                     // 邮件ID
                     const mailId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -93,8 +94,10 @@ export default class MailProtocol {
                         // add
                         attachment.push({itemId, number});
                     }
+                    // object
+                    const mail = {mailId, receiveTime, expireTime, readTime, receiveAttachmentTime, title, content, attachment};
                     // add
-                    list.push({mailId, receiveTime, expireTime, readTime, receiveAttachmentTime, title, content, attachment});
+                    list.push(mail);
                 }
                 return {list};
             }

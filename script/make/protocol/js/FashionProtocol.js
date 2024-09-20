@@ -16,14 +16,17 @@ export default class FashionProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Fashion
                     // 时装ID
                     const fashionId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 过期时间
                     const expireTime = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const fashion = {fashionId, expireTime};
                     // add
-                    list.push({fashionId, expireTime});
+                    list.push(fashion);
                 }
                 return {list};
             }
@@ -33,11 +36,14 @@ export default class FashionProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Fashion
                     // 时装ID
                     const fashionId = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const fashion = {fashionId};
                     // add
-                    list.push({fashionId});
+                    list.push(fashion);
                 }
                 return {list};
             }

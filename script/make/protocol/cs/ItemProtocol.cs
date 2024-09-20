@@ -38,9 +38,10 @@ public static class ItemProtocol
             {
                 // 道具列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Item
                     // 物品编号
                     var itemNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 物品ID
@@ -49,8 +50,10 @@ public static class ItemProtocol
                     var type = reader.ReadByte();
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}});
+                    list.Add(item);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -58,9 +61,10 @@ public static class ItemProtocol
             {
                 // 背包列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Item
                     // 物品编号
                     var itemNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 物品ID
@@ -69,8 +73,10 @@ public static class ItemProtocol
                     var type = reader.ReadByte();
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}});
+                    list.Add(item);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -78,9 +84,10 @@ public static class ItemProtocol
             {
                 // 仓库列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Item
                     // 物品编号
                     var itemNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 物品ID
@@ -89,8 +96,10 @@ public static class ItemProtocol
                     var type = reader.ReadByte();
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}});
+                    list.Add(item);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -98,15 +107,18 @@ public static class ItemProtocol
             {
                 // 删除列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Item
                     // 物品编号
                     var itemNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 类型
                     var type = reader.ReadByte();
+                    // object
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"type", type}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"type", type}});
+                    list.Add(item);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

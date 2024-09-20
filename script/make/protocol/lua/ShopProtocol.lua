@@ -28,13 +28,16 @@ function ShopProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Shop
             -- 商店ID
             local shopId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 数量
             local number = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {shopId = shopId, number = number}
+            -- object
+            local shop = {shopId = shopId, number = number}
+            list[listIndex] = shop
         end
         return {list = list}
     elseif protocol == 11302 then

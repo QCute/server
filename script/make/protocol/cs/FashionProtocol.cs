@@ -20,15 +20,18 @@ public static class FashionProtocol
             {
                 // 时装列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Fashion
                     // 时装ID
                     var fashionId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 过期时间
                     var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var fashion = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fashionId", fashionId}, {"expireTime", expireTime}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fashionId", fashionId}, {"expireTime", expireTime}});
+                    list.Add(fashion);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -36,13 +39,16 @@ public static class FashionProtocol
             {
                 // 时装ID列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Fashion
                     // 时装ID
                     var fashionId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var fashion = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fashionId", fashionId}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fashionId", fashionId}});
+                    list.Add(fashion);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

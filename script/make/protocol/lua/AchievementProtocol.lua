@@ -29,13 +29,16 @@ function AchievementProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Count
             -- 统计类型
             local type = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 总数
             local totalNumber = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {type = type, totalNumber = totalNumber}
+            -- object
+            local count = {type = type, totalNumber = totalNumber}
+            list[listIndex] = count
         end
         return {list = list}
     elseif protocol == 12202 then
@@ -45,13 +48,16 @@ function AchievementProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Achievement
             -- 成就ID
             local achievementId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 成就类型
             local type = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {achievementId = achievementId, type = type}
+            -- object
+            local achievement = {achievementId = achievementId, type = type}
+            list[listIndex] = achievement
         end
         return {list = list}
     elseif protocol == 12203 then

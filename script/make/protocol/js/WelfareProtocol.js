@@ -74,6 +74,7 @@ export default class WelfareProtocol {
                 return {result};
             }
             case 15003: {
+                // LuckyMoney
                 // 红包编号
                 const luckyMoneyNo = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -91,6 +92,7 @@ export default class WelfareProtocol {
                 let receiveListLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--receiveListLength >= 0) {
+                    // LuckyMoneyRole
                     // 服务器Id
                     const serverId = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -109,13 +111,17 @@ export default class WelfareProtocol {
                     // 领取时间
                     const receiveTime = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const luckyMoneyRole = {serverId, roleId, roleName, gold, receiveTime};
                     // add
-                    receiveList.push({serverId, roleId, roleName, gold, receiveTime});
+                    receiveList.push(luckyMoneyRole);
                 }
                 // 发送时间
                 const sendTime = view.getUint32(offset, false);
                 offset = offset + 4;
-                return {luckyMoneyNo, totalGold, totalNumber, receiveNumber, receiveList, sendTime};
+                // object
+                const luckyMoney = {luckyMoneyNo, totalGold, totalNumber, receiveNumber, receiveList, sendTime};
+                return {luckyMoney};
             }
             case 15004: {
                 // 结果

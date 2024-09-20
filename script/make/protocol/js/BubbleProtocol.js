@@ -16,14 +16,17 @@ export default class BubbleProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Bubble
                     // 气泡ID
                     const bubbleId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 过期时间
                     const expireTime = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const bubble = {bubbleId, expireTime};
                     // add
-                    list.push({bubbleId, expireTime});
+                    list.push(bubble);
                 }
                 return {list};
             }
@@ -33,11 +36,14 @@ export default class BubbleProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Bubble
                     // 气泡ID
                     const bubbleId = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const bubble = {bubbleId};
                     // add
-                    list.push({bubbleId});
+                    list.push(bubble);
                 }
                 return {list};
             }

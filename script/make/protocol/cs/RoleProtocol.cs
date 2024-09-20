@@ -26,6 +26,7 @@ public static class RoleProtocol
         {
             case 10101:
             {
+                // Role
                 // 角色ID
                 var roleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 角色名
@@ -37,10 +38,13 @@ public static class RoleProtocol
                 var classes = reader.ReadByte();
                 // 等级
                 var level = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}};
+                // object
+                var role = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role", role}};
             }
             case 10102:
             {
+                // Asset
                 // 金币
                 var gold = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 银币
@@ -49,17 +53,22 @@ public static class RoleProtocol
                 var copper = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 经验
                 var exp = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"gold", gold}, {"silver", silver}, {"copper", copper}, {"exp", exp}};
+                // object
+                var asset = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"gold", gold}, {"silver", silver}, {"copper", copper}, {"exp", exp}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"asset", asset}};
             }
             case 10103:
             {
+                // Vip
                 // 等级
                 var vipLevel = reader.ReadByte();
                 // 经验
                 var exp = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 过期时间
                 var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vipLevel", vipLevel}, {"exp", exp}, {"expireTime", expireTime}};
+                // object
+                var vip = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vipLevel", vipLevel}, {"exp", exp}, {"expireTime", expireTime}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vip", vip}};
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

@@ -40,6 +40,7 @@ export default class TaskProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Task
                     // 任务ID
                     const taskId = view.getUint32(offset, false);
                     offset = offset + 4;
@@ -49,8 +50,10 @@ export default class TaskProtocol {
                     // 是否领取奖励
                     const isAward = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const task = {taskId, number, isAward};
                     // add
-                    list.push({taskId, number, isAward});
+                    list.push(task);
                 }
                 return {list};
             }
@@ -61,6 +64,7 @@ export default class TaskProtocol {
                 const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
                 const result = textDecoder.decode(resultArray);
                 offset = offset + resultLength;
+                // Task
                 // 任务ID
                 const taskId = view.getUint32(offset, false);
                 offset = offset + 4;
@@ -70,7 +74,9 @@ export default class TaskProtocol {
                 // 是否领取奖励
                 const isAward = view.getUint8(offset, false);
                 offset = offset + 1;
-                return {result, taskId, number, isAward};
+                // object
+                const task = {taskId, number, isAward};
+                return {result, task};
             }
             case 11203: {
                 // 结果

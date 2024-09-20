@@ -37,14 +37,17 @@ export default class ShopProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Shop
                     // 商店ID
                     const shopId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 数量
                     const number = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const shop = {shopId, number};
                     // add
-                    list.push({shopId, number});
+                    list.push(shop);
                 }
                 return {list};
             }

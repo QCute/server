@@ -76,6 +76,7 @@ export default class FriendProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Friend
                     // 好友角色ID
                     const friendRoleId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -91,8 +92,10 @@ export default class FriendProtocol {
                     // 添加/修改状态时间
                     const time = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const friend = {friendRoleId, friendName, relation, time};
                     // add
-                    list.push({friendRoleId, friendName, relation, time});
+                    list.push(friend);
                 }
                 return {list};
             }

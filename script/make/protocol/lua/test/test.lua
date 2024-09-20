@@ -32,26 +32,31 @@ local packet = {
         str = "一23",
         bst = "1二三",
 
+        tuple = {
+            tupleBinary = "\97\98\99\100\101\102",
+            tupleSubTuple = {
+                tupleSubTupleU8 = 95,
+                tupleSubTupleStr = "xyz",
+            },
+            tupleSubList = {
+                {tupleSubListI16 = 456, tupleSubListBst = "wow"},
+                {tupleSubListI16 = 369, tupleSubListBst = "oops"},
+            },
+            tupleSubListSingle = {true, false, false, true, false},
+        },
+
         indexList = {
             {
                 listBinary = "\97\98\99\100\101\102",
-                listBoolean = false,
-            
-                listU8 = 1,
-                listU16 = 2,
-                listU32 = 3,
-                listU64 = 4,
-            
-                listI8 = 4,
-                listI16 = 3,
-                listI32 = 2,
-                listI64 = 1,
-            
-                listF32 = 1.23,
-                listF64 = 4.56,
-            
-                listStr = "一23",
-                listBst = "1二三",
+                listSubTuple = {
+                    listSubTupleU8 = 108,
+                    listSubTupleStr = "qwe",
+                },
+                listSubList = {
+                    {listSubListI16 = 456, listSubListBst = "wow"},
+                    {listSubListI16 = 369, listSubListBst = "oops"},
+                },
+                listSubListSingle = {true, false, false, true, false},
             }
         },
 
@@ -91,17 +96,19 @@ end
 
 -- table stringify function
 function stringify(data)
-    local string = ''
-    for key, value in pairs(data) do
-        if type(value) == 'number' then
-            string = string .. key .. ' = ' .. value .. ', '
-        elseif type(value) == 'string' then
-            string = string .. key .. ' = "' .. value .. '", '
-        elseif type(value) == 'table' then
+    if type(data) == 'boolean' then
+        return tostring(data)
+    elseif type(data) == 'number' then
+        return data
+    elseif type(data) == 'string' then
+        return '"' .. data .. '"'
+    elseif type(data) == 'table' then
+        local string = ''
+        for key, value in pairs(data) do
             string = string .. key .. ' = ' .. stringify(value) .. ', '
         end
+        return '{ ' .. string .. ' }'
     end
-    return '{ ' .. string .. ' }'
 end
 
 -- test function

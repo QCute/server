@@ -39,6 +39,7 @@ function ItemProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Item
             -- 物品编号
             local itemNo = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -51,7 +52,9 @@ function ItemProtocol.decode(offset, protocol, data)
             -- 数量
             local number = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {itemNo = itemNo, itemId = itemId, type = type, number = number}
+            -- object
+            local item = {itemNo = itemNo, itemId = itemId, type = type, number = number}
+            list[listIndex] = item
         end
         return {list = list}
     elseif protocol == 11102 then
@@ -61,6 +64,7 @@ function ItemProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Item
             -- 物品编号
             local itemNo = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -73,7 +77,9 @@ function ItemProtocol.decode(offset, protocol, data)
             -- 数量
             local number = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {itemNo = itemNo, itemId = itemId, type = type, number = number}
+            -- object
+            local item = {itemNo = itemNo, itemId = itemId, type = type, number = number}
+            list[listIndex] = item
         end
         return {list = list}
     elseif protocol == 11103 then
@@ -83,6 +89,7 @@ function ItemProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Item
             -- 物品编号
             local itemNo = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -95,7 +102,9 @@ function ItemProtocol.decode(offset, protocol, data)
             -- 数量
             local number = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {itemNo = itemNo, itemId = itemId, type = type, number = number}
+            -- object
+            local item = {itemNo = itemNo, itemId = itemId, type = type, number = number}
+            list[listIndex] = item
         end
         return {list = list}
     elseif protocol == 11104 then
@@ -105,13 +114,16 @@ function ItemProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Item
             -- 物品编号
             local itemNo = string.unpack(">I8", data, offset)
             offset = offset + 8
             -- 类型
             local type = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {itemNo = itemNo, type = type}
+            -- object
+            local item = {itemNo = itemNo, type = type}
+            list[listIndex] = item
         end
         return {list = list}
     elseif protocol == 11106 then

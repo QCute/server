@@ -16,6 +16,7 @@ export default class NoticeProtocol {
                 let noticeListLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--noticeListLength >= 0) {
+                    // NoticeRole
                     // 公告ID
                     const noticeId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -37,8 +38,10 @@ export default class NoticeProtocol {
                     const contentArray = new Uint8Array(view.buffer.slice(offset, offset + contentLength));
                     const content = textDecoder.decode(contentArray);
                     offset = offset + contentLength;
+                    // object
+                    const noticeRole = {noticeId, receiveTime, readTime, title, content};
                     // add
-                    noticeList.push({noticeId, receiveTime, readTime, title, content});
+                    noticeList.push(noticeRole);
                 }
                 return {noticeList};
             }

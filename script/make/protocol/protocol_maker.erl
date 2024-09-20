@@ -165,7 +165,7 @@ parse_decode(Protocol, SyntaxList, Handler) when is_list(SyntaxList) ->
     CsMeta = protocol_maker_cs:parse_meta_cs(Protocol, MetaList),
     Cs = #set{code = CsCode, meta = CsMeta},
     %% html
-    HtmlCode = protocol_maker_html:parse_code_html(Protocol, MetaList),
+    HtmlCode = protocol_maker_html:parse_code_html(Protocol, []), %%  @todo
     Html = #set{meta = HtmlCode},
     %% code set
     #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
@@ -238,13 +238,28 @@ parse_decode_unit(Unit = #str{name = Name, comment = Comment}) ->
     HumpName = word:to_hump(Name),
     #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
 
+parse_decode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) when is_tuple(Explain) andalso tuple_size(Explain) > 0 andalso not is_atom(element(1, Explain)) ->
+    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
+    %% hump name
+    HumpName = word:to_hump(Name),
+    %% format sub unit
+    SubMeta = parse_decode_unit(#tuple{explain = Explain}),
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
+
 parse_decode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) ->
     Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
     %% hump name
     HumpName = word:to_hump(Name),
-    %% format subunit
+    %% format sub unit
     SubMeta = parse_decode_unit(Explain),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = lists:flatten([SubMeta]), key = Key};
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
+
+%% structure unit
+parse_decode_unit(Unit = #maps{name = Name, comment = Comment, explain = Explain}) ->
+    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("Tuple name could not be undefined: ~tp", [Unit]))),
+    %% format per unit
+    List = [parse_decode_unit(Field) || Field <- tuple_to_list(Explain)],
+    #meta{name = Name, type = element(1, Unit), comment = Comment, explain = List};
 
 %% structure unit
 parse_decode_unit(Unit = #tuple{name = Name, comment = Comment, explain = Explain}) ->
@@ -253,7 +268,7 @@ parse_decode_unit(Unit = #tuple{name = Name, comment = Comment, explain = Explai
     List = [parse_decode_unit(Field) || Field <- tuple_to_list(Explain)],
     #meta{name = Name, type = element(1, Unit), comment = Comment, explain = List};
 
-parse_decode_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
+parse_decode_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
 
     %% get beam abstract code
     Tag = element(1, Record),
@@ -309,7 +324,7 @@ parse_encode(Protocol, SyntaxList, Handler, ErlName) when is_list(SyntaxList) ->
     CsMeta = protocol_maker_cs:parse_meta_cs(Protocol, MetaList),
     Cs = #set{code = CsCode, meta = CsMeta},
     %% html
-    HtmlCode = protocol_maker_html:parse_code_html(Protocol, MetaList),
+    HtmlCode = protocol_maker_html:parse_code_html(Protocol, []), %% @todo
     Html = #set{meta = HtmlCode},
     %% code set
     #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
@@ -389,26 +404,45 @@ parse_encode_unit(Unit = #str{name = Name, comment = Comment}) ->
     HumpName = word:to_hump(Name),
     #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
 
+parse_encode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) when is_tuple(Explain) andalso tuple_size(Explain) > 0 andalso not is_atom(element(1, Explain)) ->
+    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
+    %% hump name
+    HumpName = word:to_hump(Name),
+    %% format sub unit
+    SubMeta = parse_encode_unit(#tuple{explain = Explain}),
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
+
 parse_encode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) ->
     Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
     %% hump name
     HumpName = word:to_hump(Name),
-    %% format subunit
+    %% format sub unit
     SubMeta = parse_encode_unit(Explain),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = lists:flatten([SubMeta]), key = Key};
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
+
+parse_encode_unit(Unit = #ets{name = Name, comment = Comment, explain = Explain, key = Key}) when is_tuple(Explain) andalso tuple_size(Explain) > 0 andalso not is_atom(element(1, Explain)) ->
+    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("ETS name could not be undefined: ~tp", [Unit]))),
+    %% hump name
+    HumpName = word:to_hump(Name),
+    %% format sub unit
+    SubMeta = parse_encode_unit(#record{explain = Explain}),
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
 
 parse_encode_unit(Unit = #ets{name = Name, comment = Comment, explain = Explain, key = Key}) ->
     Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("ETS name could not be undefined: ~tp", [Unit]))),
     %% hump name
     HumpName = word:to_hump(Name),
-    %% format subunit
+    %% format sub unit
     SubMeta = parse_encode_unit(Explain),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = lists:flatten([SubMeta]), key = Key};
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
 
 %% structure unit
-parse_encode_unit(#record{explain = Explain}) ->
+parse_encode_unit(Unit = #maps{name = Name, comment = Comment, explain = Explain}) ->
+    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("Tuple name could not be undefined: ~tp", [Unit]))),
+    HumpName = word:to_hump(Name),
     %% format per unit
-    parse_encode_unit(Explain);
+    List = [parse_encode_unit(Field) || Field <- tuple_to_list(Explain)],
+    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = List};
 
 %% structure unit
 parse_encode_unit(Unit = #tuple{name = Name, comment = Comment, explain = Explain}) ->
@@ -460,6 +494,5 @@ is_unit(#str{}) -> true;
 is_unit(#binary{}) -> true;
 is_unit(#list{}) -> true;
 is_unit(#ets{}) -> true;
-is_unit(#record{}) -> true;
 is_unit(#tuple{}) -> true;
 is_unit(_) -> false.

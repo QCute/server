@@ -169,6 +169,7 @@ export default class ChatProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // SystemChat
                     // ID
                     const id = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -190,8 +191,10 @@ export default class ChatProtocol {
                     const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                     const message = textDecoder.decode(messageArray);
                     offset = offset + messageLength;
+                    // object
+                    const systemChat = {id, roleId, roleName, type, message};
                     // add
-                    list.push({id, roleId, roleName, type, message});
+                    list.push(systemChat);
                 }
                 return {list};
             }
@@ -202,6 +205,7 @@ export default class ChatProtocol {
                 const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
                 const result = textDecoder.decode(resultArray);
                 offset = offset + resultLength;
+                // WorldChat
                 // ID
                 const id = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -223,7 +227,9 @@ export default class ChatProtocol {
                 const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                 const message = textDecoder.decode(messageArray);
                 offset = offset + messageLength;
-                return {result, id, roleId, roleName, type, message};
+                // object
+                const worldChat = {id, roleId, roleName, type, message};
+                return {result, worldChat};
             }
             case 11604: {
                 // 
@@ -231,6 +237,7 @@ export default class ChatProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // WorldChat
                     // ID
                     const id = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -252,8 +259,10 @@ export default class ChatProtocol {
                     const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                     const message = textDecoder.decode(messageArray);
                     offset = offset + messageLength;
+                    // object
+                    const worldChat = {id, roleId, roleName, type, message};
                     // add
-                    list.push({id, roleId, roleName, type, message});
+                    list.push(worldChat);
                 }
                 return {list};
             }
@@ -264,6 +273,7 @@ export default class ChatProtocol {
                 const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
                 const result = textDecoder.decode(resultArray);
                 offset = offset + resultLength;
+                // GuildChat
                 // ID
                 const id = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -285,7 +295,9 @@ export default class ChatProtocol {
                 const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                 const message = textDecoder.decode(messageArray);
                 offset = offset + messageLength;
-                return {result, id, roleId, roleName, type, message};
+                // object
+                const guildChat = {id, roleId, roleName, type, message};
+                return {result, guildChat};
             }
             case 11606: {
                 // 
@@ -293,6 +305,7 @@ export default class ChatProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // GuildChat
                     // ID
                     const id = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -314,8 +327,10 @@ export default class ChatProtocol {
                     const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                     const message = textDecoder.decode(messageArray);
                     offset = offset + messageLength;
+                    // object
+                    const guildChat = {id, roleId, roleName, type, message};
                     // add
-                    list.push({id, roleId, roleName, type, message});
+                    list.push(guildChat);
                 }
                 return {list};
             }
@@ -326,6 +341,7 @@ export default class ChatProtocol {
                 const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
                 const result = textDecoder.decode(resultArray);
                 offset = offset + resultLength;
+                // PrivateChat
                 // 发送者角色ID
                 const senderId = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -341,7 +357,9 @@ export default class ChatProtocol {
                 const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                 const message = textDecoder.decode(messageArray);
                 offset = offset + messageLength;
-                return {result, senderId, receiverId, type, message};
+                // object
+                const privateChat = {senderId, receiverId, type, message};
+                return {result, privateChat};
             }
             case 11608: {
                 // 
@@ -349,6 +367,7 @@ export default class ChatProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // PrivateChat
                     // 发送者角色ID
                     const senderId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -364,8 +383,10 @@ export default class ChatProtocol {
                     const messageArray = new Uint8Array(view.buffer.slice(offset, offset + messageLength));
                     const message = textDecoder.decode(messageArray);
                     offset = offset + messageLength;
+                    // object
+                    const privateChat = {senderId, receiverId, type, message};
                     // add
-                    list.push({senderId, receiverId, type, message});
+                    list.push(privateChat);
                 }
                 return {list};
             }

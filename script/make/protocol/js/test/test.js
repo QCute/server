@@ -23,26 +23,31 @@ const packet = {
         "str": "一23",
         "bst": "1二三",
 
+        "tuple": {
+            "tupleBinary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
+            "tupleSubTuple": {
+                "tupleSubTupleU8": 95,
+                "tupleSubTupleStr": "xyz",
+            },
+            "tupleSubList": [
+                {"tupleSubListI16": 456, "tupleSubListBst": "wow"},
+                {"tupleSubListI16": 369, "tupleSubListBst": "oops"},
+            ],
+            "tupleSubListSingle": [true, false, false, true, false],
+        },
+
         "indexList": [
             {
                 "listBinary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
-                "listBoolean": false,
-            
-                "listU8": 1,
-                "listU16": 2,
-                "listU32": 3,
-                "listU64": BigInt(4),
-            
-                "listI8": 4,
-                "listI16": 3,
-                "listI32": 2,
-                "listI64": BigInt(1),
-            
-                "listF32": 1.23,
-                "listF64": 4.56,
-            
-                "listStr": "一23",
-                "listBst": "1二三",
+                "listSubTuple": {
+                    "listSubTupleU8": 108,
+                    "listSubTupleStr": "qwe",
+                },
+                "listSubList": [
+                    {"listSubListI16": 456, "listSubListBst": "wow"},
+                    {"listSubListI16": 369, "listSubListBst": "oops"},
+                ],
+                "listSubListSingle": [true, false, false, true, false],
             }
         ],
 

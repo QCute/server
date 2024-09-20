@@ -29,6 +29,7 @@ function DungeonProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Dungeon
             -- 副本Id
             local dungeonId = string.unpack(">I4", data, offset)
             offset = offset + 4
@@ -38,7 +39,9 @@ function DungeonProtocol.decode(offset, protocol, data)
             -- 总次数
             local totalNumber = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {dungeonId = dungeonId, todayNumber = todayNumber, totalNumber = totalNumber}
+            -- object
+            local dungeon = {dungeonId = dungeonId, todayNumber = todayNumber, totalNumber = totalNumber}
+            list[listIndex] = dungeon
         end
         return {list = list}
     elseif protocol == 17002 then

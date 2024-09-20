@@ -78,6 +78,7 @@ function ChatProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- SystemChat
             -- ID
             local id = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -93,7 +94,9 @@ function ChatProtocol.decode(offset, protocol, data)
             -- 消息内容
             local message = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(message)
-            list[listIndex] = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+            -- object
+            local systemChat = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+            list[listIndex] = systemChat
         end
         return {list = list}
     elseif protocol == 11603 then
@@ -101,6 +104,7 @@ function ChatProtocol.decode(offset, protocol, data)
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
+        -- WorldChat
         -- ID
         local id = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -116,7 +120,9 @@ function ChatProtocol.decode(offset, protocol, data)
         -- 消息内容
         local message = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(message)
-        return {result = result, id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+        -- object
+        local worldChat = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+        return {result = result, worldChat = worldChat}
     elseif protocol == 11604 then
         local offset = offset
         -- 
@@ -124,6 +130,7 @@ function ChatProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- WorldChat
             -- ID
             local id = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -139,7 +146,9 @@ function ChatProtocol.decode(offset, protocol, data)
             -- 消息内容
             local message = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(message)
-            list[listIndex] = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+            -- object
+            local worldChat = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+            list[listIndex] = worldChat
         end
         return {list = list}
     elseif protocol == 11605 then
@@ -147,6 +156,7 @@ function ChatProtocol.decode(offset, protocol, data)
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
+        -- GuildChat
         -- ID
         local id = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -162,7 +172,9 @@ function ChatProtocol.decode(offset, protocol, data)
         -- 消息内容
         local message = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(message)
-        return {result = result, id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+        -- object
+        local guildChat = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+        return {result = result, guildChat = guildChat}
     elseif protocol == 11606 then
         local offset = offset
         -- 
@@ -170,6 +182,7 @@ function ChatProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- GuildChat
             -- ID
             local id = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -185,7 +198,9 @@ function ChatProtocol.decode(offset, protocol, data)
             -- 消息内容
             local message = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(message)
-            list[listIndex] = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+            -- object
+            local guildChat = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
+            list[listIndex] = guildChat
         end
         return {list = list}
     elseif protocol == 11607 then
@@ -193,6 +208,7 @@ function ChatProtocol.decode(offset, protocol, data)
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
+        -- PrivateChat
         -- 发送者角色ID
         local senderId = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -205,7 +221,9 @@ function ChatProtocol.decode(offset, protocol, data)
         -- 消息内容
         local message = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(message)
-        return {result = result, senderId = senderId, receiverId = receiverId, type = type, message = message}
+        -- object
+        local privateChat = {senderId = senderId, receiverId = receiverId, type = type, message = message}
+        return {result = result, privateChat = privateChat}
     elseif protocol == 11608 then
         local offset = offset
         -- 
@@ -213,6 +231,7 @@ function ChatProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- PrivateChat
             -- 发送者角色ID
             local senderId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -225,7 +244,9 @@ function ChatProtocol.decode(offset, protocol, data)
             -- 消息内容
             local message = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(message)
-            list[listIndex] = {senderId = senderId, receiverId = receiverId, type = type, message = message}
+            -- object
+            local privateChat = {senderId = senderId, receiverId = receiverId, type = type, message = message}
+            list[listIndex] = privateChat
         end
         return {list = list}
     else

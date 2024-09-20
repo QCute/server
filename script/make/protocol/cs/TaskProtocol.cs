@@ -32,17 +32,20 @@ public static class TaskProtocol
             {
                 // 任务列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Task
                     // 任务ID
                     var taskId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 当前数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 是否领取奖励
                     var isAward = reader.ReadByte();
+                    // object
+                    var task = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"taskId", taskId}, {"number", number}, {"isAward", isAward}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"taskId", taskId}, {"number", number}, {"isAward", isAward}});
+                    list.Add(task);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -51,13 +54,16 @@ public static class TaskProtocol
                 // 结果
                 var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var result = encoding.GetString(reader.ReadBytes(resultLength));
+                // Task
                 // 任务ID
                 var taskId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 当前数量
                 var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 // 是否领取奖励
                 var isAward = reader.ReadByte();
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"taskId", taskId}, {"number", number}, {"isAward", isAward}};
+                // object
+                var task = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"taskId", taskId}, {"number", number}, {"isAward", isAward}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"task", task}};
             }
             case 11203:
             {

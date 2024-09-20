@@ -42,47 +42,67 @@ public static class TestProtocol
                 var bstBytes = encoding.GetBytes((System.String)data["bst"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)bstBytes.Length));
                 writer.Write(bstBytes);
+                // tuple_binary
+                writer.Write((System.Byte[])((System.Collections.Generic.Dictionary<System.String, System.Object>)data["tuple"])["tupleBinary"]);
+                // tuple_sub_tuple_u8
+                writer.Write((System.Byte)((System.Collections.Generic.Dictionary<System.String, System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["tuple"])["tupleSubTuple"])["tupleSubTupleU8"]);
+                // tuple_sub_tuple_str
+                var tupleSubTupleStrBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["tuple"])["tupleSubTuple"])["tupleSubTupleStr"]);
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)tupleSubTupleStrBytes.Length));
+                writer.Write(tupleSubTupleStrBytes);
+                // tuple_sub_list
+                var tupleSubListData = (System.Collections.Generic.List<System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["tuple"])["tupleSubList"];
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)tupleSubListData.Count));
+                foreach(System.Collections.Generic.Dictionary<System.String, System.Object> tupleSubListDataItem in tupleSubListData)
+                {
+                    // tuple_sub_list_i16
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)((System.Collections.Generic.Dictionary<System.String, System.Object>)tupleSubListDataItem)["tupleSubListI16"]));
+                    // tuple_sub_list_bst
+                    var tupleSubListBstBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)tupleSubListDataItem)["tupleSubListBst"]);
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)tupleSubListBstBytes.Length));
+                    writer.Write(tupleSubListBstBytes);
+                }
+                // tuple_sub_list_single
+                var tupleSubListSingleData = (System.Collections.Generic.List<System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["tuple"])["tupleSubListSingle"];
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)tupleSubListSingleData.Count));
+                foreach(System.Boolean tupleSubListSingleDataItem in tupleSubListSingleData)
+                {
+                    // tuple_sub_list_single_bool
+                    writer.Write((System.Byte)((System.Boolean)tupleSubListSingleDataItem ? 1 : 0));
+                }
                 // list
-                var indexListData = (System.Collections.ArrayList)data["indexList"];
+                var indexListData = (System.Collections.Generic.List<System.Object>)data["indexList"];
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)indexListData.Count));
                 foreach(System.Collections.Generic.Dictionary<System.String, System.Object> indexListDataItem in indexListData)
                 {
                     // list_binary
-                    writer.Write((System.Byte[])indexListDataItem["listBinary"]);
-                    // list_boolean
-                    writer.Write((System.Byte)((System.Boolean)indexListDataItem["listBoolean"] ? 1 : 0));
-                    // list_u8
-                    writer.Write((System.Byte)indexListDataItem["listU8"]);
-                    // list_u16
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)indexListDataItem["listU16"]));
-                    // list_u32
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)indexListDataItem["listU32"]));
-                    // list_u64
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)indexListDataItem["listU64"]));
-                    // list_i8
-                    writer.Write((System.SByte)indexListDataItem["listI8"]);
-                    // list_i16
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)indexListDataItem["listI16"]));
-                    // list_i32
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)indexListDataItem["listI32"]));
-                    // list_i64
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)indexListDataItem["listI64"]));
-                    // list_f32
-                    var listF32Bytes = System.BitConverter.GetBytes((System.Single)indexListDataItem["listF32"]);
-                    if (System.BitConverter.IsLittleEndian) System.Array.Reverse(listF32Bytes);
-                    writer.Write(listF32Bytes);
-                    // list_f64
-                    var listF64Bytes = System.BitConverter.GetBytes((System.Double)indexListDataItem["listF64"]);
-                    if (System.BitConverter.IsLittleEndian) System.Array.Reverse(listF64Bytes);
-                    writer.Write(listF64Bytes);
-                    // list_str
-                    var listStrBytes = encoding.GetBytes((System.String)indexListDataItem["listStr"]);
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listStrBytes.Length));
-                    writer.Write(listStrBytes);
-                    // list_bst
-                    var listBstBytes = encoding.GetBytes((System.String)indexListDataItem["listBst"]);
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listBstBytes.Length));
-                    writer.Write(listBstBytes);
+                    writer.Write((System.Byte[])((System.Collections.Generic.Dictionary<System.String, System.Object>)indexListDataItem)["listBinary"]);
+                    // list_sub_tuple_u8
+                    writer.Write((System.Byte)((System.Collections.Generic.Dictionary<System.String, System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)indexListDataItem)["listSubTuple"])["listSubTupleU8"]);
+                    // list_sub_tuple_str
+                    var listSubTupleStrBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)indexListDataItem)["listSubTuple"])["listSubTupleStr"]);
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listSubTupleStrBytes.Length));
+                    writer.Write(listSubTupleStrBytes);
+                    // list_sub_list
+                    var listSubListData = (System.Collections.Generic.List<System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)indexListDataItem)["listSubList"];
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listSubListData.Count));
+                    foreach(System.Collections.Generic.Dictionary<System.String, System.Object> listSubListDataItem in listSubListData)
+                    {
+                        // list_sub_list_i16
+                        writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)((System.Collections.Generic.Dictionary<System.String, System.Object>)listSubListDataItem)["listSubListI16"]));
+                        // list_sub_list_bst
+                        var listSubListBstBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)listSubListDataItem)["listSubListBst"]);
+                        writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listSubListBstBytes.Length));
+                        writer.Write(listSubListBstBytes);
+                    }
+                    // list_sub_list_single
+                    var listSubListSingleData = (System.Collections.Generic.List<System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)indexListDataItem)["listSubListSingle"];
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listSubListSingleData.Count));
+                    foreach(System.Boolean listSubListSingleDataItem in listSubListSingleData)
+                    {
+                        // list_sub_list_single_bool
+                        writer.Write((System.Byte)((System.Boolean)listSubListSingleDataItem ? 1 : 0));
+                    }
                 }
                 // key_list
                 var keyListData = (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)data["keyList"];
@@ -90,39 +110,39 @@ public static class TestProtocol
                 foreach(System.Collections.Generic.KeyValuePair<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>> keyListDataItem in keyListData)
                 {
                     // list_binary
-                    writer.Write((System.Byte[])keyListDataItem.Value["listBinary"]);
+                    writer.Write((System.Byte[])((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listBinary"]);
                     // list_boolean
-                    writer.Write((System.Byte)((System.Boolean)keyListDataItem.Value["listBoolean"] ? 1 : 0));
+                    writer.Write((System.Byte)((System.Boolean)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listBoolean"] ? 1 : 0));
                     // list_u8
-                    writer.Write((System.Byte)keyListDataItem.Value["listU8"]);
+                    writer.Write((System.Byte)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listU8"]);
                     // list_u16
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)keyListDataItem.Value["listU16"]));
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listU16"]));
                     // list_u32
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)keyListDataItem.Value["listU32"]));
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listU32"]));
                     // list_u64
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)keyListDataItem.Value["listU64"]));
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listU64"]));
                     // list_i8
-                    writer.Write((System.SByte)keyListDataItem.Value["listI8"]);
+                    writer.Write((System.SByte)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listI8"]);
                     // list_i16
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)keyListDataItem.Value["listI16"]));
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listI16"]));
                     // list_i32
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)keyListDataItem.Value["listI32"]));
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listI32"]));
                     // list_i64
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)keyListDataItem.Value["listI64"]));
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listI64"]));
                     // list_f32
-                    var listF32Bytes = System.BitConverter.GetBytes((System.Single)keyListDataItem.Value["listF32"]);
+                    var listF32Bytes = System.BitConverter.GetBytes((System.Single)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listF32"]);
                     if (System.BitConverter.IsLittleEndian) System.Array.Reverse(listF32Bytes);
                     writer.Write(listF32Bytes);
                     // list_f64
-                    var listF64Bytes = System.BitConverter.GetBytes((System.Double)keyListDataItem.Value["listF64"]);
+                    var listF64Bytes = System.BitConverter.GetBytes((System.Double)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listF64"]);
                     if (System.BitConverter.IsLittleEndian) System.Array.Reverse(listF64Bytes);
                     writer.Write(listF64Bytes);
                     // list_str
-                    var listStrBytes = encoding.GetBytes((System.String)keyListDataItem.Value["listStr"]);
+                    var listStrBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listStr"]);
                     writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listStrBytes.Length));
                     writer.Write(listStrBytes);
                     // list_bst
-                    var listBstBytes = encoding.GetBytes((System.String)keyListDataItem.Value["listBst"]);
+                    var listBstBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)keyListDataItem.Value)["listBst"]);
                     writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)listBstBytes.Length));
                     writer.Write(listBstBytes);
                 }
@@ -168,43 +188,82 @@ public static class TestProtocol
                 // bst
                 var bstLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var bst = encoding.GetString(reader.ReadBytes(bstLength));
+                // tuple
+                // tuple_binary
+                var tupleBinary = reader.ReadBytes(6);
+                // tuple_sub_tuple
+                // tuple_sub_tuple_u8
+                var tupleSubTupleU8 = reader.ReadByte();
+                // tuple_sub_tuple_str
+                var tupleSubTupleStrLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var tupleSubTupleStr = encoding.GetString(reader.ReadBytes(tupleSubTupleStrLength));
+                // object
+                var tupleSubTuple = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleSubTupleU8", tupleSubTupleU8}, {"tupleSubTupleStr", tupleSubTupleStr}};
+                // tuple_sub_list
+                var tupleSubListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var tupleSubList = new System.Collections.Generic.List<System.Object>(tupleSubListLength);
+                while (tupleSubListLength-- > 0)
+                {
+                    // tuple_sub_list_i16
+                    var tupleSubListI16 = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // tuple_sub_list_bst
+                    var tupleSubListBstLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var tupleSubListBst = encoding.GetString(reader.ReadBytes(tupleSubListBstLength));
+                    // add
+                    tupleSubList.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleSubListI16", tupleSubListI16}, {"tupleSubListBst", tupleSubListBst}});
+                }
+                // tuple_sub_list_single
+                var tupleSubListSingleLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var tupleSubListSingle = new System.Collections.Generic.List<System.Object>(tupleSubListSingleLength);
+                while (tupleSubListSingleLength-- > 0)
+                {
+                    // tuple_sub_list_single_bool
+                    var tupleSubListSingleBool = reader.ReadByte() != 0;
+                    // add
+                    tupleSubListSingle.Add(tupleSubListSingleBool);
+                }
+                // object
+                var tuple = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleBinary", tupleBinary}, {"tupleSubTuple", tupleSubTuple}, {"tupleSubList", tupleSubList}, {"tupleSubListSingle", tupleSubListSingle}};
                 // list
                 var indexListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var indexList = new System.Collections.ArrayList(indexListLength);
+                var indexList = new System.Collections.Generic.List<System.Object>(indexListLength);
                 while (indexListLength-- > 0)
                 {
                     // list_binary
                     var listBinary = reader.ReadBytes(6);
-                    // list_boolean
-                    var listBoolean = reader.ReadByte() != 0;
-                    // list_u8
-                    var listU8 = reader.ReadByte();
-                    // list_u16
-                    var listU16 = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // list_u32
-                    var listU32 = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // list_u64
-                    var listU64 = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // list_i8
-                    var listI8 = reader.ReadSByte();
-                    // list_i16
-                    var listI16 = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // list_i32
-                    var listI32 = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // list_i64
-                    var listI64 = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // list_f32
-                    var listF32 = System.BitConverter.ToSingle(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32())), 0);
-                    // list_f64
-                    var listF64 = System.BitConverter.ToDouble(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64())), 0);
-                    // list_str
-                    var listStrLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var listStr = encoding.GetString(reader.ReadBytes(listStrLength));
-                    // list_bst
-                    var listBstLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var listBst = encoding.GetString(reader.ReadBytes(listBstLength));
+                    // list_sub_tuple
+                    // list_sub_tuple_u8
+                    var listSubTupleU8 = reader.ReadByte();
+                    // list_sub_tuple_str
+                    var listSubTupleStrLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var listSubTupleStr = encoding.GetString(reader.ReadBytes(listSubTupleStrLength));
+                    // object
+                    var listSubTuple = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listSubTupleU8", listSubTupleU8}, {"listSubTupleStr", listSubTupleStr}};
+                    // list_sub_list
+                    var listSubListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var listSubList = new System.Collections.Generic.List<System.Object>(listSubListLength);
+                    while (listSubListLength-- > 0)
+                    {
+                        // list_sub_list_i16
+                        var listSubListI16 = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                        // list_sub_list_bst
+                        var listSubListBstLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                        var listSubListBst = encoding.GetString(reader.ReadBytes(listSubListBstLength));
+                        // add
+                        listSubList.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listSubListI16", listSubListI16}, {"listSubListBst", listSubListBst}});
+                    }
+                    // list_sub_list_single
+                    var listSubListSingleLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var listSubListSingle = new System.Collections.Generic.List<System.Object>(listSubListSingleLength);
+                    while (listSubListSingleLength-- > 0)
+                    {
+                        // list_sub_list_single_bool
+                        var listSubListSingleBool = reader.ReadByte() != 0;
+                        // add
+                        listSubListSingle.Add(listSubListSingleBool);
+                    }
                     // add
-                    indexList.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listBinary", listBinary}, {"listBoolean", listBoolean}, {"listU8", listU8}, {"listU16", listU16}, {"listU32", listU32}, {"listU64", listU64}, {"listI8", listI8}, {"listI16", listI16}, {"listI32", listI32}, {"listI64", listI64}, {"listF32", listF32}, {"listF64", listF64}, {"listStr", listStr}, {"listBst", listBst}});
+                    indexList.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listBinary", listBinary}, {"listSubTuple", listSubTuple}, {"listSubList", listSubList}, {"listSubListSingle", listSubListSingle}});
                 }
                 // key_list
                 var keyListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
@@ -244,7 +303,7 @@ public static class TestProtocol
                     // add
                     keyList[listU8] = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listBinary", listBinary}, {"listBoolean", listBoolean}, {"listU8", listU8}, {"listU16", listU16}, {"listU32", listU32}, {"listU64", listU64}, {"listI8", listI8}, {"listI16", listI16}, {"listI32", listI32}, {"listI64", listI64}, {"listF32", listF32}, {"listF64", listF64}, {"listStr", listStr}, {"listBst", listBst}};
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"binary", binary}, {"boolean", boolean}, {"u8", u8}, {"u16", u16}, {"u32", u32}, {"u64", u64}, {"i8", i8}, {"i16", i16}, {"i32", i32}, {"i64", i64}, {"f32", f32}, {"f64", f64}, {"str", str}, {"bst", bst}, {"indexList", indexList}, {"keyList", keyList}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"binary", binary}, {"boolean", boolean}, {"u8", u8}, {"u16", u16}, {"u32", u32}, {"u64", u64}, {"i8", i8}, {"i16", i16}, {"i32", i32}, {"i64", i64}, {"f32", f32}, {"f64", f64}, {"str", str}, {"bst", bst}, {"tuple", tuple}, {"indexList", indexList}, {"keyList", keyList}};
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

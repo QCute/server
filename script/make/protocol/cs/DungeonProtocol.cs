@@ -30,17 +30,20 @@ public static class DungeonProtocol
             {
                 // 
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Dungeon
                     // 副本Id
                     var dungeonId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 今天次数
                     var todayNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 总次数
                     var totalNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var dungeon = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dungeonId", dungeonId}, {"todayNumber", todayNumber}, {"totalNumber", totalNumber}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dungeonId", dungeonId}, {"todayNumber", todayNumber}, {"totalNumber", totalNumber}});
+                    list.Add(dungeon);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

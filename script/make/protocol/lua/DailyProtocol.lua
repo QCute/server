@@ -36,13 +36,16 @@ function DailyProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Count
             -- 统计类型
             local type = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 今日数量
             local todayNumber = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {type = type, todayNumber = todayNumber}
+            -- object
+            local count = {type = type, todayNumber = todayNumber}
+            list[listIndex] = count
         end
         return {list = list}
     elseif protocol == 12302 then
@@ -52,21 +55,27 @@ function DailyProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Daily
             -- 日常ID
             local dailyId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 是否领取奖励
             local isAward = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {dailyId = dailyId, isAward = isAward}
+            -- object
+            local daily = {dailyId = dailyId, isAward = isAward}
+            list[listIndex] = daily
         end
+        -- DailyActive
         -- 奖励阶段ID
         local stageId = string.unpack(">I4", data, offset)
         offset = offset + 4
         -- 活跃度
         local score = string.unpack(">I4", data, offset)
         offset = offset + 4
-        return {list = list, stageId = stageId, score = score}
+        -- object
+        local dailyActive = {stageId = stageId, score = score}
+        return {list = list, dailyActive = dailyActive}
     elseif protocol == 12303 then
         local offset = offset
         -- 结果

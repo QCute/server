@@ -1,6 +1,5 @@
 -module(map_protocol).
 -export([decode/2, encode/2]).
--include("attribute.hrl").
 -include("map.hrl").
 
 -spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
@@ -59,8 +58,8 @@ encode(Protocol, Data) ->
 
 encode_list_20011(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode_list_20011(Acc = <<_/binary>>, Length, [#fighter{id = Id, type = Type, attribute = #attribute{fc = Fc, hp = Hp, health = Health}, skill = Skill, buff = Buff, x = X, y = Y} | List]) ->
-    encode_list_20011(<<Acc/binary, Id:64, Type:8, Fc:64, Hp:64, Health:64, (encode_skill_20011(<<>>, 0, Skill))/binary, (encode_buff_20011(<<>>, 0, Buff))/binary, X:16, Y:16>>, Length + 1, List).
+encode_list_20011(Acc = <<_/binary>>, Length, [#fighter{id = Id, type = Type, skill = Skill, buff = Buff, x = X, y = Y} | List]) ->
+    encode_list_20011(<<Acc/binary, Id:64, Type:8, (encode_skill_20011(<<>>, 0, Skill))/binary, (encode_buff_20011(<<>>, 0, Buff))/binary, X:16, Y:16>>, Length + 1, List).
 
 encode_buff_20011(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
@@ -74,8 +73,8 @@ encode_skill_20011(Acc = <<_/binary>>, Length, [#battle_skill{skill_id = SkillId
 
 encode_list_20014(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode_list_20014(Acc = <<_/binary>>, Length, [#fighter{id = Id, type = Type, attribute = #attribute{fc = Fc, hp = Hp, health = Health}, skill = Skill, buff = Buff, x = X, y = Y} | List]) ->
-    encode_list_20014(<<Acc/binary, Id:64, Type:8, Fc:64, Hp:64, Health:64, (encode_skill_20014(<<>>, 0, Skill))/binary, (encode_buff_20014(<<>>, 0, Buff))/binary, X:16, Y:16>>, Length + 1, List).
+encode_list_20014(Acc = <<_/binary>>, Length, [#fighter{id = Id, type = Type, skill = Skill, buff = Buff, x = X, y = Y} | List]) ->
+    encode_list_20014(<<Acc/binary, Id:64, Type:8, (encode_skill_20014(<<>>, 0, Skill))/binary, (encode_buff_20014(<<>>, 0, Buff))/binary, X:16, Y:16>>, Length + 1, List).
 
 encode_buff_20014(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;

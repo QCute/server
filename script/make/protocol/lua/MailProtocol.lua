@@ -39,6 +39,7 @@ function MailProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Mail
             -- 邮件ID
             local mailId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -73,7 +74,9 @@ function MailProtocol.decode(offset, protocol, data)
                 offset = offset + 2
                 attachment[attachmentIndex] = {itemId = itemId, number = number}
             end
-            list[listIndex] = {mailId = mailId, receiveTime = receiveTime, expireTime = expireTime, readTime = readTime, receiveAttachmentTime = receiveAttachmentTime, title = title, content = content, attachment = attachment}
+            -- object
+            local mail = {mailId = mailId, receiveTime = receiveTime, expireTime = expireTime, readTime = readTime, receiveAttachmentTime = receiveAttachmentTime, title = title, content = content, attachment = attachment}
+            list[listIndex] = mail
         end
         return {list = list}
     elseif protocol == 11402 then

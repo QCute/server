@@ -469,25 +469,32 @@ protocol_test() ->
         "一23",
         <<"1二三"/utf8>>,
 
+        {
+            <<"abcdef">>,
+            {
+                95,
+                "xyz"
+            },
+            [
+                {456, <<"wow">>},
+                {369, <<"oops">>}
+            ],
+
+            [true, false, false, true, false]
+        },
+
         [{
             <<"abcdef">>,
-            false,
+            {
+                95,
+                "xyz"
+            },
+            [
+                {456, <<"wow">>},
+                {369, <<"oops">>}
+            ],
 
-            1,
-            2,
-            3,
-            4,
-
-            4,
-            3,
-            2,
-            1,
-
-            1.23,
-            4.56,
-
-            "一23",
-            <<"1二三"/utf8>>
+            [true, false, false, true, false]
         }],
         [{
             <<"abcdef">>,

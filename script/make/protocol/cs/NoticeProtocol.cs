@@ -20,9 +20,10 @@ public static class NoticeProtocol
             {
                 // 公告列表
                 var noticeListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var noticeList = new System.Collections.ArrayList(noticeListLength);
+                var noticeList = new System.Collections.Generic.List<System.Object>(noticeListLength);
                 while (noticeListLength-- > 0)
                 {
+                    // NoticeRole
                     // 公告ID
                     var noticeId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 收到时间
@@ -35,8 +36,10 @@ public static class NoticeProtocol
                     // 内容
                     var contentLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var content = encoding.GetString(reader.ReadBytes(contentLength));
+                    // object
+                    var noticeRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"noticeId", noticeId}, {"receiveTime", receiveTime}, {"readTime", readTime}, {"title", title}, {"content", content}};
                     // add
-                    noticeList.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"noticeId", noticeId}, {"receiveTime", receiveTime}, {"readTime", readTime}, {"title", title}, {"content", content}});
+                    noticeList.Add(noticeRole);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"noticeList", noticeList}};
             }

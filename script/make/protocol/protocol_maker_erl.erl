@@ -511,12 +511,12 @@ parse_decode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T]
 
     parse_decode_erl_loop(T, Protocol, Depth, NextScopeArgs, lists:append(SubRecords, [Record | Records]), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain = [#meta{explain = SubExplain}], key = Key} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain = #meta{explain = SubExplain}, key = Key} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
     KeyField = lists:keyfind(Key, #meta.name, SubExplain),
     Key =/= undefined andalso KeyField == undefined andalso erlang:throw(lists:flatten(io_lib:format("Cound not found field ~ts in explain", [Key]))),
 
     %% recursive
-    {NextScopeArgs, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(Explain, Protocol, Depth + 1, "", [], [], [], []),
+    {NextScopeArgs, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop([Explain], Protocol, Depth + 1, "", [], [], [], []),
 
     SubFunction = lists:concat([
         "decode_", word:to_snake(Name), "_", Protocol, "(<<_/binary>>, Size, 0, List) ->", "\n",
@@ -662,12 +662,12 @@ parse_encode_erl_loop([#meta{name = Name, type = record, explain = Explain, key 
     %% stacked
     parse_encode_erl_loop(T, Protocol, Depth, lists:append(SubRecords, [Record | Records]), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
 
-parse_encode_erl_loop([#meta{name = Name, type = list, explain = Explain = [#meta{explain = SubExplain}], key = Key} | T], Protocol, Depth, Records, Functions, Names, List) ->
+parse_encode_erl_loop([#meta{name = Name, type = list, explain = Explain = #meta{explain = SubExplain}, key = Key} | T], Protocol, Depth, Records, Functions, Names, List) ->
     KeyField = lists:keyfind(Key, #meta.name, SubExplain),
     Key =/= undefined andalso KeyField == undefined andalso erlang:throw(lists:flatten(io_lib:format("Cound not found field ~ts in explain", [Key]))),
 
     %% recursive
-    {SubRecords, SubFunctions, SubNames, SubCodes} = parse_encode_erl_loop(Explain, Protocol, Depth + 1, [], [], [], []),
+    {SubRecords, SubFunctions, SubNames, SubCodes} = parse_encode_erl_loop([Explain], Protocol, Depth + 1, [], [], [], []),
 
     SubFunction = lists:concat([
         "encode_", word:to_snake(Name), "_", Protocol, "(Acc = <<_/binary>>, Length, []) ->", "\n",
@@ -683,12 +683,12 @@ parse_encode_erl_loop([#meta{name = Name, type = list, explain = Explain = [#met
 
     parse_encode_erl_loop(T, Protocol, Depth, lists:append(SubRecords, Records), [SubFunction | Functions], [Name | Names], [Code | List]);
 
-parse_encode_erl_loop([#meta{name = Name, type = ets, explain = Explain = [#meta{explain = SubExplain}], key = Key} | T], Protocol, Depth, Records, Functions, Names, List) ->
+parse_encode_erl_loop([#meta{name = Name, type = ets, explain = Explain = #meta{explain = SubExplain}, key = Key} | T], Protocol, Depth, Records, Functions, Names, List) ->
     KeyField = lists:keyfind(Key, #meta.name, SubExplain),
     Key =/= undefined andalso KeyField == undefined andalso erlang:throw(lists:flatten(io_lib:format("Cound not found field ~ts in explain", [Key]))),
 
     %% recursive
-    {SubRecords, SubFunctions, SubNames, SubCodes} = parse_encode_erl_loop(Explain, Protocol, Depth + 1, [], [], [], []),
+    {SubRecords, SubFunctions, SubNames, SubCodes} = parse_encode_erl_loop([Explain], Protocol, Depth + 1, [], [], [], []),
 
     SubFunction = lists:concat([
         "encode_", word:to_snake(Name), "_", Protocol, "(Acc = <<_/binary>>, Length, Tab, '$end_of_table') ->", "\n",

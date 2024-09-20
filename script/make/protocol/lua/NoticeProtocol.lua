@@ -18,6 +18,7 @@ function NoticeProtocol.decode(offset, protocol, data)
         local noticeListLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for noticeListIndex = 1, noticeListLength do
+            -- NoticeRole
             -- 公告ID
             local noticeId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -33,7 +34,9 @@ function NoticeProtocol.decode(offset, protocol, data)
             -- 内容
             local content = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(content)
-            noticeList[noticeListIndex] = {noticeId = noticeId, receiveTime = receiveTime, readTime = readTime, title = title, content = content}
+            -- object
+            local noticeRole = {noticeId = noticeId, receiveTime = receiveTime, readTime = readTime, title = title, content = content}
+            noticeList[noticeListIndex] = noticeRole
         end
         return {noticeList = noticeList}
     elseif protocol == 50002 then

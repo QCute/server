@@ -16,6 +16,7 @@ export default class BuffProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Buff
                     // BuffID
                     const buffId = view.getUint32(offset, false);
                     offset = offset + 4;
@@ -25,8 +26,10 @@ export default class BuffProtocol {
                     // 叠加数量
                     const overlap = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const buff = {buffId, expireTime, overlap};
                     // add
-                    list.push({buffId, expireTime, overlap});
+                    list.push(buff);
                 }
                 return {list};
             }
@@ -36,11 +39,14 @@ export default class BuffProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Buff
                     // BuffID
                     const buffId = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const buff = {buffId};
                     // add
-                    list.push({buffId});
+                    list.push(buff);
                 }
                 return {list};
             }

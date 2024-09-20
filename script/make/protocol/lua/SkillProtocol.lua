@@ -25,13 +25,16 @@ function SkillProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Skill
             -- 技能ID
             local skillId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 技能等级
             local level = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {skillId = skillId, level = level}
+            -- object
+            local skill = {skillId = skillId, level = level}
+            list[listIndex] = skill
         end
         return {list = list}
     elseif protocol == 11702 then

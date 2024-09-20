@@ -32,6 +32,7 @@ function TaskProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Task
             -- 任务ID
             local taskId = string.unpack(">I4", data, offset)
             offset = offset + 4
@@ -41,7 +42,9 @@ function TaskProtocol.decode(offset, protocol, data)
             -- 是否领取奖励
             local isAward = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {taskId = taskId, number = number, isAward = isAward}
+            -- object
+            local task = {taskId = taskId, number = number, isAward = isAward}
+            list[listIndex] = task
         end
         return {list = list}
     elseif protocol == 11202 then
@@ -49,6 +52,7 @@ function TaskProtocol.decode(offset, protocol, data)
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
+        -- Task
         -- 任务ID
         local taskId = string.unpack(">I4", data, offset)
         offset = offset + 4
@@ -58,7 +62,9 @@ function TaskProtocol.decode(offset, protocol, data)
         -- 是否领取奖励
         local isAward = string.unpack(">I1", data, offset)
         offset = offset + 1
-        return {result = result, taskId = taskId, number = number, isAward = isAward}
+        -- object
+        local task = {taskId = taskId, number = number, isAward = isAward}
+        return {result = result, task = task}
     elseif protocol == 11203 then
         local offset = offset
         -- 结果

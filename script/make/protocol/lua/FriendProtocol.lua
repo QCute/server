@@ -53,6 +53,7 @@ function FriendProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Friend
             -- 好友角色ID
             local friendRoleId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -65,7 +66,9 @@ function FriendProtocol.decode(offset, protocol, data)
             -- 添加/修改状态时间
             local time = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {friendRoleId = friendRoleId, friendName = friendName, relation = relation, time = time}
+            -- object
+            local friend = {friendRoleId = friendRoleId, friendName = friendName, relation = relation, time = time}
+            list[listIndex] = friend
         end
         return {list = list}
     elseif protocol == 11502 then

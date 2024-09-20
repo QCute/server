@@ -16,14 +16,17 @@ export default class TitleProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Title
                     // 称号ID
                     const titleId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 过期时间
                     const expireTime = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const title = {titleId, expireTime};
                     // add
-                    list.push({titleId, expireTime});
+                    list.push(title);
                 }
                 return {list};
             }
@@ -33,11 +36,14 @@ export default class TitleProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Title
                     // 称号ID
                     const titleId = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const title = {titleId};
                     // add
-                    list.push({titleId});
+                    list.push(title);
                 }
                 return {list};
             }

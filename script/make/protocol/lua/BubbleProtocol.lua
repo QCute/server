@@ -18,13 +18,16 @@ function BubbleProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Bubble
             -- 气泡ID
             local bubbleId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 过期时间
             local expireTime = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {bubbleId = bubbleId, expireTime = expireTime}
+            -- object
+            local bubble = {bubbleId = bubbleId, expireTime = expireTime}
+            list[listIndex] = bubble
         end
         return {list = list}
     elseif protocol == 12102 then
@@ -34,10 +37,13 @@ function BubbleProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Bubble
             -- 气泡ID
             local bubbleId = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {bubbleId = bubbleId}
+            -- object
+            local bubble = {bubbleId = bubbleId}
+            list[listIndex] = bubble
         end
         return {list = list}
     else

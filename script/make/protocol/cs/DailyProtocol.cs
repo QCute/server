@@ -36,15 +36,18 @@ public static class DailyProtocol
             {
                 // 统计列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Count
                     // 统计类型
                     var type = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 今日数量
                     var todayNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var count = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"todayNumber", todayNumber}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"todayNumber", todayNumber}});
+                    list.Add(count);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -52,21 +55,27 @@ public static class DailyProtocol
             {
                 // 日常列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Daily
                     // 日常ID
                     var dailyId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 是否领取奖励
                     var isAward = reader.ReadByte();
+                    // object
+                    var daily = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dailyId", dailyId}, {"isAward", isAward}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dailyId", dailyId}, {"isAward", isAward}});
+                    list.Add(daily);
                 }
+                // DailyActive
                 // 奖励阶段ID
                 var stageId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 活跃度
                 var score = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}, {"stageId", stageId}, {"score", score}};
+                // object
+                var dailyActive = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"stageId", stageId}, {"score", score}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}, {"dailyActive", dailyActive}};
             }
             case 12303:
             {

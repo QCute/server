@@ -1,4 +1,4 @@
-using List = System.Collections.ArrayList;
+using List = System.Collections.Generic.List<System.Object>;
 using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;
 
 public static class MapProtocol
@@ -33,9 +33,6 @@ public static class MapProtocol
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "对象列表"}, {"explain", new List() {
                         new Map() { {"name", "id"}, {"type", "u64"}, {"comment", "ID"}, {"explain", new List()} },
                         new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} },
-                        new Map() { {"name", "fc"}, {"type", "u64"}, {"comment", "战力"}, {"explain", new List()} },
-                        new Map() { {"name", "hp"}, {"type", "u64"}, {"comment", "血量"}, {"explain", new List()} },
-                        new Map() { {"name", "health"}, {"type", "u64"}, {"comment", "健康"}, {"explain", new List()} },
                         new Map() { {"name", "skill"}, {"type", "list"}, {"comment", "技能列表"}, {"explain", new List() {
                             new Map() { {"name", "skillId"}, {"type", "u32"}, {"comment", "技能ID"}, {"explain", new List()} },
                             new Map() { {"name", "time"}, {"type", "u32"}, {"comment", "时间"}, {"explain", new List()} },

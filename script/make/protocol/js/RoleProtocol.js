@@ -17,6 +17,7 @@ export default class RoleProtocol {
     static decode(textDecoder, view, offset, protocol) {
         switch (protocol) {
             case 10101: {
+                // Role
                 // 角色ID
                 const roleId = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -35,9 +36,12 @@ export default class RoleProtocol {
                 // 等级
                 const level = view.getBigUint64(offset, false);
                 offset = offset + 8;
-                return {roleId, roleName, sex, classes, level};
+                // object
+                const role = {roleId, roleName, sex, classes, level};
+                return {role};
             }
             case 10102: {
+                // Asset
                 // 金币
                 const gold = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -50,9 +54,12 @@ export default class RoleProtocol {
                 // 经验
                 const exp = view.getBigUint64(offset, false);
                 offset = offset + 8;
-                return {gold, silver, copper, exp};
+                // object
+                const asset = {gold, silver, copper, exp};
+                return {asset};
             }
             case 10103: {
+                // Vip
                 // 等级
                 const vipLevel = view.getUint8(offset, false);
                 offset = offset + 1;
@@ -62,7 +69,9 @@ export default class RoleProtocol {
                 // 过期时间
                 const expireTime = view.getUint32(offset, false);
                 offset = offset + 4;
-                return {vipLevel, exp, expireTime};
+                // object
+                const vip = {vipLevel, exp, expireTime};
+                return {vip};
             }
             default: throw("unknown protocol define: " + protocol)
         }

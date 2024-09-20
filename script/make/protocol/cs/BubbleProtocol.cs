@@ -20,15 +20,18 @@ public static class BubbleProtocol
             {
                 // 气泡列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Bubble
                     // 气泡ID
                     var bubbleId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 过期时间
                     var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var bubble = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"bubbleId", bubbleId}, {"expireTime", expireTime}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"bubbleId", bubbleId}, {"expireTime", expireTime}});
+                    list.Add(bubble);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -36,13 +39,16 @@ public static class BubbleProtocol
             {
                 // 气泡ID列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Bubble
                     // 气泡ID
                     var bubbleId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var bubble = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"bubbleId", bubbleId}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"bubbleId", bubbleId}});
+                    list.Add(bubble);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

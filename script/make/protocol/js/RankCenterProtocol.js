@@ -28,6 +28,7 @@ export default class RankCenterProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Rank
                     // 类型
                     const type = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -52,8 +53,10 @@ export default class RankCenterProtocol {
                     // 服务器ID
                     const serverId = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const rank = {type, order, key, value, time, name, serverId};
                     // add
-                    list.push({type, order, key, value, time, name, serverId});
+                    list.push(rank);
                 }
                 return {list};
             }
@@ -63,6 +66,7 @@ export default class RankCenterProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Rank
                     // 类型
                     const type = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -87,14 +91,19 @@ export default class RankCenterProtocol {
                     // 服务器ID
                     const serverId = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // 
                     // 等级
                     const level = view.getUint16(offset, false);
                     offset = offset + 2;
                     // 职业
                     const classes = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const other = {level, classes};
+                    // object
+                    const rank = {type, order, key, value, time, name, serverId, other};
                     // add
-                    list.push({type, order, key, value, time, name, serverId, level, classes});
+                    list.push(rank);
                 }
                 return {list};
             }
@@ -104,6 +113,7 @@ export default class RankCenterProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Rank
                     // 类型
                     const type = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -128,6 +138,7 @@ export default class RankCenterProtocol {
                     // 服务器ID
                     const serverId = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // 
                     // 等级
                     const level = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -137,8 +148,12 @@ export default class RankCenterProtocol {
                     // 性别
                     const sex = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const other = {level, classes, sex};
+                    // object
+                    const rank = {type, order, key, value, time, name, serverId, other};
                     // add
-                    list.push({type, order, key, value, time, name, serverId, level, classes, sex});
+                    list.push(rank);
                 }
                 return {list};
             }
@@ -148,6 +163,7 @@ export default class RankCenterProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Rank
                     // 类型
                     const type = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -172,6 +188,7 @@ export default class RankCenterProtocol {
                     // 服务器ID
                     const serverId = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // 
                     // 等级
                     const level = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -184,8 +201,12 @@ export default class RankCenterProtocol {
                     // VIP等级
                     const vipLevel = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const other = {level, classes, sex, vipLevel};
+                    // object
+                    const rank = {type, order, key, value, time, name, serverId, other};
                     // add
-                    list.push({type, order, key, value, time, name, serverId, level, classes, sex, vipLevel});
+                    list.push(rank);
                 }
                 return {list};
             }
@@ -195,6 +216,7 @@ export default class RankCenterProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Rank
                     // 类型
                     const type = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -219,6 +241,7 @@ export default class RankCenterProtocol {
                     // 服务器ID
                     const serverId = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // 
                     // 等级
                     const level = view.getUint16(offset, false);
                     offset = offset + 2;
@@ -234,8 +257,12 @@ export default class RankCenterProtocol {
                     // 头像
                     const avatar = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const other = {level, classes, sex, vipLevel, avatar};
+                    // object
+                    const rank = {type, order, key, value, time, name, serverId, other};
                     // add
-                    list.push({type, order, key, value, time, name, serverId, level, classes, sex, vipLevel, avatar});
+                    list.push(rank);
                 }
                 return {list};
             }

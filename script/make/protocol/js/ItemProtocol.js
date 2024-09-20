@@ -52,6 +52,7 @@ export default class ItemProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Item
                     // 物品编号
                     const itemNo = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -64,8 +65,10 @@ export default class ItemProtocol {
                     // 数量
                     const number = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const item = {itemNo, itemId, type, number};
                     // add
-                    list.push({itemNo, itemId, type, number});
+                    list.push(item);
                 }
                 return {list};
             }
@@ -75,6 +78,7 @@ export default class ItemProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Item
                     // 物品编号
                     const itemNo = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -87,8 +91,10 @@ export default class ItemProtocol {
                     // 数量
                     const number = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const item = {itemNo, itemId, type, number};
                     // add
-                    list.push({itemNo, itemId, type, number});
+                    list.push(item);
                 }
                 return {list};
             }
@@ -98,6 +104,7 @@ export default class ItemProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Item
                     // 物品编号
                     const itemNo = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -110,8 +117,10 @@ export default class ItemProtocol {
                     // 数量
                     const number = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const item = {itemNo, itemId, type, number};
                     // add
-                    list.push({itemNo, itemId, type, number});
+                    list.push(item);
                 }
                 return {list};
             }
@@ -121,14 +130,17 @@ export default class ItemProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Item
                     // 物品编号
                     const itemNo = view.getBigUint64(offset, false);
                     offset = offset + 8;
                     // 类型
                     const type = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const item = {itemNo, type};
                     // add
-                    list.push({itemNo, type});
+                    list.push(item);
                 }
                 return {list};
             }

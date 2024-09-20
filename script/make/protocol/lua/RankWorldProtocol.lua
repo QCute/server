@@ -34,6 +34,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Rank
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -55,7 +56,9 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId}
+            list[listIndex] = rank
         end
         return {list = list}
     elseif protocol == 19202 then
@@ -65,6 +68,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Rank
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -86,13 +90,18 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
             local level = string.unpack(">I2", data, offset)
             offset = offset + 2
             -- 职业
             local classes = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes}
+            -- object
+            local other = {level = level, classes = classes}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            list[listIndex] = rank
         end
         return {list = list}
     elseif protocol == 19203 then
@@ -102,6 +111,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Rank
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -123,6 +133,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
             local level = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -132,7 +143,11 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 性别
             local sex = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes, sex = sex}
+            -- object
+            local other = {level = level, classes = classes, sex = sex}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            list[listIndex] = rank
         end
         return {list = list}
     elseif protocol == 19204 then
@@ -142,6 +157,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Rank
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -163,6 +179,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
             local level = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -175,7 +192,11 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- VIP等级
             local vipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes, sex = sex, vipLevel = vipLevel}
+            -- object
+            local other = {level = level, classes = classes, sex = sex, vipLevel = vipLevel}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            list[listIndex] = rank
         end
         return {list = list}
     elseif protocol == 19205 then
@@ -185,6 +206,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Rank
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -206,6 +228,7 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
             local level = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -221,7 +244,11 @@ function RankWorldProtocol.decode(offset, protocol, data)
             -- 头像
             local avatar = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes, sex = sex, vipLevel = vipLevel, avatar = avatar}
+            -- object
+            local other = {level = level, classes = classes, sex = sex, vipLevel = vipLevel, avatar = avatar}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            list[listIndex] = rank
         end
         return {list = list}
     else

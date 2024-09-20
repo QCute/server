@@ -46,6 +46,7 @@ function WelfareProtocol.decode(offset, protocol, data)
         return {result = result}
     elseif protocol == 15003 then
         local offset = offset
+        -- LuckyMoney
         -- 红包编号
         local luckyMoneyNo = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -63,6 +64,7 @@ function WelfareProtocol.decode(offset, protocol, data)
         local receiveListLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for receiveListIndex = 1, receiveListLength do
+            -- LuckyMoneyRole
             -- 服务器Id
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -78,12 +80,16 @@ function WelfareProtocol.decode(offset, protocol, data)
             -- 领取时间
             local receiveTime = string.unpack(">I4", data, offset)
             offset = offset + 4
-            receiveList[receiveListIndex] = {serverId = serverId, roleId = roleId, roleName = roleName, gold = gold, receiveTime = receiveTime}
+            -- object
+            local luckyMoneyRole = {serverId = serverId, roleId = roleId, roleName = roleName, gold = gold, receiveTime = receiveTime}
+            receiveList[receiveListIndex] = luckyMoneyRole
         end
         -- 发送时间
         local sendTime = string.unpack(">I4", data, offset)
         offset = offset + 4
-        return {luckyMoneyNo = luckyMoneyNo, totalGold = totalGold, totalNumber = totalNumber, receiveNumber = receiveNumber, receiveList = receiveList, sendTime = sendTime}
+        -- object
+        local luckyMoney = {luckyMoneyNo = luckyMoneyNo, totalGold = totalGold, totalNumber = totalNumber, receiveNumber = receiveNumber, receiveList = receiveList, sendTime = sendTime}
+        return {luckyMoney = luckyMoney}
     elseif protocol == 15004 then
         local offset = offset
         -- 结果

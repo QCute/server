@@ -18,6 +18,7 @@ function BuffProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Buff
             -- BuffID
             local buffId = string.unpack(">I4", data, offset)
             offset = offset + 4
@@ -27,7 +28,9 @@ function BuffProtocol.decode(offset, protocol, data)
             -- 叠加数量
             local overlap = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {buffId = buffId, expireTime = expireTime, overlap = overlap}
+            -- object
+            local buff = {buffId = buffId, expireTime = expireTime, overlap = overlap}
+            list[listIndex] = buff
         end
         return {list = list}
     elseif protocol == 11802 then
@@ -37,10 +40,13 @@ function BuffProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Buff
             -- BuffID
             local buffId = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {buffId = buffId}
+            -- object
+            local buff = {buffId = buffId}
+            list[listIndex] = buff
         end
         return {list = list}
     else

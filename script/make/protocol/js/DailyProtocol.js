@@ -43,14 +43,17 @@ export default class DailyProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Count
                     // 统计类型
                     const type = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 今日数量
                     const todayNumber = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const count = {type, todayNumber};
                     // add
-                    list.push({type, todayNumber});
+                    list.push(count);
                 }
                 return {list};
             }
@@ -60,22 +63,28 @@ export default class DailyProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Daily
                     // 日常ID
                     const dailyId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 是否领取奖励
                     const isAward = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const daily = {dailyId, isAward};
                     // add
-                    list.push({dailyId, isAward});
+                    list.push(daily);
                 }
+                // DailyActive
                 // 奖励阶段ID
                 const stageId = view.getUint32(offset, false);
                 offset = offset + 4;
                 // 活跃度
                 const score = view.getUint32(offset, false);
                 offset = offset + 4;
-                return {list, stageId, score};
+                // object
+                const dailyActive = {stageId, score};
+                return {list, dailyActive};
             }
             case 12303: {
                 // 结果

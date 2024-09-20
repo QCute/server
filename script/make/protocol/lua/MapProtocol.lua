@@ -30,8 +30,9 @@ function MapProtocol.encode(offset, protocol, data)
         table[offset] = string.pack(">I2", #targetListTable)
         offset = offset + 1
         for targetListIndex = 1, #targetListTable do
+            local targetListItemData = targetListTable[targetListIndex]
             -- ID
-            table[offset] = string.pack(">I8", targetListTable[targetListIndex]["targetId"])
+            table[offset] = string.pack(">I8", targetListItemData)
             offset = offset + 1
         end
         return table
@@ -51,26 +52,19 @@ function MapProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Fighter
             -- ID
             local id = string.unpack(">I8", data, offset)
             offset = offset + 8
             -- 类型
             local type = string.unpack(">I1", data, offset)
             offset = offset + 1
-            -- 战力
-            local fc = string.unpack(">I8", data, offset)
-            offset = offset + 8
-            -- 血量
-            local hp = string.unpack(">I8", data, offset)
-            offset = offset + 8
-            -- 健康
-            local health = string.unpack(">I8", data, offset)
-            offset = offset + 8
             -- 技能列表
             local skill = {}
             local skillLength = string.unpack(">I2", data, offset)
             offset = offset + 2
             for skillIndex = 1, skillLength do
+                -- BattleSkill
                 -- 技能ID
                 local skillId = string.unpack(">I4", data, offset)
                 offset = offset + 4
@@ -80,13 +74,16 @@ function MapProtocol.decode(offset, protocol, data)
                 -- 数量
                 local number = string.unpack(">I4", data, offset)
                 offset = offset + 4
-                skill[skillIndex] = {skillId = skillId, time = time, number = number}
+                -- object
+                local battleSkill = {skillId = skillId, time = time, number = number}
+                skill[skillIndex] = battleSkill
             end
             -- Buff列表
             local buff = {}
             local buffLength = string.unpack(">I2", data, offset)
             offset = offset + 2
             for buffIndex = 1, buffLength do
+                -- BattleBuff
                 -- BuffID
                 local buffId = string.unpack(">I4", data, offset)
                 offset = offset + 4
@@ -96,7 +93,9 @@ function MapProtocol.decode(offset, protocol, data)
                 -- 数量
                 local overlap = string.unpack(">I4", data, offset)
                 offset = offset + 4
-                buff[buffIndex] = {buffId = buffId, expireTime = expireTime, overlap = overlap}
+                -- object
+                local battleBuff = {buffId = buffId, expireTime = expireTime, overlap = overlap}
+                buff[buffIndex] = battleBuff
             end
             -- X坐标
             local x = string.unpack(">I2", data, offset)
@@ -104,11 +103,14 @@ function MapProtocol.decode(offset, protocol, data)
             -- Y坐标
             local y = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {id = id, type = type, fc = fc, hp = hp, health = health, skill = skill, buff = buff, x = x, y = y}
+            -- object
+            local fighter = {id = id, type = type, skill = skill, buff = buff, x = x, y = y}
+            list[listIndex] = fighter
         end
         return {list = list}
     elseif protocol == 20012 then
         local offset = offset
+        -- Fighter
         -- ID
         local id = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -118,13 +120,18 @@ function MapProtocol.decode(offset, protocol, data)
         -- Y坐标
         local y = string.unpack(">I2", data, offset)
         offset = offset + 2
-        return {id = id, x = x, y = y}
+        -- object
+        local fighter = {id = id, x = x, y = y}
+        return {fighter = fighter}
     elseif protocol == 20013 then
         local offset = offset
+        -- Fighter
         -- ID
         local id = string.unpack(">I8", data, offset)
         offset = offset + 8
-        return {id = id}
+        -- object
+        local fighter = {id = id}
+        return {fighter = fighter}
     elseif protocol == 20014 then
         local offset = offset
         -- 战斗对象Id
@@ -138,26 +145,19 @@ function MapProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Fighter
             -- ID
             local id = string.unpack(">I8", data, offset)
             offset = offset + 8
             -- 类型
             local type = string.unpack(">I1", data, offset)
             offset = offset + 1
-            -- 战力
-            local fc = string.unpack(">I8", data, offset)
-            offset = offset + 8
-            -- 血量
-            local hp = string.unpack(">I8", data, offset)
-            offset = offset + 8
-            -- 健康
-            local health = string.unpack(">I8", data, offset)
-            offset = offset + 8
             -- 技能列表
             local skill = {}
             local skillLength = string.unpack(">I2", data, offset)
             offset = offset + 2
             for skillIndex = 1, skillLength do
+                -- BattleSkill
                 -- 技能ID
                 local skillId = string.unpack(">I4", data, offset)
                 offset = offset + 4
@@ -167,13 +167,16 @@ function MapProtocol.decode(offset, protocol, data)
                 -- 数量
                 local number = string.unpack(">I4", data, offset)
                 offset = offset + 4
-                skill[skillIndex] = {skillId = skillId, time = time, number = number}
+                -- object
+                local battleSkill = {skillId = skillId, time = time, number = number}
+                skill[skillIndex] = battleSkill
             end
             -- Buff列表
             local buff = {}
             local buffLength = string.unpack(">I2", data, offset)
             offset = offset + 2
             for buffIndex = 1, buffLength do
+                -- BattleBuff
                 -- BuffID
                 local buffId = string.unpack(">I4", data, offset)
                 offset = offset + 4
@@ -183,7 +186,9 @@ function MapProtocol.decode(offset, protocol, data)
                 -- 数量
                 local overlap = string.unpack(">I4", data, offset)
                 offset = offset + 4
-                buff[buffIndex] = {buffId = buffId, expireTime = expireTime, overlap = overlap}
+                -- object
+                local battleBuff = {buffId = buffId, expireTime = expireTime, overlap = overlap}
+                buff[buffIndex] = battleBuff
             end
             -- X坐标
             local x = string.unpack(">I2", data, offset)
@@ -191,7 +196,9 @@ function MapProtocol.decode(offset, protocol, data)
             -- Y坐标
             local y = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {id = id, type = type, fc = fc, hp = hp, health = health, skill = skill, buff = buff, x = x, y = y}
+            -- object
+            local fighter = {id = id, type = type, skill = skill, buff = buff, x = x, y = y}
+            list[listIndex] = fighter
         end
         return {fighterId = fighterId, performSkillId = performSkillId, list = list}
     else

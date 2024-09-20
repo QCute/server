@@ -50,9 +50,10 @@ public static class FriendProtocol
             {
                 // 好友列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Friend
                     // 好友角色ID
                     var friendRoleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 好友名字
@@ -62,8 +63,10 @@ public static class FriendProtocol
                     var relation = reader.ReadByte();
                     // 添加/修改状态时间
                     var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var friend = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"friendRoleId", friendRoleId}, {"friendName", friendName}, {"relation", relation}, {"time", time}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"friendRoleId", friendRoleId}, {"friendName", friendName}, {"relation", relation}, {"time", time}});
+                    list.Add(friend);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

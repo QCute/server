@@ -18,13 +18,16 @@ function FashionProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Fashion
             -- 时装ID
             local fashionId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 过期时间
             local expireTime = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {fashionId = fashionId, expireTime = expireTime}
+            -- object
+            local fashion = {fashionId = fashionId, expireTime = expireTime}
+            list[listIndex] = fashion
         end
         return {list = list}
     elseif protocol == 12002 then
@@ -34,10 +37,13 @@ function FashionProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Fashion
             -- 时装ID
             local fashionId = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {fashionId = fashionId}
+            -- object
+            local fashion = {fashionId = fashionId}
+            list[listIndex] = fashion
         end
         return {list = list}
     else

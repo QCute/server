@@ -54,7 +54,7 @@ protocol() ->
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
                         type = #u8{comment = "类型"},
-                        attribute = #record{explain = #attribute{
+                        attribute = #record{comment = "属性", explain = #attribute{
                             fc = #u64{comment = "战力"},
                             hp = #u64{comment = "血量"},
                             health = #u64{comment = "健康"}
@@ -116,7 +116,7 @@ protocol() ->
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
                         type = #u8{comment = "类型"},
-                        attribute = #record{explain = #attribute{
+                        attribute = #record{comment = "属性", explain = #attribute{
                             fc = #u64{comment = "战力"},
                             hp = #u64{comment = "血量"},
                             health = #u64{comment = "健康"}

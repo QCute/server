@@ -34,7 +34,6 @@ protocol() ->
         js = "script/make/protocol/js/TestProtocol.js",
         cs = "script/make/protocol/cs/TestProtocol.cs",
         io = [
-
             %% protocol test
             #io{
                 number = 65535,
@@ -60,25 +59,37 @@ protocol() ->
                     #str{name = str, comment = "str"},
                     #bst{name = bst, comment = "bst"},
 
+                    #tuple{name = tuple, comment = "tuple", explain = {
+                        #binary{name = tuple_binary, comment = "tuple_binary", explain = 6},
+
+                        #tuple{name = tuple_sub_tuple, comment = "tuple_sub_tuple", explain = {
+                            #u8{name = tuple_sub_tuple_u8, comment = "tuple_sub_tuple_u8"},
+                            #str{name = tuple_sub_tuple_str, comment = "tuple_sub_tuple_str"}
+                        }},
+
+                        #list{name = tuple_sub_list, comment = "tuple_sub_list", explain = {
+                            #i16{name = tuple_sub_list_i16, comment = "tuple_sub_list_i16"},
+                            #bst{name = tuple_sub_list_bst, comment = "tuple_sub_list_bst"}
+                        }},
+
+                        #list{name = tuple_sub_list_single, comment = "tuple_sub_list_single", explain = #bool{name = tuple_sub_list_single_bool, comment = "tuple_sub_list_single_bool"}}
+                        
+                    }},
+                    
                     #list{name = index_list, comment = "list", explain = {
                         #binary{name = list_binary, comment = "list_binary", explain = 6},
-                        #bool{name = list_boolean, comment = "list_boolean"},
 
-                        #u8{name = list_u8, comment = "list_u8"},
-                        #u16{name = list_u16, comment = "list_u16"},
-                        #u32{name = list_u32, comment = "list_u32"},
-                        #u64{name = list_u64, comment = "list_u64"},
+                        #tuple{name = list_sub_tuple, comment = "list_sub_tuple", explain = {
+                            #u8{name = list_sub_tuple_u8, comment = "list_sub_tuple_u8"},
+                            #str{name = list_sub_tuple_str, comment = "list_sub_tuple_str"}
+                        }},
 
-                        #i8{name = list_i8, comment = "list_i8"},
-                        #i16{name = list_i16, comment = "list_i16"},
-                        #i32{name = list_i32, comment = "list_i32"},
-                        #i64{name = list_i64, comment = "list_i64"},
+                        #list{name = list_sub_list, comment = "list_sub_list", explain = {
+                            #i16{name = list_sub_list_i16, comment = "list_sub_list_i16"},
+                            #bst{name = list_sub_list_bst, comment = "list_sub_list_bst"}
+                        }},
 
-                        #f32{name = list_f32, comment = "list_f32"},
-                        #f64{name = list_f64, comment = "list_f64"},
-
-                        #str{name = list_str, comment = "list_str"},
-                        #bst{name = list_bst, comment = "list_bst"}
+                        #list{name = list_sub_list_single, comment = "list_sub_list_single", explain = #bool{name = list_sub_list_single_bool, comment = "list_sub_list_single_bool"}}
 
                     }},
 
@@ -125,25 +136,37 @@ protocol() ->
                     #str{name = str, comment = "str"},
                     #bst{name = bst, comment = "bst"},
 
+                    #tuple{name = tuple, comment = "tuple", explain = {
+                        #binary{name = tuple_binary, comment = "tuple_binary", explain = 6},
+
+                        #tuple{name = tuple_sub_tuple, comment = "tuple_sub_tuple", explain = {
+                            #u8{name = tuple_sub_tuple_u8, comment = "tuple_sub_tuple_u8"},
+                            #str{name = tuple_sub_tuple_str, comment = "tuple_sub_tuple_str"}
+                        }},
+
+                        #list{name = tuple_sub_list, comment = "tuple_sub_list", explain = {
+                            #i16{name = tuple_sub_list_i16, comment = "tuple_sub_list_i16"},
+                            #bst{name = tuple_sub_list_bst, comment = "tuple_sub_list_bst"}
+                        }},
+
+                        #list{name = tuple_sub_list_single, comment = "tuple_sub_list_single", explain = #bool{name = tuple_sub_list_single_bool, comment = "tuple_sub_list_single_bool"}}
+
+                    }},
+
                     #list{name = index_list, comment = "list", explain = {
                         #binary{name = list_binary, comment = "list_binary", explain = 6},
-                        #bool{name = list_boolean, comment = "list_boolean"},
 
-                        #u8{name = list_u8, comment = "list_u8"},
-                        #u16{name = list_u16, comment = "list_u16"},
-                        #u32{name = list_u32, comment = "list_u32"},
-                        #u64{name = list_u64, comment = "list_u64"},
+                        #tuple{name = list_sub_tuple, comment = "list_sub_tuple", explain = {
+                            #u8{name = list_sub_tuple_u8, comment = "list_sub_tuple_u8"},
+                            #str{name = list_sub_tuple_str, comment = "list_sub_tuple_str"}
+                        }},
 
-                        #i8{name = list_i8, comment = "list_i8"},
-                        #i16{name = list_i16, comment = "list_i16"},
-                        #i32{name = list_i32, comment = "list_i32"},
-                        #i64{name = list_i64, comment = "list_i64"},
+                        #list{name = list_sub_list, comment = "list_sub_list", explain = {
+                            #i16{name = list_sub_list_i16, comment = "list_sub_list_i16"},
+                            #bst{name = list_sub_list_bst, comment = "list_sub_list_bst"}
+                        }},
 
-                        #f32{name = list_f32, comment = "list_f32"},
-                        #f64{name = list_f64, comment = "list_f64"},
-
-                        #str{name = list_str, comment = "list_str"},
-                        #bst{name = list_bst, comment = "list_bst"}
+                        #list{name = list_sub_list_single, comment = "list_sub_list_single", explain = #bool{name = list_sub_list_single_bool, comment = "list_sub_list_single_bool"}}
 
                     }},
 

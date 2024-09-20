@@ -26,15 +26,18 @@ public static class SkillProtocol
             {
                 // 技能列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // Skill
                     // 技能ID
                     var skillId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 技能等级
                     var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var skill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skillId", skillId}, {"level", level}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skillId", skillId}, {"level", level}});
+                    list.Add(skill);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }

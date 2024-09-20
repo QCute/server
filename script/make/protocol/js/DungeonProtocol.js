@@ -31,6 +31,7 @@ export default class DungeonProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Dungeon
                     // 副本Id
                     const dungeonId = view.getUint32(offset, false);
                     offset = offset + 4;
@@ -40,8 +41,10 @@ export default class DungeonProtocol {
                     // 总次数
                     const totalNumber = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const dungeon = {dungeonId, todayNumber, totalNumber};
                     // add
-                    list.push({dungeonId, todayNumber, totalNumber});
+                    list.push(dungeon);
                 }
                 return {list};
             }

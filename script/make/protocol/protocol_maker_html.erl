@@ -161,14 +161,14 @@ format_head(HtmlName) ->
 
         .right > .protocol > .read .digest .name,
         .right > .protocol > .write .digest .name {
-            width: 60%;
+            width: 50%;
             position: relative;
             cursor: pointer;
         }
 
         .right > .protocol > .read .digest .type,
         .right > .protocol > .write .digest .type {
-            width: 10%;
+            width: 20%;
             position: relative;
             cursor: pointer;
         }

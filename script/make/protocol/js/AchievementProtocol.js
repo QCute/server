@@ -31,14 +31,17 @@ export default class AchievementProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Count
                     // 统计类型
                     const type = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 总数
                     const totalNumber = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const count = {type, totalNumber};
                     // add
-                    list.push({type, totalNumber});
+                    list.push(count);
                 }
                 return {list};
             }
@@ -48,14 +51,17 @@ export default class AchievementProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Achievement
                     // 成就ID
                     const achievementId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 成就类型
                     const type = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const achievement = {achievementId, type};
                     // add
-                    list.push({achievementId, type});
+                    list.push(achievement);
                 }
                 return {list};
             }

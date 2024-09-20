@@ -52,6 +52,7 @@ public static class WelfareProtocol
             }
             case 15003:
             {
+                // LuckyMoney
                 // 红包编号
                 var luckyMoneyNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 总金币
@@ -62,9 +63,10 @@ public static class WelfareProtocol
                 var receiveNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 // 领取列表
                 var receiveListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var receiveList = new System.Collections.ArrayList(receiveListLength);
+                var receiveList = new System.Collections.Generic.List<System.Object>(receiveListLength);
                 while (receiveListLength-- > 0)
                 {
+                    // LuckyMoneyRole
                     // 服务器Id
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 角色Id
@@ -76,12 +78,16 @@ public static class WelfareProtocol
                     var gold = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 领取时间
                     var receiveTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var luckyMoneyRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"serverId", serverId}, {"roleId", roleId}, {"roleName", roleName}, {"gold", gold}, {"receiveTime", receiveTime}};
                     // add
-                    receiveList.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"serverId", serverId}, {"roleId", roleId}, {"roleName", roleName}, {"gold", gold}, {"receiveTime", receiveTime}});
+                    receiveList.Add(luckyMoneyRole);
                 }
                 // 发送时间
                 var sendTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"luckyMoneyNo", luckyMoneyNo}, {"totalGold", totalGold}, {"totalNumber", totalNumber}, {"receiveNumber", receiveNumber}, {"receiveList", receiveList}, {"sendTime", sendTime}};
+                // object
+                var luckyMoney = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"luckyMoneyNo", luckyMoneyNo}, {"totalGold", totalGold}, {"totalNumber", totalNumber}, {"receiveNumber", receiveNumber}, {"receiveList", receiveList}, {"sendTime", sendTime}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"luckyMoney", luckyMoney}};
             }
             case 15004:
             {

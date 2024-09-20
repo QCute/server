@@ -31,6 +31,7 @@ public static class AuctionProtocol
                 var list = new System.Collections.ArrayList(listLength);
                 while (listLength-- > 0)
                 {
+                    // Auction
                     // 拍品编号
                     var auctionNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 拍品ID
@@ -45,8 +46,10 @@ public static class AuctionProtocol
                     var nowPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 下次出价的价格
                     var nextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var auction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", auctionNo}, {"auctionId", auctionId}, {"number", number}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", auctionNo}, {"auctionId", auctionId}, {"number", number}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}});
+                    list.Add(auction);
                 }
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
             }
@@ -57,6 +60,7 @@ public static class AuctionProtocol
                 var result = encoding.GetString(reader.ReadBytes(resultLength));
                 // 新的价格
                 var newPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                // Auction
                 // 拍品编号
                 var auctionNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 拍品ID
@@ -69,7 +73,9 @@ public static class AuctionProtocol
                 var nowPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 下次出价的价格
                 var nextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"newPrice", newPrice}, {"auctionNo", auctionNo}, {"auctionId", auctionId}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}};
+                // object
+                var auction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", auctionNo}, {"auctionId", auctionId}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"newPrice", newPrice}, {"auction", auction}};
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

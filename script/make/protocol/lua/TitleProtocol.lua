@@ -18,13 +18,16 @@ function TitleProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Title
             -- 称号ID
             local titleId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 过期时间
             local expireTime = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {titleId = titleId, expireTime = expireTime}
+            -- object
+            local title = {titleId = titleId, expireTime = expireTime}
+            list[listIndex] = title
         end
         return {list = list}
     elseif protocol == 11902 then
@@ -34,10 +37,13 @@ function TitleProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Title
             -- 称号ID
             local titleId = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {titleId = titleId}
+            -- object
+            local title = {titleId = titleId}
+            list[listIndex] = title
         end
         return {list = list}
     else

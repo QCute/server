@@ -82,6 +82,8 @@ to_hump(Atom) when is_atom(Atom) ->
     to_hump(atom_to_list(Atom));
 to_hump(Binary) when is_binary(Binary) ->
     to_hump(binary_to_list(Binary));
+to_hump([]) ->
+    [];
 to_hump(Name) when is_list(Name) ->
     lists:concat([[string:to_upper(H) | T] || [H | T] <- string:tokens(lists:flatten(Name), "_")]).
 
@@ -89,8 +91,12 @@ to_hump(Name) when is_list(Name) ->
 %% lower_hump/LowerHump -> lowerHump
 -spec to_lower_hump(atom() | binary() | string()) -> string().
 to_lower_hump(Name) ->
-    [Head | Tail] = to_hump(Name),
-    [string:to_lower(Head) | Tail].
+    case to_hump(Name) of
+        [] ->
+            [];
+        [Head | Tail] ->
+            [string:to_lower(Head) | Tail]
+    end.
 
 %% @doc snake name
 %% HumpName -> hump_name
@@ -99,6 +105,8 @@ to_snake(Atom) when is_atom(Atom) ->
     to_snake(atom_to_list(Atom));
 to_snake(Binary) when is_binary(Binary) ->
     to_snake(binary_to_list(Binary));
+to_snake([]) ->
+    [];
 to_snake(Name) when is_list(Name) ->
     to_snake_loop(Name, [], false).
 

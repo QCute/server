@@ -124,6 +124,7 @@ function GuildProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- Guild
             -- 公会ID
             local guildId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -139,7 +140,9 @@ function GuildProtocol.decode(offset, protocol, data)
             -- 会长名字
             local leaderName = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(leaderName)
-            list[listIndex] = {guildId = guildId, guildName = guildName, createTime = createTime, leaderRoleId = leaderRoleId, leaderName = leaderName}
+            -- object
+            local guild = {guildId = guildId, guildName = guildName, createTime = createTime, leaderRoleId = leaderRoleId, leaderName = leaderName}
+            list[listIndex] = guild
         end
         return {list = list}
     elseif protocol == 30102 then
@@ -149,6 +152,7 @@ function GuildProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- GuildRole
             -- 成员ID
             local roleId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -170,7 +174,9 @@ function GuildProtocol.decode(offset, protocol, data)
             -- Vip等级
             local vipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            -- object
+            local guildRole = {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            list[listIndex] = guildRole
         end
         return {list = list}
     elseif protocol == 30103 then
@@ -180,6 +186,7 @@ function GuildProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- GuildApply
             -- 申请ID
             local roleId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -198,11 +205,14 @@ function GuildProtocol.decode(offset, protocol, data)
             -- Vip等级
             local vipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {roleId = roleId, applyTime = applyTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            -- object
+            local guildApply = {roleId = roleId, applyTime = applyTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            list[listIndex] = guildApply
         end
         return {list = list}
     elseif protocol == 30104 then
         local offset = offset
+        -- Guild
         -- 公会ID
         local guildId = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -230,9 +240,12 @@ function GuildProtocol.decode(offset, protocol, data)
         -- 会长名字
         local leaderName = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(leaderName)
-        return {guildId = guildId, guildName = guildName, exp = exp, wealth = wealth, level = level, createTime = createTime, notice = notice, leaderRoleId = leaderRoleId, leaderName = leaderName}
+        -- object
+        local guild = {guildId = guildId, guildName = guildName, exp = exp, wealth = wealth, level = level, createTime = createTime, notice = notice, leaderRoleId = leaderRoleId, leaderName = leaderName}
+        return {guild = guild}
     elseif protocol == 30105 then
         local offset = offset
+        -- GuildRole
         -- 成员ID
         local roleId = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -254,7 +267,9 @@ function GuildProtocol.decode(offset, protocol, data)
         -- Vip等级
         local vipLevel = string.unpack(">I1", data, offset)
         offset = offset + 1
-        return {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+        -- object
+        local guildRole = {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+        return {guildRole = guildRole}
     elseif protocol == 30106 then
         local offset = offset
         -- 
@@ -262,6 +277,7 @@ function GuildProtocol.decode(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- GuildApply
             -- 公会ID
             local guildId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -271,7 +287,9 @@ function GuildProtocol.decode(offset, protocol, data)
             -- 公会名字
             local guildName = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(guildName)
-            list[listIndex] = {guildId = guildId, applyTime = applyTime, guildName = guildName}
+            -- object
+            local guildApply = {guildId = guildId, applyTime = applyTime, guildName = guildName}
+            list[listIndex] = guildApply
         end
         return {list = list}
     elseif protocol == 30107 then

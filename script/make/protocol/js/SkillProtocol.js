@@ -28,14 +28,17 @@ export default class SkillProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Skill
                     // 技能ID
                     const skillId = view.getUint32(offset, false);
                     offset = offset + 4;
                     // 技能等级
                     const level = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const skill = {skillId, level};
                     // add
-                    list.push({skillId, level});
+                    list.push(skill);
                 }
                 return {list};
             }

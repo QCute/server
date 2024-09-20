@@ -56,7 +56,7 @@ export default class MapProtocol {
                         view = extendView;
                     }
                     // ID
-                    view.setBigUint64(offset, targetListDataItem["targetId"], false);
+                    view.setBigUint64(offset, targetListDataItem, false);
                     offset = offset + 8;
                 }
                 return new DataView(view.buffer.slice(0, offset));
@@ -76,26 +76,19 @@ export default class MapProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Fighter
                     // ID
                     const id = view.getBigUint64(offset, false);
                     offset = offset + 8;
                     // 类型
                     const type = view.getUint8(offset, false);
                     offset = offset + 1;
-                    // 战力
-                    const fc = view.getBigUint64(offset, false);
-                    offset = offset + 8;
-                    // 血量
-                    const hp = view.getBigUint64(offset, false);
-                    offset = offset + 8;
-                    // 健康
-                    const health = view.getBigUint64(offset, false);
-                    offset = offset + 8;
                     // 技能列表
                     const skill = [];
                     let skillLength = view.getUint16(offset, false);
                     offset = offset + 2;
                     while (--skillLength >= 0) {
+                        // BattleSkill
                         // 技能ID
                         const skillId = view.getUint32(offset, false);
                         offset = offset + 4;
@@ -105,14 +98,17 @@ export default class MapProtocol {
                         // 数量
                         const number = view.getUint32(offset, false);
                         offset = offset + 4;
+                        // object
+                        const battleSkill = {skillId, time, number};
                         // add
-                        skill.push({skillId, time, number});
+                        skill.push(battleSkill);
                     }
                     // Buff列表
                     const buff = [];
                     let buffLength = view.getUint16(offset, false);
                     offset = offset + 2;
                     while (--buffLength >= 0) {
+                        // BattleBuff
                         // BuffID
                         const buffId = view.getUint32(offset, false);
                         offset = offset + 4;
@@ -122,8 +118,10 @@ export default class MapProtocol {
                         // 数量
                         const overlap = view.getUint32(offset, false);
                         offset = offset + 4;
+                        // object
+                        const battleBuff = {buffId, expireTime, overlap};
                         // add
-                        buff.push({buffId, expireTime, overlap});
+                        buff.push(battleBuff);
                     }
                     // X坐标
                     const x = view.getUint16(offset, false);
@@ -131,12 +129,15 @@ export default class MapProtocol {
                     // Y坐标
                     const y = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const fighter = {id, type, skill, buff, x, y};
                     // add
-                    list.push({id, type, fc, hp, health, skill, buff, x, y});
+                    list.push(fighter);
                 }
                 return {list};
             }
             case 20012: {
+                // Fighter
                 // ID
                 const id = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -146,13 +147,18 @@ export default class MapProtocol {
                 // Y坐标
                 const y = view.getUint16(offset, false);
                 offset = offset + 2;
-                return {id, x, y};
+                // object
+                const fighter = {id, x, y};
+                return {fighter};
             }
             case 20013: {
+                // Fighter
                 // ID
                 const id = view.getBigUint64(offset, false);
                 offset = offset + 8;
-                return {id};
+                // object
+                const fighter = {id};
+                return {fighter};
             }
             case 20014: {
                 // 战斗对象Id
@@ -166,26 +172,19 @@ export default class MapProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Fighter
                     // ID
                     const id = view.getBigUint64(offset, false);
                     offset = offset + 8;
                     // 类型
                     const type = view.getUint8(offset, false);
                     offset = offset + 1;
-                    // 战力
-                    const fc = view.getBigUint64(offset, false);
-                    offset = offset + 8;
-                    // 血量
-                    const hp = view.getBigUint64(offset, false);
-                    offset = offset + 8;
-                    // 健康
-                    const health = view.getBigUint64(offset, false);
-                    offset = offset + 8;
                     // 技能列表
                     const skill = [];
                     let skillLength = view.getUint16(offset, false);
                     offset = offset + 2;
                     while (--skillLength >= 0) {
+                        // BattleSkill
                         // 技能ID
                         const skillId = view.getUint32(offset, false);
                         offset = offset + 4;
@@ -195,14 +194,17 @@ export default class MapProtocol {
                         // 数量
                         const number = view.getUint32(offset, false);
                         offset = offset + 4;
+                        // object
+                        const battleSkill = {skillId, time, number};
                         // add
-                        skill.push({skillId, time, number});
+                        skill.push(battleSkill);
                     }
                     // Buff列表
                     const buff = [];
                     let buffLength = view.getUint16(offset, false);
                     offset = offset + 2;
                     while (--buffLength >= 0) {
+                        // BattleBuff
                         // BuffID
                         const buffId = view.getUint32(offset, false);
                         offset = offset + 4;
@@ -212,8 +214,10 @@ export default class MapProtocol {
                         // 数量
                         const overlap = view.getUint32(offset, false);
                         offset = offset + 4;
+                        // object
+                        const battleBuff = {buffId, expireTime, overlap};
                         // add
-                        buff.push({buffId, expireTime, overlap});
+                        buff.push(battleBuff);
                     }
                     // X坐标
                     const x = view.getUint16(offset, false);
@@ -221,8 +225,10 @@ export default class MapProtocol {
                     // Y坐标
                     const y = view.getUint16(offset, false);
                     offset = offset + 2;
+                    // object
+                    const fighter = {id, type, skill, buff, x, y};
                     // add
-                    list.push({id, type, fc, hp, health, skill, buff, x, y});
+                    list.push(fighter);
                 }
                 return {fighterId, performSkillId, list};
             }

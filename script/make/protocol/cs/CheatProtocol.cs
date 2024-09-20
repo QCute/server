@@ -28,7 +28,7 @@ public static class CheatProtocol
             {
                 // 秘籍列表
                 var cheatListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var cheatList = new System.Collections.ArrayList(cheatListLength);
+                var cheatList = new System.Collections.Generic.List<System.Object>(cheatListLength);
                 while (cheatListLength-- > 0)
                 {
                     // 描述

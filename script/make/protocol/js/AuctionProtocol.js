@@ -37,6 +37,7 @@ export default class AuctionProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Auction
                     // 拍品编号
                     const auctionNo = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -58,8 +59,10 @@ export default class AuctionProtocol {
                     // 下次出价的价格
                     const nextPrice = view.getUint32(offset, false);
                     offset = offset + 4;
+                    // object
+                    const auction = {auctionNo, auctionId, number, type, endTime, nowPrice, nextPrice};
                     // add
-                    list.push({auctionNo, auctionId, number, type, endTime, nowPrice, nextPrice});
+                    list.push(auction);
                 }
                 return {list};
             }
@@ -73,6 +76,7 @@ export default class AuctionProtocol {
                 // 新的价格
                 const newPrice = view.getUint32(offset, false);
                 offset = offset + 4;
+                // Auction
                 // 拍品编号
                 const auctionNo = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -91,7 +95,9 @@ export default class AuctionProtocol {
                 // 下次出价的价格
                 const nextPrice = view.getUint32(offset, false);
                 offset = offset + 4;
-                return {result, newPrice, auctionNo, auctionId, type, endTime, nowPrice, nextPrice};
+                // object
+                const auction = {auctionNo, auctionId, type, endTime, nowPrice, nextPrice};
+                return {result, newPrice, auction};
             }
             default: throw("unknown protocol define: " + protocol)
         }

@@ -181,6 +181,7 @@ export default class GuildProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // Guild
                     // 公会ID
                     const guildId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -202,8 +203,10 @@ export default class GuildProtocol {
                     const leaderNameArray = new Uint8Array(view.buffer.slice(offset, offset + leaderNameLength));
                     const leaderName = textDecoder.decode(leaderNameArray);
                     offset = offset + leaderNameLength;
+                    // object
+                    const guild = {guildId, guildName, createTime, leaderRoleId, leaderName};
                     // add
-                    list.push({guildId, guildName, createTime, leaderRoleId, leaderName});
+                    list.push(guild);
                 }
                 return {list};
             }
@@ -213,6 +216,7 @@ export default class GuildProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // GuildRole
                     // 成员ID
                     const roleId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -237,8 +241,10 @@ export default class GuildProtocol {
                     // Vip等级
                     const vipLevel = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const guildRole = {roleId, job, joinTime, roleName, sex, classes, vipLevel};
                     // add
-                    list.push({roleId, job, joinTime, roleName, sex, classes, vipLevel});
+                    list.push(guildRole);
                 }
                 return {list};
             }
@@ -248,6 +254,7 @@ export default class GuildProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // GuildApply
                     // 申请ID
                     const roleId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -269,12 +276,15 @@ export default class GuildProtocol {
                     // Vip等级
                     const vipLevel = view.getUint8(offset, false);
                     offset = offset + 1;
+                    // object
+                    const guildApply = {roleId, applyTime, roleName, sex, classes, vipLevel};
                     // add
-                    list.push({roleId, applyTime, roleName, sex, classes, vipLevel});
+                    list.push(guildApply);
                 }
                 return {list};
             }
             case 30104: {
+                // Guild
                 // 公会ID
                 const guildId = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -311,9 +321,12 @@ export default class GuildProtocol {
                 const leaderNameArray = new Uint8Array(view.buffer.slice(offset, offset + leaderNameLength));
                 const leaderName = textDecoder.decode(leaderNameArray);
                 offset = offset + leaderNameLength;
-                return {guildId, guildName, exp, wealth, level, createTime, notice, leaderRoleId, leaderName};
+                // object
+                const guild = {guildId, guildName, exp, wealth, level, createTime, notice, leaderRoleId, leaderName};
+                return {guild};
             }
             case 30105: {
+                // GuildRole
                 // 成员ID
                 const roleId = view.getBigUint64(offset, false);
                 offset = offset + 8;
@@ -338,7 +351,9 @@ export default class GuildProtocol {
                 // Vip等级
                 const vipLevel = view.getUint8(offset, false);
                 offset = offset + 1;
-                return {roleId, job, joinTime, roleName, sex, classes, vipLevel};
+                // object
+                const guildRole = {roleId, job, joinTime, roleName, sex, classes, vipLevel};
+                return {guildRole};
             }
             case 30106: {
                 // 
@@ -346,6 +361,7 @@ export default class GuildProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // GuildApply
                     // 公会ID
                     const guildId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -358,8 +374,10 @@ export default class GuildProtocol {
                     const guildNameArray = new Uint8Array(view.buffer.slice(offset, offset + guildNameLength));
                     const guildName = textDecoder.decode(guildNameArray);
                     offset = offset + guildNameLength;
+                    // object
+                    const guildApply = {guildId, applyTime, guildName};
                     // add
-                    list.push({guildId, applyTime, guildName});
+                    list.push(guildApply);
                 }
                 return {list};
             }
