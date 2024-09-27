@@ -39,8 +39,8 @@ protocol() ->
                 number = 11701,
                 comment = "技能列表",
                 handler = #handler{module = skill, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "技能列表", explain = #skill{
                         skill_id = #u32{comment = "技能ID"},
                         level = #u16{comment = "技能等级"}
@@ -51,10 +51,10 @@ protocol() ->
                 number = 11702,
                 comment = "学习技能",
                 handler = #handler{module = skill, function = learn},
-                read = [
+                decode = [
                     #u32{name = skill_id, comment = "技能ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

@@ -39,8 +39,8 @@ protocol() ->
                 number = 11301,
                 comment = "已购列表",
                 handler = #handler{module = shop, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "已购买列表", explain = #shop{
                         shop_id = #u32{comment = "商店ID"},
                         number = #u16{comment = "数量"}
@@ -51,11 +51,11 @@ protocol() ->
                 number = 11302,
                 comment = "购买",
                 handler = #handler{module = shop, function = buy},
-                read = [
+                decode = [
                     #u32{name = shop_id, comment = "商店ID"},
                     #u16{name = number, comment = "数量"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

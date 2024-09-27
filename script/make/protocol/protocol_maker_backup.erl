@@ -3,7 +3,7 @@
 %%% make protocol define to erl/lua/js/cs io/metadata code
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_maker).
+-module(protocol_maker_backup).
 -export([start/1]).
 -include("../../../include/serialize.hrl").
 %% ast metadata
@@ -125,9 +125,9 @@ collect_code([#io{number = Protocol, comment = Comment, handler = Handler, decod
 %%%===================================================================
 %%% Parse Decode Part
 %%%===================================================================
-parse_decode(Protocol, Form, undefined) ->
+parse_decode(Protocol, SyntaxList, undefined) ->
     %% no handler
-    parse_decode(Protocol, Form, #handler{});
+    parse_decode(Protocol, SyntaxList, #handler{});
 
 parse_decode(0, undefined, Handler = #handler{}) ->
     ErlRequestCode = protocol_maker_erl:parse_request_erl(0, [], Handler),
@@ -174,18 +174,6 @@ parse_decode(Protocol, _, _) ->
     #data{protocol = Protocol}.
 
 %% parse unit
-parse_decode_unit(Name, Data) when is_tuple(Data) ->
-    ok;
-
-parse_decode_unit(Name, Data = #{}) ->
-    [parse_decode_unit(Key, Value) || {Key, Value} <- maps:to_list(Data)];
-
-parse_decode_unit(Name, [Data]) ->
-    #{name => Name, meta => parse_decode_unit([], Data)};
-
-
-
-
 parse_decode_unit(Unit = #binary{name = Name, comment = Comment, explain = Explain}) ->
     HumpName = word:to_hump(Name),
     #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = Explain};

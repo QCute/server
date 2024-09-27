@@ -39,8 +39,8 @@ protocol() ->
                 number = 17001,
                 comment = "副本信息",
                 handler = #handler{module = dungeon, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "", explain = #dungeon{
                         dungeon_id = #u32{comment = "副本Id"},
                         today_number = #u16{comment = "今天次数"},
@@ -52,10 +52,10 @@ protocol() ->
                 number = 17002,
                 comment = "进入副本",
                 handler = #handler{module = dungeon, function = enter},
-                read = [
+                decode = [
                     #u32{name = dungeon_id, comment = "副本Id"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -63,7 +63,7 @@ protocol() ->
                 number = 17003,
                 comment = "副本开始",
                 handler = #handler{alias = "start"},
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -71,7 +71,7 @@ protocol() ->
                 number = 17004,
                 comment = "副本结束",
                 handler = #handler{alias = "over"},
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -79,8 +79,8 @@ protocol() ->
                 number = 17005,
                 comment = "副本鼓舞",
                 handler = #handler{module = dungeon_map, function = inspire},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

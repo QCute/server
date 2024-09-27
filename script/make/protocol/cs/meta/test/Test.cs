@@ -28,26 +28,31 @@ class Test
             {"str", "一23"},
             {"bst", "1二三"},
 
-            {"indexList", new System.Collections.ArrayList() {
+            {"tuple", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
+                {"tupleBinary", new byte [] {97, 98, 99, 100, 101, 102}},
+                {"tupleSubTuple", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
+                    {"tupleSubTupleU8", (System.Byte)95},
+                    {"tupleSubTupleStr", "xyz"},
+                }},
+                {"tupleSubList", new System.Collections.Generic.List<System.Object>() {
+                    new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleSubListI16", (System.Int16)456}, {"tupleSubListBst", "wow"}},
+                    new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleSubListI16", (System.Int16)369}, {"tupleSubListBst", "oops"}},
+                }},
+                {"tupleSubListSingle", new System.Collections.Generic.List<System.Object>() {true, false, false, true, false}},
+            }},
+            
+            {"indexList", new System.Collections.Generic.List<System.Object>() {
                 new System.Collections.Generic.Dictionary<System.String, System.Object>() {
                     {"listBinary", new byte [] {97, 98, 99, 100, 101, 102}},
-                    {"listBoolean", false},
-                
-                    {"listU8", (System.Byte)1},
-                    {"listU16", (System.UInt16)2},
-                    {"listU32", (System.UInt32)3},
-                    {"listU64", (System.UInt64)4},
-                
-                    {"listI8", (System.SByte)4},
-                    {"listI16", (System.Int16)3},
-                    {"listI32", (System.Int32)2},
-                    {"listI64", (System.Int64)1},
-                
-                    {"listF32", (System.Single)1.23},
-                    {"listF64", (System.Double)4.56},
-                
-                    {"listStr", "一23"},
-                    {"listBst", "1二三"},
+                    {"listSubTuple", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
+                        {"listSubTupleU8", (System.Byte)95},
+                        {"listSubTupleStr", "xyz"},
+                    }},
+                    {"listSubList", new System.Collections.Generic.List<System.Object>() {
+                        new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listSubListI16", (System.Int16)456}, {"listSubListBst", "wow"}},
+                        new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listSubListI16", (System.Int16)369}, {"listSubListBst", "oops"}},
+                    }},
+                    {"listSubListSingle", new System.Collections.Generic.List<System.Object>() {true, false, false, true, false}},
                 }
             }},
 
@@ -138,99 +143,98 @@ class Test
         return str + "]";
     }
 
-    public static System.String Stringify(System.Collections.Generic.Dictionary<System.String, System.Object> data)
+    public static System.String Stringify(System.Object data)
     {
-        var str = "{";
-        foreach (var kv in data)
+        switch (data.GetType().ToString()) 
         {
-            switch (kv.Value.GetType().ToString())
+            case "System.Byte":
             {
-                case "System.Byte":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Byte)kv.Value);
-                }break;
-                case "System.UInt16":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.UInt16)kv.Value);
-                }break;
-                case "System.UInt32":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.UInt32)kv.Value);
-                }break;
-                case "System.UInt64":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.UInt64)kv.Value);
-                }break;
-                case "System.SByte":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.SByte)kv.Value);
-                }break;
-                case "System.Int16":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Int16)kv.Value);
-                }break;
-                case "System.Int32":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Int32)kv.Value);
-                }break;
-                case "System.Int64":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Int64)kv.Value);
-                }break;
-                case "System.Single":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Single)kv.Value);
-                }break;
-                case "System.Double":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Double)kv.Value);
-                }break;
-                case "System.Boolean":
-                {
-                    str += kv.Key + " = " + System.String.Format("{0}", (System.Boolean)kv.Value);
-                }break;
-                case "System.Byte[]":
-                {
-                    str += kv.Key + " = " + "[";
-                    foreach(var item in (System.Byte[])kv.Value)
-                    {
-                        str += System.String.Format("{0}", item) + ", ";
-                    }
-                    str += "]";
-                }break;
-                case "System.String":
-                {
-                    str += kv.Key + " = " + "\"" + (System.String)kv.Value + "\"";
-                }break;
-                case "System.Collections.Generic.Dictionary`2[System.String,System.Object]": 
-                {
-                    str += kv.Key + " = " + "{" + Stringify((System.Collections.Generic.Dictionary<System.String, System.Object>)kv.Value) + "}";
-                }break;
-                case "System.Collections.Generic.Dictionary`2[System.Object,System.Collections.Generic.Dictionary`2[System.String,System.Object]]": 
-                {
-                    str += kv.Key + " = " + "{";
-                    foreach(var item in (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)kv.Value)
-                    {
-                        str += item.Key + " = " + Stringify((System.Collections.Generic.Dictionary<System.String, System.Object>)item.Value) + ", ";
-                    }
-                    str += "}";
-                }break;
-                case "System.Collections.ArrayList": 
-                {
-                    str += kv.Key + " = " + "[";
-                    foreach(var item in (System.Collections.ArrayList)kv.Value)
-                    {
-                        str += Stringify((System.Collections.Generic.Dictionary<System.String, System.Object>)item) + ", ";
-                    }
-                    str += "]";
-                }break;
-                default:
-                {
-                    throw new System.ArgumentException(kv.Value.GetType().ToString());
-                }
+                return System.String.Format("{0}", (System.Byte)data);
             }
-            str += ", ";
+            case "System.UInt16":
+            {
+                return System.String.Format("{0}", (System.UInt16)data);
+            }
+            case "System.UInt32":
+            {
+                return System.String.Format("{0}", (System.UInt32)data);
+            }
+            case "System.UInt64":
+            {
+                return System.String.Format("{0}", (System.UInt64)data);
+            }
+            case "System.SByte":
+            {
+                return System.String.Format("{0}", (System.SByte)data);
+            }
+            case "System.Int16":
+            {
+                return System.String.Format("{0}", (System.Int16)data);
+            }
+            case "System.Int32":
+            {
+                return System.String.Format("{0}", (System.Int32)data);
+            }
+            case "System.Int64":
+            {
+                return System.String.Format("{0}", (System.Int64)data);
+            }
+            case "System.Single":
+            {
+                return System.String.Format("{0}", (System.Single)data);
+            }
+            case "System.Double":
+            {
+                return System.String.Format("{0}", (System.Double)data);
+            }
+            case "System.Boolean":
+            {
+                return System.String.Format("{0}", (System.Boolean)data);
+            }
+            case "System.Byte[]":
+            {
+                var str = "[";
+                foreach(var item in (System.Byte[])data)
+                {
+                    str += System.String.Format("{0}", item) + ", ";
+                }
+                return str += "]";
+            }
+            case "System.String":
+            {
+                return "\"" + (System.String)data + "\"";
+            }
+            case "System.Collections.Generic.List`1[System.Object]": 
+            {
+                var str = "[";
+                foreach(var item in (System.Collections.Generic.List<System.Object>)data)
+                {
+                    str += Stringify(item) + ", ";
+                }
+                return str += "]";
+            }
+            case "System.Collections.Generic.Dictionary`2[System.String,System.Object]": 
+            {
+                var str = "{";
+                foreach (var kv in (System.Collections.Generic.Dictionary<System.String, System.Object>)data)
+                {
+                    str += kv.Key + " = " + Stringify(kv.Value) + ", ";
+                }
+                return str += "}";
+            }
+            case "System.Collections.Generic.Dictionary`2[System.Object,System.Collections.Generic.Dictionary`2[System.String,System.Object]]": 
+            {
+                var str = "{";
+                foreach(var item in (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)data)
+                {
+                    str += Stringify(item.Key) + " = " + Stringify(item.Value) + ", ";
+                }
+                return str += "}";
+            }
+            default:
+            {
+                throw new System.ArgumentException(data.GetType().ToString());
+            }
         }
-        return str + "}";
     }
 }

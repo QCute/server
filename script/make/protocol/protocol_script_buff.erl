@@ -39,8 +39,8 @@ protocol() ->
                 number = 11801,
                 comment = "Buff列表",
                 handler = #handler{module = buff, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "Buff列表", explain = #buff{
                         buff_id = #u32{comment = "BuffID"},
                         expire_time = #u32{comment = "结束时间"},
@@ -52,7 +52,7 @@ protocol() ->
                 number = 11802,
                 comment = "删除Buff列表",
                 handler = #handler{alias = "delete"},
-                write = [
+                encode = [
                     #list{name = list, comment = "Buff列表", explain = #buff{
                         buff_id = #u32{comment = "BuffID"}
                     }}

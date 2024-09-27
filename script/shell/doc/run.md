@@ -55,7 +55,7 @@ run.sh config_file_name force module1 module2 ...
 run.sh config_file_name diff true
 ```
 
-## SQL
+## 数据库
 
 * 执行sql命令
 ```sh

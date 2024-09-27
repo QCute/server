@@ -28,7 +28,7 @@ public static class AuctionProtocol
             {
                 // 拍品列表
                 var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
+                var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
                     // Auction

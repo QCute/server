@@ -39,8 +39,8 @@ protocol() ->
                 number = 15001,
                 comment = "签到",
                 handler = #handler{module = sign, function = sign},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -48,10 +48,10 @@ protocol() ->
                 number = 15002,
                 comment = "兑换码兑换",
                 handler = #handler{module = key_server, function = award},
-                read = [
+                decode = [
                     #bst{name = key, comment = "兑换码"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -59,10 +59,10 @@ protocol() ->
                 number = 15003,
                 comment = "红包",
                 handler = #handler{module = lucky_money_server, function = query, alias = "query_lucky_money"},
-                read = [
+                decode = [
                     #u64{name = lucky_money_no, comment = "红包编号"}
                 ],
-                write = [
+                encode = [
                     #lucky_money{
                         lucky_money_no = #u64{comment = "红包编号"},
                         total_gold = #u64{comment = "总金币"},
@@ -83,10 +83,10 @@ protocol() ->
                 number = 15004,
                 comment = "领取红包",
                 handler = #handler{module = lucky_money_server, function = receive_lucky_money},
-                read = [
+                decode = [
                     #u64{name = lucky_money_no, comment = "红包编号"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #u64{name = gold, comment = "金币"}
                 ]
@@ -95,7 +95,7 @@ protocol() ->
                 number = 15005,
                 comment = "新到红包",
                 handler = #handler{alias = "lucky_money_coming"},
-                write = []
+                encode = []
             }
         ]
     }.

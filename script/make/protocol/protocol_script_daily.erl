@@ -40,8 +40,8 @@ protocol() ->
                 number = 12301,
                 comment = "统计列表",
                 handler = #handler{module = daily, function = query_count},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "统计列表", explain = #count{
                         type = #u32{comment = "统计类型"},
                         today_number = #u32{comment = "今日数量"}
@@ -52,8 +52,8 @@ protocol() ->
                 number = 12302,
                 comment = "日常列表",
                 handler = #handler{module = daily, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "日常列表", explain = #daily{
                         daily_id = #u32{comment = "日常ID"},
                         is_award = #u8{comment = "是否领取奖励"}
@@ -68,10 +68,10 @@ protocol() ->
                 number = 12303,
                 comment = "领取日常奖励",
                 handler = #handler{module = daily, function = award},
-                read = [
+                decode = [
                     #u32{name = daily_id, comment = "日常ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -79,10 +79,10 @@ protocol() ->
                 number = 12304,
                 comment = "领取活跃度阶段奖励",
                 handler = #handler{module = daily, function = award_active},
-                read = [
+                decode = [
                     #u32{name = stage_id, comment = "阶段ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

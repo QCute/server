@@ -39,8 +39,8 @@ protocol() ->
                 number = 16101,
                 comment = "拍品列表",
                 handler = #handler{module = auction_server, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #ets{name = list, comment = "拍品列表", explain = #auction{
                         auction_no = #u64{comment = "拍品编号"},
                         auction_id = #u32{comment = "拍品ID"},
@@ -56,11 +56,11 @@ protocol() ->
                 number = 16102,
                 comment = "竞价",
                 handler = #handler{module = auction_server, function = bid},
-                read = [
+                decode = [
                     #u64{name = auction_no, comment = "拍品编号"},
                     #u32{name = next_price, comment = "新的价格"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #u32{name = new_price, comment = "新的价格"},
                     #auction{

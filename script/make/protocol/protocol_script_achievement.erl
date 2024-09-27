@@ -40,8 +40,8 @@ protocol() ->
                 number = 12301,
                 comment = "统计列表",
                 handler = #handler{module = achievement, function = query_count},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "统计列表", explain = #count{
                         type = #u32{comment = "统计类型"},
                         total_number = #u32{comment = "总数"}
@@ -52,8 +52,8 @@ protocol() ->
                 number = 12202,
                 comment = "成就列表",
                 handler = #handler{module = achievement, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "成就列表", explain = #achievement{
                         achievement_id = #u32{comment = "成就ID"},
                         type = #u32{comment = "成就类型"}
@@ -64,10 +64,10 @@ protocol() ->
                 number = 12203,
                 comment = "提交成就",
                 handler = #handler{module = achievement, function = award},
-                read = [
+                decode = [
                     #u32{name = achievement_id, comment = "成就ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

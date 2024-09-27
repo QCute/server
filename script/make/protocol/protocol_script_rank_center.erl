@@ -39,8 +39,8 @@ protocol() ->
                 number = 19101,
                 comment = "等级榜",
                 handler = #handler{module = rank_server, function = query_center, alias = level, protocol = true},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "排行榜", explain = #rank{
                         type = #u16{comment = "类型"},
                         key = #u64{comment = "键"},
@@ -56,8 +56,8 @@ protocol() ->
                 number = 19102,
                 comment = "战力榜",
                 handler = #handler{module = rank_server, function = query_center, alias = fight, protocol = true},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "排行榜", explain = #rank{
                         type = #u16{comment = "类型"},
                         key = #u64{comment = "键"},
@@ -80,8 +80,8 @@ protocol() ->
                 number = 19103,
                 comment = "成就榜",
                 handler = #handler{module = rank_server, function = query_center, alias = achievement, protocol = true},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "排行榜", explain = #rank{
                         type = #u16{comment = "类型"},
                         key = #u64{comment = "键"},
@@ -105,8 +105,8 @@ protocol() ->
                 number = 19104,
                 comment = "财富榜",
                 handler = #handler{module = rank_server, function = query_center, alias = wealth, protocol = true},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "排行榜", explain = #rank{
                         type = #u16{comment = "类型"},
                         key = #u64{comment = "键"},
@@ -131,8 +131,8 @@ protocol() ->
                 number = 19105,
                 comment = "职业榜",
                 handler = #handler{module = rank_server, function = query_center, alias = classes, protocol = true},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "排行榜", explain = #rank{
                         type = #u16{comment = "类型"},
                         key = #u64{comment = "键"},

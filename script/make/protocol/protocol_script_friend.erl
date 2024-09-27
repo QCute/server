@@ -39,8 +39,8 @@ protocol() ->
                 number = 11501,
                 comment = "好友列表",
                 handler = #handler{module = friend, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "好友列表", explain = #friend{
                         friend_role_id = #u64{comment = "好友角色ID"},
                         friend_name = #bst{comment = "好友名字"},
@@ -53,10 +53,10 @@ protocol() ->
                 number = 11502,
                 comment = "申请",
                 handler = #handler{module = friend, function = apply},
-                read = [
+                decode = [
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -64,10 +64,10 @@ protocol() ->
                 number = 11503,
                 comment = "同意",
                 handler = #handler{module = friend, function = agree},
-                read = [
+                decode = [
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -75,10 +75,10 @@ protocol() ->
                 number = 11504,
                 comment = "删除",
                 handler = #handler{module = friend, function = delete},
-                read = [
+                decode = [
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ]
@@ -87,10 +87,10 @@ protocol() ->
                 number = 11505,
                 comment = "拉黑",
                 handler = #handler{module = friend, function = block},
-                read = [
+                decode = [
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ]
@@ -99,10 +99,10 @@ protocol() ->
                 number = 11506,
                 comment = "取消拉黑",
                 handler = #handler{module = friend, function = cancel_block},
-                read = [
+                decode = [
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #u64{name = friend_role_id, comment = "好友角色ID"}
                 ]

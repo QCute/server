@@ -39,8 +39,8 @@ protocol() ->
                 number = 11901,
                 comment = "称号列表",
                 handler = #handler{module = title, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "称号列表", explain = #title{
                         title_id = #u32{comment = "称号ID"},
                         expire_time = #u32{comment = "过期时间"}
@@ -51,7 +51,7 @@ protocol() ->
                 number = 11902,
                 handler = #handler{alias = "delete"},
                 comment = "删除称号",
-                write = [
+                encode = [
                     #list{name = list, comment = "称号ID列表", explain = #title{
                         title_id = #u32{comment = "称号ID"}
                     }}

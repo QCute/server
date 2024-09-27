@@ -38,10 +38,10 @@ protocol() ->
                 number = 18001,
                 comment = "挑战Boss",
                 handler = #handler{module = boss_server, function = battle},
-                read = [
+                decode = [
                     #u32{name = monster_id, comment = "怪物Id"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

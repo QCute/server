@@ -39,8 +39,8 @@ protocol() ->
                 number = 12101,
                 comment = "气泡列表",
                 handler = #handler{module = bubble, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "气泡列表", explain = #bubble{
                         bubble_id = #u32{comment = "气泡ID"},
                         expire_time = #u32{comment = "过期时间"}
@@ -51,7 +51,7 @@ protocol() ->
                 number = 12102,
                 handler = #handler{alias = "delete"},
                 comment = "删除气泡",
-                write = [
+                encode = [
                     #list{name = list, comment = "气泡ID列表", explain = #bubble{
                         bubble_id = #u32{comment = "气泡ID"}
                     }}

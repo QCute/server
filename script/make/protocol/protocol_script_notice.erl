@@ -39,8 +39,8 @@ protocol() ->
                 number = 50001,
                 handler = #handler{module = notice, function = query},
                 comment = "公告列表",
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = notice_list, comment = "公告列表", explain = #notice_role{
                         notice_id = #u64{comment = "公告ID"},
                         receive_time = #u32{comment = "收到时间"},
@@ -54,7 +54,7 @@ protocol() ->
                 number = 50002,
                 handler = #handler{alias = "broadcast"},
                 comment = "公告",
-                write = [
+                encode = [
                     #u8{name = scope, comment = "范围"},
                     #u8{name = type, comment = "类型"},
                     #bst{name = title, comment = "标题"},

@@ -16,8 +16,10 @@ public static class AccountProtocol
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} },
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "角色名列表"}, {"explain", new List() {
-                        new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色ID"}, {"explain", new List()} },
-                        new Map() { {"name", "roleName"}, {"type", "bst"}, {"comment", "角色名"}, {"explain", new List()} }
+                        new Map() { {"name", ""}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
+                            new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色ID"}, {"explain", new List()} },
+                            new Map() { {"name", "roleName"}, {"type", "bst"}, {"comment", "角色名"}, {"explain", new List()} }
+                        }}}
                     }}}
                 }}
             }},

@@ -341,27 +341,13 @@ parse_response_erl_loop([#meta{name = Name} | T], List) ->
 %%% decode
 %%%===================================================================
 %% erl code
-%%parse_decode_erl(Protocol, []) ->
-%%    Code = lists:concat([
-%%        "decode(", Protocol, ", _Rest_ = <<_/binary>>) ->", "\n",
-%%        "    ", "{ok, []};", "\n"
-%%    ]),
-%%    {Code, ""};
-parse_decode_erl(Protocol, Meta) ->
+parse_decode_erl(Protocol, Meta = #meta{}) ->
     %% start with 3 tabs(4 space) padding
-    {_, Records, Functions, Names, Codes} = parse_decode_erl_loop(Meta, Protocol, 1, "", [], [], [], []),
-
-    %% args shrink
-    case Meta of
-        [_] ->
-            Arg = string:join(Names, ", ");
-        _ ->
-            Arg = lists:concat(["[", string:join(Names, ", "), "]"])
-    end,
+    {_, Records, Functions, Names, Codes} = parse_decode_erl_loop([Meta], Protocol, 1, "", [], [], [], []),
 
     %% codes format
     CodesDefault = lists:concat([
-        "    ", "{ok, ", Arg, "};", "\n"
+        "    ", "{ok, ", string:join(Names, ", "), "};", "\n"
     ]),
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
@@ -370,6 +356,25 @@ parse_decode_erl(Protocol, Meta) ->
         "decode(", Protocol, ", _Rest_ = <<_/binary>>) ->", "\n",
         string:join(CodesBlock, "\n")
     ]),
+
+    #file{import = Records, function = Code, extra = string:join(Functions, "\n")};
+
+parse_decode_erl(Protocol, Meta) ->
+    %% start with 3 tabs(4 space) padding
+    {_, Records, Functions, Names, Codes} = parse_decode_erl_loop(Meta, Protocol, 1, "", [], [], [], []),
+
+    %% codes format
+    CodesDefault = lists:concat([
+        "    ", "{ok, ", lists:concat(["[", string:join(Names, ", "), "]"]), "};", "\n"
+    ]),
+    CodesBlock = lists:append(Codes, [CodesDefault]),
+
+    %% format one protocol define
+    Code = lists:concat([
+        "decode(", Protocol, ", _Rest_ = <<_/binary>>) ->", "\n",
+        string:join(CodesBlock, "\n")
+    ]),
+
     #file{import = Records, function = Code, extra = string:join(Functions, "\n")}.
 
 parse_decode_erl_loop([], _, _, ScopeArgs, Records, Functions, Names, List) ->
@@ -539,30 +544,30 @@ parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain = #meta
 %%% encode
 %%%===================================================================
 %% erl code
-%%parse_encode_erl(Protocol, []) ->
-%%    Code = lists:concat([
-%%        "encode(", Protocol, ", _) ->", "\n",
-%%        "    ", "{ok, <<0:16, ", Protocol, ":16>>};", "\n"
-%%    ]),
-%%    {Code, ""};
+parse_encode_erl(Protocol, Meta = #meta{}) ->
+    %% start with 3 tabs(4 space) padding
+    {Records, Functions, Names, Codes} = parse_encode_erl_loop([Meta], Protocol, 1, [], [], [], []),
+
+    %% format one protocol define
+    Code = lists:concat([
+        "encode(", Protocol, ", ", string:join(Names, ", "), ") ->" "\n",
+        "    ", "Data", Protocol, " = <<", string:join(Codes, ", "), ">>,", "\n",
+        "    ", "{ok, <<(byte_size(Data", Protocol, ")):16, ", Protocol, ":16, Data", Protocol, "/binary>>};", "\n"
+    ]),
+
+    #file{import = Records, function = Code, extra = string:join(Functions, "\n")};
+
 parse_encode_erl(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
     {Records, Functions, Names, Codes} = parse_encode_erl_loop(Meta, Protocol, 1, [], [], [], []),
 
-    %% args shrink
-    case Meta of
-        [_] ->
-            Arg = string:join(Names, ", ");
-        _ ->
-            Arg = lists:concat(["[", string:join(Names, ", "), "]"])
-    end,
-
     %% format one protocol define
     Code = lists:concat([
-        "encode(", Protocol, ", ", Arg, ") ->" "\n",
+        "encode(", Protocol, ", ", lists:concat(["[", string:join(Names, ", "), "]"]), ") ->" "\n",
         "    ", "Data", Protocol, " = <<", string:join(Codes, ", "), ">>,", "\n",
         "    ", "{ok, <<(byte_size(Data", Protocol, ")):16, ", Protocol, ":16, Data", Protocol, "/binary>>};", "\n"
     ]),
+
     #file{import = Records, function = Code, extra = string:join(Functions, "\n")}.
 
 parse_encode_erl_loop([], _, _, Records, Functions, Names, List) ->

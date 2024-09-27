@@ -33,6 +33,7 @@ format_head(HtmlName) ->
     <style>
         html, body { margin: 0; width: 100vw; height: 100vh; display: flex; }
         body { opacity: 0; animation: fade-in 1s forwards; }
+        span { white-space: pre; }
         @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
         div { display: flex; }
         a { color: #fff; text-decoration: none; }
@@ -180,25 +181,41 @@ format_head(HtmlName) ->
             cursor: pointer;
         }
 
-        .right > .protocol > .read .field .sub .line,
-        .right > .protocol > .write .field .sub .line {
+        .right > .protocol > .read .field .sub > .line,
+        .right > .protocol > .write .field .sub > .line {
             content: \"\";
             position: absolute;
             top: 28px;
             width: 0;
-            height: calc(100% - 50px);
+            height: calc(100% - 60px);
             border-left: 1px dotted #c0c4cc;
+            margin-left: -10px;
+            z-index: 1;
+        }
+
+        .right > .protocol > .read .field .child > .line,
+        .right > .protocol > .write .field .child > .line {
+            content: \"\";
+            position: absolute;
+            top: 28px;
+            width: 0;
+            height: 30px;
+            border-left: 1px dotted #c0c4cc;
+            margin-left: -10px;
             z-index: 1;
         }
 
         .right > .protocol > .read .field .sub .bar,
-        .right > .protocol > .write .field .sub .bar {
+        .right > .protocol > .write .field .sub .bar,
+        .right > .protocol > .read .field .child .bar,
+        .right > .protocol > .write .field .child .bar {
             content: \"\";
             position: absolute;
             top: 18px;
-            width: 18px;
+            width: 26px;
             height: 0;
             border-top: 1px dotted #c0c4cc;
+            margin-left: -10px;
         }
 
         .right > .protocol > .write .digest .inner .tips,
@@ -212,7 +229,9 @@ format_head(HtmlName) ->
         }
 
         .right > .protocol > .read .sub,
-        .right > .protocol > .write .sub {
+        .right > .protocol > .write .sub,
+        .right > .protocol > .read .child,
+        .right > .protocol > .write .child {
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -311,7 +330,7 @@ format_head(HtmlName) ->
         function copy(event, target) {
             const inputValue = document.createElement('input');
             document.body. appendChild(inputValue);
-            inputValue.value = target.innerText.split(':')[1];
+            inputValue.value = (target.innerText.split(':')[1] || target.innerText).trim();
             inputValue.select();
             document.execCommand('copy');
             document.body.removeChild(inputValue);
@@ -375,12 +394,29 @@ format_content(Protocol, Comment, #data{html = #set{meta = #file{extra = Read}}}
 %% html code
 parse_code_html(_, []) ->
     #file{};
+
+parse_code_html(_, Meta = #meta{}) ->
+    %% start with 3 tabs(4 space) padding
+    %% Padding = lists:duplicate(3, "    "),
+    Codes = parse_code_html_loop([Meta], 4, list, undefined, []),
+    %% format one protocol define
+    %% lists:concat(["        \"", Protocol, "\" &nbsp;[\n", Codes, "\n        ]"]).
+    %% lists:concat(["[\n", Codes, "\n", Padding, "]"]).
+    Code = lists:concat([
+        %% Padding, Padding, "<div class='title' id='protocol-", Protocol, "'>●", Meta#meta.name, "(", Protocol, ")</div>", "\n",
+        "\n",
+        Codes, "\n",
+        "\n"
+    ]),
+
+    #file{extra = Code};
+
 parse_code_html(_, Meta) ->
     %% start with 3 tabs(4 space) padding
     %% Padding = lists:duplicate(3, "    "),
-    Codes = parse_code_html_loop(Meta, 4, []),
+    Codes = parse_code_html_loop(Meta, 4, root, undefined, []),
     %% format one protocol define
-    %% lists:concat(["        \"", Protocol, "\" : [\n", Codes, "\n        ]"]).
+    %% lists:concat(["        \"", Protocol, "\" &nbsp;[\n", Codes, "\n        ]"]).
     %% lists:concat(["[\n", Codes, "\n", Padding, "]"]).
     Code = lists:concat([
         %% Padding, Padding, "<div class='title' id='protocol-", Protocol, "'>●", Meta#meta.name, "(", Protocol, ")</div>", "\n",
@@ -391,14 +427,14 @@ parse_code_html(_, Meta) ->
 
     #file{extra = Code}.
 
-parse_code_html_loop([], _, List) ->
+parse_code_html_loop([], _, _, _, List) ->
     %% construct as a list
     string:join(lists:reverse(List), "\n");
 
-parse_code_html_loop([#meta{name = _, type = zero} | T], Depth, List) ->
-    parse_code_html_loop(T, Depth, List);
+parse_code_html_loop([#meta{name = _, type = zero} | T], Depth, Parent, Key, List) ->
+    parse_code_html_loop(T, Depth, Parent, Key, List);
 
-parse_code_html_loop([#meta{name = Name, type = binary, comment = Comment, explain = Length} | T], Depth, List) ->
+parse_code_html_loop([#meta{name = Name, type = binary, comment = Comment, explain = Length} | T], Depth, Parent, Key, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -412,18 +448,18 @@ parse_code_html_loop([#meta{name = Name, type = binary, comment = Comment, expla
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>名称: ", word:to_lower_hump(Name), "</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", word:to_lower_hump(Name), "</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'>类型: <span class='", binary, "'>", binary, "(", Length, ")</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>注释: ", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", binary, "'>", binary, "(", Length, ")</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
         Padding, "    ", "</div>", "\n",
         Padding, "</div>"
     ])),
-    parse_code_html_loop(T, Depth, [Code | List]);
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = Type, comment = Comment, explain = []} | T], Depth, List) ->
+parse_code_html_loop([#meta{name = Name, type = Type, comment = Comment, explain = []} | T], Depth, Parent, Key, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -437,33 +473,27 @@ parse_code_html_loop([#meta{name = Name, type = Type, comment = Comment, explain
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>名称: ", word:to_lower_hump(Name), "</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", word:to_lower_hump(Name), "</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'>类型: <span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>注释: ", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
         Padding, "    ", "</div>", "\n",
         Padding, "</div>"
     ])),
-    parse_code_html_loop(T, Depth, [Code | List]);
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = _, type = tuple, comment = _, explain = Explain = [_ | _]} | T], Depth, List) ->
+parse_code_html_loop([#meta{name = [], type = tuple, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth, []),
-    parse_code_html_loop(T, Depth, [SubCodes | List]);
-
-parse_code_html_loop([#meta{name = _, type = record, comment = _, explain = Explain = [_ | _]} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth, []),
-    parse_code_html_loop(T, Depth, [SubCodes | List]);
-
-parse_code_html_loop([#meta{name = Name, type = Type = list, explain = Explain = [_ | _], comment = Comment, key = undefined} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, []),
+    SubCodes = parse_code_html_loop(Explain, Depth + 2, tuple, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
+    Type = "map",
+    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, ""),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
@@ -474,12 +504,12 @@ parse_code_html_loop([#meta{name = Name, type = Type = list, explain = Explain =
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>名称: ", word:to_lower_hump(Name), "</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'>类型: <span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>注释: ", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
         Padding, "    ", "</div>", "\n",
         Padding, "    ", "<div class='sub'>", "\n",
         Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
@@ -487,16 +517,32 @@ parse_code_html_loop([#meta{name = Name, type = Type = list, explain = Explain =
         SubCodes, "\n",
         %% Padding, "    ", "    ", "</div>", "\n",
         Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>}</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
         Padding, "</div>"
     ])),
-    parse_code_html_loop(T, Depth, [Code | List]);
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = Type = list, explain = Explain = [_ | _], comment = Comment, key = Key} | T], Depth, List) ->
+parse_code_html_loop([#meta{name = Name, type = tuple, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, []),
+    SubCodes = parse_code_html_loop(Explain, Depth + 2, tuple, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
+    Type = "map",
+    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
@@ -507,12 +553,12 @@ parse_code_html_loop([#meta{name = Name, type = Type = list, explain = Explain =
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>名称: ", word:to_lower_hump(Name), "</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'>类型: <span class='", Type, "'>", Type, "</span></span> / <span onclick='copy(event, this)'>键: <span class='", key, "'>", word:to_lower_hump(Key), "</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>注释: ", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
         Padding, "    ", "</div>", "\n",
         Padding, "    ", "<div class='sub'>", "\n",
         Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
@@ -520,16 +566,32 @@ parse_code_html_loop([#meta{name = Name, type = Type = list, explain = Explain =
         SubCodes, "\n",
         %% Padding, "    ", "    ", "</div>", "\n",
         Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>}</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
         Padding, "</div>"
     ])),
-    parse_code_html_loop(T, Depth, [Code | List]);
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = Type = ets, explain = Explain = [_ | _], comment = Comment, key = undefined} | T], Depth, List) ->
+parse_code_html_loop([#meta{name = Name, type = record, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, []),
+    SubCodes = parse_code_html_loop(Explain, Depth + 2, record, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
+    Type = "map",
+    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
@@ -540,12 +602,12 @@ parse_code_html_loop([#meta{name = Name, type = Type = ets, explain = Explain = 
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>名称: ", word:to_lower_hump(Name), "</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'>类型: <span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>注释: ", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
         Padding, "    ", "</div>", "\n",
         Padding, "    ", "<div class='sub'>", "\n",
         Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
@@ -553,16 +615,32 @@ parse_code_html_loop([#meta{name = Name, type = Type = ets, explain = Explain = 
         SubCodes, "\n",
         %% Padding, "    ", "    ", "</div>", "\n",
         Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>}</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
         Padding, "</div>"
     ])),
-    parse_code_html_loop(T, Depth, [Code | List]);
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = Type = ets, explain = Explain = [_ | _], comment = Comment, key = Key} | T], Depth, List) ->
+parse_code_html_loop([#meta{name = Name, type = maps, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, []),
+    SubCodes = parse_code_html_loop(Explain, Depth + 2, maps, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
+    Type = "map",
+    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
@@ -573,12 +651,12 @@ parse_code_html_loop([#meta{name = Name, type = Type = ets, explain = Explain = 
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>名称: ", word:to_lower_hump(Name), "</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'>类型: <span class='", Type, "'>", Type, "</span></span> / <span onclick='copy(event, this)'>键: <span class='", key, "'>", word:to_lower_hump(Key), "</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>注释: ", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
         Padding, "    ", "</div>", "\n",
         Padding, "    ", "<div class='sub'>", "\n",
         Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
@@ -586,6 +664,202 @@ parse_code_html_loop([#meta{name = Name, type = Type = ets, explain = Explain = 
         SubCodes, "\n",
         %% Padding, "    ", "    ", "</div>", "\n",
         Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>}</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
         Padding, "</div>"
     ])),
-    parse_code_html_loop(T, Depth, [Code | List]).
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
+
+parse_code_html_loop([#meta{name = Name, type = list, explain = Explain, comment = Comment, key = undefined} | T], Depth, Parent, Key, List) ->
+    %% recursive
+    SubCodes = parse_code_html_loop([Explain], Depth + 2, list, undefined, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    Type = "list",
+    Code = lists:flatten(lists:concat([
+        Padding, "<div class='field'>", "\n",
+        Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", word:to_lower_hump(Name), "</span><span> [</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='child'>", "\n",
+        Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
+        %% Padding, "    ", "    ", "<div class='explain'>", "\n",
+        SubCodes, "\n",
+        %% Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>]</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "</div>"
+    ])),
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
+
+parse_code_html_loop([#meta{name = Name, type = list, explain = Explain, comment = Comment, key = SubKey} | T], Depth, Parent, Key, List) ->
+    %% recursive
+    SubCodes = parse_code_html_loop([Explain], Depth + 2, list, SubKey, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    Type = "map",
+    Code = lists:flatten(lists:concat([
+        Padding, "<div class='field'>", "\n",
+        Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", word:to_lower_hump(Name), "</span><span> [</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span> / <span onclick='copy(event, this)'>键: <span class='", key, "'>", word:to_lower_hump(SubKey), "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='child'>", "\n",
+        Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
+        %% Padding, "    ", "    ", "<div class='explain'>", "\n",
+        SubCodes, "\n",
+        %% Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>]</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "</div>"
+    ])),
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
+
+parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = undefined} | T], Depth, Parent, Key, List) ->
+    %% recursive
+    SubCodes = parse_code_html_loop([Explain], Depth + 2, ets, undefined, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    Type = "list",
+    Code = lists:flatten(lists:concat([
+        Padding, "<div class='field'>", "\n",
+        Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", word:to_lower_hump(Name), "</span><span> [</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='child'>", "\n",
+        Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
+        %% Padding, "    ", "    ", "<div class='explain'>", "\n",
+        SubCodes, "\n",
+        %% Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>]</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "</div>"
+    ])),
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
+
+parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = SubKey} | T], Depth, Parent, Key, List) ->
+    %% recursive
+    SubCodes = parse_code_html_loop([Explain], Depth + 2, ets, SubKey, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    Type = "map",
+    Code = lists:flatten(lists:concat([
+        Padding, "<div class='field'>", "\n",
+        Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", word:to_lower_hump(Name), "</span><span> [</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", Type, "</span></span> / <span onclick='copy(event, this)'>键: <span class='", key, "'>", word:to_lower_hump(SubKey), "</span></span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='child'>", "\n",
+        Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
+        %% Padding, "    ", "    ", "<div class='explain'>", "\n",
+        SubCodes, "\n",
+        %% Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "    ", "<div class='digest'>", "\n",
+        Padding, "    ", "    ", "<div class='inner name'>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>]</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
+        Padding, "    ", "    ", "    ", "</div>", "\n",
+        Padding, "    ", "    ", "</div>", "\n",
+        Padding, "    ", "</div>", "\n",
+        Padding, "</div>"
+    ])),
+    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]).

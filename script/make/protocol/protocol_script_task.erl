@@ -39,8 +39,8 @@ protocol() ->
                 number = 11201,
                 comment = "任务列表",
                 handler = #handler{module = task, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "任务列表", explain = #task{
                         task_id = #u32{comment = "任务ID"},
                         is_award = #u8{comment = "是否领取奖励"},
@@ -52,10 +52,10 @@ protocol() ->
                 number = 11202,
                 comment = "接收任务",
                 handler = #handler{module = task, function = accept},
-                read = [
+                decode = [
                     #u32{name = task_id, comment = "任务ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #task{
                         task_id = #u32{comment = "任务ID"},
@@ -68,10 +68,10 @@ protocol() ->
                 number = 11203,
                 comment = "提交任务",
                 handler = #handler{module = task, function = submit},
-                read = [
+                decode = [
                     #u32{name = task_id, comment = "任务ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

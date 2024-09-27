@@ -14,9 +14,11 @@ public static class TaskProtocol
                 }},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} },
-                    new Map() { {"name", "taskId"}, {"type", "u32"}, {"comment", "任务ID"}, {"explain", new List()} },
-                    new Map() { {"name", "number"}, {"type", "u16"}, {"comment", "当前数量"}, {"explain", new List()} },
-                    new Map() { {"name", "isAward"}, {"type", "u8"}, {"comment", "是否领取奖励"}, {"explain", new List()} }
+                    new Map() { {"name", "task"}, {"type", "record"}, {"comment": "Task"}, {"explain": new List() {
+                        new Map() { {"name", "taskId"}, {"type", "u32"}, {"comment", "任务ID"}, {"explain", new List()} },
+                        new Map() { {"name", "number"}, {"type", "u16"}, {"comment", "当前数量"}, {"explain", new List()} },
+                        new Map() { {"name", "isAward"}, {"type", "u8"}, {"comment", "是否领取奖励"}, {"explain", new List()} }
+                    }}}
                 }}
             }},
             {"11203", new Map() {

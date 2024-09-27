@@ -41,8 +41,8 @@ protocol() ->
                 number = 10101,
                 comment = "角色",
                 handler = #handler{module = role, function = query, alias = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #role{
                         role_id = #u64{comment = "角色ID"},
                         role_name = #bst{comment = "角色名"},
@@ -56,8 +56,8 @@ protocol() ->
                 number = 10102,
                 comment = "资产",
                 handler = #handler{module = asset, function = query, alias = asset_query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #asset{
                         gold = #u64{comment = "金币"},                          %% Gold
                         silver = #u32{comment = "银币"},                        %% Silver
@@ -70,8 +70,8 @@ protocol() ->
                 number = 10103,
                 comment = "vip",
                 handler = #handler{module = vip, function = query, alias = vip_query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #vip{
                         vip_level = #u8{comment = "等级"},
                         exp = #u64{comment = "经验"},

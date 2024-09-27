@@ -114,56 +114,111 @@ parse_meta_cs_loop([#meta{name = Name, type = Type, explain = [], comment = Comm
     Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", new List()} }", [Padding, word:to_lower_hump(Name), Type, Comment])),
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
-parse_meta_cs_loop([#meta{name = _, type = tuple, comment = _, explain = Explain = [_ | _]} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_cs_loop(Explain, Depth, []),
-    parse_meta_cs_loop(T, Depth, [SubCodes | List]);
-
-parse_meta_cs_loop([#meta{name = _, type = record, comment = _, explain = Explain = [_ | _]} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_cs_loop(Explain, Depth, []),
-    parse_meta_cs_loop(T, Depth, [SubCodes | List]);
-
-parse_meta_cs_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain, key = undefined} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
+parse_meta_cs_loop([#meta{name = Name, type = Type = tuple, comment = Comment, explain = Explain = [_ | _]} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
+
+    %% recursive
+    SubCodes = parse_meta_cs_loop(Explain, Depth + 1, []),
+
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\": \"~ts\"}, {\"explain\": new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
-parse_meta_cs_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain, key = Key} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
+parse_meta_cs_loop([#meta{name = Name, type = Type = record, comment = Comment, explain = Explain = [_ | _]} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
+
+    %% recursive
+    SubCodes = parse_meta_cs_loop(Explain, Depth + 1, []),
+
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"key\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\": \"~ts\"}, {\"explain\": new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
-parse_meta_cs_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain, key = undefined} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
+parse_meta_cs_loop([#meta{name = Name, type = Type = maps, comment = Comment, explain = Explain = [_ | _]} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
+
+    %% recursive
+    SubCodes = parse_meta_cs_loop(Explain, Depth + 1, []),
+
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\": \"~ts\"}, {\"explain\": new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
-parse_meta_cs_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain, key = Key} | T], Depth, List) ->
+parse_meta_cs_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain = #meta{type = SubType}, key = undefined} | T], Depth, List) ->
     %% recursive
     SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"key\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
+    TargetLeft = ["new List() {" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", ~ts\n~ts\n~s~ts}}", [Padding, word:to_lower_hump(Name), list, Comment, TargetLeft, SubCodes, Padding, TargetRight])),
+    parse_meta_cs_loop(T, Depth, [Code | List]);
+
+parse_meta_cs_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain = #meta{type = SubType}, key = Key} | T], Depth, List) ->
+    %% recursive
+    SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    TargetLeft = ["new List() {" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"key\", \"~ts\"}, {\"explain\", ~ts\n~ts\n~s~ts}}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), TargetLeft, SubCodes, Padding, TargetRight])),
+    parse_meta_cs_loop(T, Depth, [Code | List]);
+
+parse_meta_cs_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain = #meta{type = SubType}, key = undefined} | T], Depth, List) ->
+    %% recursive
+    SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    TargetLeft = ["new List() {" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", ~ts\n~ts\n~s~ts}}", [Padding, word:to_lower_hump(Name), list, Comment, TargetLeft, SubCodes, Padding, TargetRight])),
+    parse_meta_cs_loop(T, Depth, [Code | List]);
+
+parse_meta_cs_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain = #meta{type = SubType}, key = Key} | T], Depth, List) ->
+    %% recursive
+    SubCodes = parse_meta_cs_loop([Explain], Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    TargetLeft = ["new List() {" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"key\", \"~ts\"}, {\"explain\", ~ts\n~ts\n~s~ts}}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), TargetLeft, SubCodes, Padding, TargetRight])),
     parse_meta_cs_loop(T, Depth, [Code | List]).
 
 %%%===================================================================
 %%% encode
 %%%===================================================================
 %% cs code
+parse_encode_cs(Protocol, Meta = #meta{}) ->
+    %% start with 3 tabs(4 space) padding
+    Padding = lists:duplicate(3, "    "),
+    {_, Codes} = parse_encode_cs_loop([Meta], 4, undefined, "data", [], []),
+
+    %% codes format
+    CodesDefault = lists:concat([
+        Padding, "    ", "return;", "\n"
+    ]),
+    CodesBlock = lists:append(Codes, [CodesDefault]),
+
+    %% format one protocol define
+    Code = lists:concat([
+        Padding, "case ", Protocol, ":", "\n",
+        Padding, "{", "\n",
+        string:join(CodesBlock, "\n"),
+        Padding, "}"
+    ]),
+
+    #file{function = Code};
+
 parse_encode_cs(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
     Padding = lists:duplicate(3, "    "),
@@ -194,7 +249,7 @@ parse_encode_cs_loop([#meta{name = Name, type = binary, explain = _, comment = C
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write((System.Byte[])", Scope, Target, ");"
@@ -205,7 +260,7 @@ parse_encode_cs_loop([#meta{name = Name, type = bool, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write((System.Byte)((System.Boolean)", Scope, Target, " ? 1 : 0));"
@@ -216,7 +271,7 @@ parse_encode_cs_loop([#meta{name = Name, type = u8, explain = [], comment = Comm
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write((System.Byte)", Scope, Target, ");"
@@ -227,7 +282,7 @@ parse_encode_cs_loop([#meta{name = Name, type = u16, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)", Scope, Target, "));"
@@ -238,7 +293,7 @@ parse_encode_cs_loop([#meta{name = Name, type = u32, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)", Scope, Target, "));"
@@ -249,7 +304,7 @@ parse_encode_cs_loop([#meta{name = Name, type = u64, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)", Scope, Target, "));"
@@ -260,7 +315,7 @@ parse_encode_cs_loop([#meta{name = Name, type = i8, explain = [], comment = Comm
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write((System.SByte)", Scope, Target, ");"
@@ -271,7 +326,7 @@ parse_encode_cs_loop([#meta{name = Name, type = i16, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)", Scope, Target, "));"
@@ -282,7 +337,7 @@ parse_encode_cs_loop([#meta{name = Name, type = i32, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)", Scope, Target, "));"
@@ -293,7 +348,7 @@ parse_encode_cs_loop([#meta{name = Name, type = i64, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)", Scope, Target, "));"
@@ -304,7 +359,7 @@ parse_encode_cs_loop([#meta{name = Name, type = f32, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "var ", HumpName, "Bytes = System.BitConverter.GetBytes((System.Single)", Scope, Target, ");", "\n",
@@ -317,7 +372,7 @@ parse_encode_cs_loop([#meta{name = Name, type = f64, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "var ", HumpName, "Bytes = System.BitConverter.GetBytes((System.Double)", Scope, Target, ");", "\n",
@@ -330,7 +385,7 @@ parse_encode_cs_loop([#meta{name = Name, type = str, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "var ", HumpName, "Bytes = encoding.GetBytes((System.String)", Scope, Target, ");", "\n",
@@ -343,7 +398,7 @@ parse_encode_cs_loop([#meta{name = Name, type = bst, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "var ", HumpName, "Bytes = encoding.GetBytes((System.String)", Scope, Target, ");", "\n",
@@ -356,7 +411,7 @@ parse_encode_cs_loop([#meta{name = Name, type = rst, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "var ", HumpName, "Bytes = encoding.GetBytes((System.String)", "(", "(System.Collections.Generic.Dictionary<System.String, System.Object>)", Scope, Target, ")", ");", "\n",
@@ -368,7 +423,7 @@ parse_encode_cs_loop([#meta{name = Name, type = rst, explain = [], comment = Com
 parse_encode_cs_loop([#meta{name = Name, type = tuple, explain = Explain} | T], Depth, Parent, Scope, Names, List) ->
 
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
 
     %% recursive
     {SubNames, SubCodes} = parse_encode_cs_loop(Explain, Depth, tuple, lists:concat(["(", "(System.Collections.Generic.Dictionary<System.String, System.Object>)", Scope, Target, ")"]), Names, List),
@@ -379,10 +434,21 @@ parse_encode_cs_loop([#meta{name = Name, type = tuple, explain = Explain} | T], 
 parse_encode_cs_loop([#meta{name = Name, type = record, explain = Explain} | T], Depth, Parent, Scope, Names, List) ->
 
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
 
     %% recursive
     {SubNames, SubCodes} = parse_encode_cs_loop(Explain, Depth, record, lists:concat(["(", "(System.Collections.Generic.Dictionary<System.String, System.Object>)", Scope, Target, ")"]), Names, List),
+
+    %% flatten
+    parse_encode_cs_loop(T, Depth, Parent, Scope, lists:reverse(SubNames), lists:reverse(SubCodes));
+
+parse_encode_cs_loop([#meta{name = Name, type = maps, explain = Explain} | T], Depth, Parent, Scope, Names, List) ->
+
+    HumpName = word:to_lower_hump(Name),
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
+
+    %% recursive
+    {SubNames, SubCodes} = parse_encode_cs_loop(Explain, Depth, maps, lists:concat(["(", "(System.Collections.Generic.Dictionary<System.String, System.Object>)", Scope, Target, ")"]), Names, List),
 
     %% flatten
     parse_encode_cs_loop(T, Depth, Parent, Scope, lists:reverse(SubNames), lists:reverse(SubCodes));
@@ -391,7 +457,7 @@ parse_encode_cs_loop([#meta{name = Name, type = list, comment = Comment, explain
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     UnitType = #{
         binary => "System.Byte[]",
         bool => "System.Boolean",
@@ -428,7 +494,7 @@ parse_encode_cs_loop([#meta{name = Name, type = list, comment = Comment, explain
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     UnitType = #{
         binary => "System.Byte[]",
         bool => "System.Boolean",
@@ -463,6 +529,27 @@ parse_encode_cs_loop([#meta{name = Name, type = list, comment = Comment, explain
 %%% decode
 %%%===================================================================
 %% cs code
+parse_decode_cs(Protocol, Meta = #meta{}) ->
+    %% start with 3 tabs(4 space) padding
+    Padding = lists:duplicate(3, "    "),
+    {Fields, Codes} = parse_decode_cs_loop([Meta], 4, [], []),
+
+    %% codes format
+    CodesDefault = lists:concat([
+        Padding, "    ", "return ", string:join(Fields, ", "), ";", "\n"
+    ]),
+    CodesBlock = lists:append(Codes, [CodesDefault]),
+
+    %% format one protocol define
+    Code = lists:concat([
+        Padding, "case ", Protocol, ":", "\n",
+        Padding, "{", "\n",
+        string:join(CodesBlock, "\n"),
+        Padding, "}"
+    ]),
+
+    #file{function = Code};
+
 parse_decode_cs(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
     Padding = lists:duplicate(3, "    "),
@@ -695,6 +782,24 @@ parse_decode_cs_loop([#meta{name = Name, type = record, comment = Comment, expla
     %% flatten
     parse_decode_cs_loop(T, Depth, [HumpName | Fields], [Code | List]);
 
+parse_decode_cs_loop([#meta{name = Name, type = maps, comment = Comment, explain = Explain} | T], Depth, Fields, List) ->
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    HumpName = word:to_lower_hump(Name),
+
+    %% recursive
+    {SubFields, SubCodes} = parse_decode_cs_loop(Explain, Depth, [], []),
+
+    Code = [
+        Padding, "// ", Comment, "\n",
+        string:join(SubCodes, "\n"), "\n",
+        Padding, "// object", "\n",
+        Padding, "var ", HumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", SubName, "\", ", SubName, "}"]) || SubName <- SubFields], ", "), "};"
+    ],
+
+    %% flatten
+    parse_decode_cs_loop(T, Depth, [HumpName | Fields], [Code | List]);
+
 parse_decode_cs_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain, key = undefined} | T], Depth, Fields, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
@@ -744,7 +849,7 @@ parse_decode_cs_loop([#meta{name = Name, type = ets, comment = Comment, explain 
     Code = [
         Padding, "// ", Comment, "\n",
         Padding, "var ", HumpName, "Length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());", "\n",
-        Padding, "var ", HumpName, " = new System.Collections.ArrayList(", HumpName, "Length);", "\n",
+        Padding, "var ", HumpName, " = new System.Collections.Generic.List<System.Object>(", HumpName, "Length);", "\n",
         Padding, "while (", HumpName, "Length-- > 0)", "\n",
         Padding, "{", "\n",
         string:join(SubCodes, "\n"), "\n",

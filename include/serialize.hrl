@@ -1,3 +1,4 @@
+-compile(nowarn_unused_function).
 
 %% 协议配置
 -record(protocol, {
@@ -11,14 +12,14 @@
     io = []                                           %% 读写配置
 }).
 
-%% 读写配置
+%% 编码解码配置
 -record(io, {
     number = 0,                                       %% 协议号
     comment = [],                                     %% 描述
     interval = 0,                                     %% 协议时间间隔(毫秒)
     handler,                                          %% 处理协议配置
-    read,                                             %% 读配置
-    write                                             %% 写配置
+    decode,                                           %% 接收解码配置
+    encode                                            %% 发送编码配置
 }).
 
 %% 协议处理函数配置
@@ -31,6 +32,7 @@
     response = buffer,                                %% 响应发送方式send:直接发送, buffer:缓存发送
     imp = user                                        %% sender名字
 }).
+
 
 %% 组合定义
 -record(maps,     {name = [], comment = [], explain = []}). %% 映射, 使用explain描述映射具体信息
@@ -59,9 +61,41 @@
 -record(str,      {name = [], comment = [], explain = []}). %% 字符串(列表形式)
 -record(zero,     {name = [], comment = [], explain = []}). %% 0   零字节占位符
 
+
+
+zero() -> ok.
+bin(Size) -> Size.
+bool() -> ok.
+u8() -> ok.
+u16() -> ok.
+u32() -> ok.
+u64() -> ok.
+i8() -> ok.
+i16() -> ok.
+i32() -> ok.
+i64() -> ok.
+f32() -> ok.
+f64() -> ok.
+str() -> ok.
+bst() -> ok.
+
+
+%% take encode row from epp:parse_file
+%% take comment from erl_scan:string
+
+%% erl record/maps encode/decode use single function prevent name conflict
+%% js/cs use sub scope {} prevent name conflict
+
 %% 对于读取时:
 %%     如列表包含字符串, 使用binary固定长度二进制代替
 %%
 %% 对于写入时:
 %%     可使用rst自动转换成多语言(i18n)字符串
 %%     可使用零字节占位符忽略元组中不需要写入的元素
+
+-define(IS_UNSIGNED(Unit), is_record(Unit, u8) orelse is_record(Unit, u16) orelse is_record(Unit, u32) orelse is_record(Unit, u64)).
+-define(IS_SIGNED(Unit), is_record(Unit, i8) orelse is_record(Unit, i16) orelse is_record(Unit, i32) orelse is_record(Unit, i64)).
+-define(IS_FLOAT(Unit), is_record(Unit, f32) orelse is_record(Unit, f64)).
+-define(IS_STRING(Unit), is_record(Unit, str) orelse is_record(Unit, bst)).
+-define(IS_SEQ(Unit), is_record(Unit, list) orelse is_record(Unit, tuple) orelse is_record(Unit, maps) orelse is_record(Unit, ets)).
+-define(IS_UNIT(Unit), IS_UNSIGNED(Unit) orelse IS_SIGNED(Unit) orelse IS_FLOAT(Unit) orelse IS_STRING(Unit) orelse IS_SEQ(Unit)).

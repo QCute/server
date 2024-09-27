@@ -39,8 +39,8 @@ protocol() ->
                 number = 12001,
                 comment = "时装列表",
                 handler = #handler{module = fashion, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, comment = "时装列表", explain = #fashion{
                         fashion_id = #u32{comment = "时装ID"},
                         expire_time = #u32{comment = "过期时间"}
@@ -51,7 +51,7 @@ protocol() ->
                 number = 12002,
                 handler = #handler{alias = "delete"},
                 comment = "删除时装",
-                write = [
+                encode = [
                     #list{name = list, comment = "时装ID列表", explain = #fashion{
                         fashion_id = #u32{comment = "时装ID"}
                     }}

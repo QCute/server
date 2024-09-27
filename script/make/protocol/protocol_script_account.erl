@@ -40,8 +40,8 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS(30),
                 comment = "心跳包",
                 handler = #handler{module = account, function = heartbeat, state = client, response = send, imp = ""},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -50,11 +50,11 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS,
                 comment = "查询账户",
                 handler = #handler{module = account, function = query, state = client, response = send, imp = ""},
-                read = [
+                decode = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #list{name = list, comment = "角色名列表", explain = {
                         #u64{name = role_id, comment = "角色ID"},
@@ -67,7 +67,7 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS,
                 comment = "创建账户",
                 handler = #handler{module = account, function = create, state = client, response = send, imp = ""},
-                read = [
+                decode = [
                     #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"},
@@ -78,7 +78,7 @@ protocol() ->
                     #bst{name = mac, comment = "mac地址"},
                     #bst{name = device_type, comment = "设备类型"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #u64{name = role_id, comment = "角色ID"},
                     #bst{name = role_name, comment = "角色名"}
@@ -89,13 +89,13 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS,
                 comment = "登录",
                 handler = #handler{module = account, function = login, state = client, response = send, imp = ""},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"},
                     #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -104,8 +104,8 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS,
                 comment = "退出",
                 handler = #handler{module = account, function = logout, state = client, response = send, imp = ""},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },

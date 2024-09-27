@@ -39,8 +39,25 @@ protocol() ->
                 number = 11401,
                 comment = "邮件列表",
                 handler = #handler{module = mail, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
+                    #mail{
+                        mail_id = u64(),                  %% 邮件ID
+                        receive_time = u32(),             %% 接收时间
+                        expire_time = u32(),              %% 有效时间
+                        read_time = u32(),                %% 读取时间
+                        receive_attachment_time = u32(),  %% 领取附件时间
+                        title = bst(),                    %% 标题
+                        content = bst(),                  %% 内容
+                        attachment = [                    %% 附件列表
+                            {
+                                item_id = u32(),          %% 物品ID
+                                number = u16()            %% 数量
+                            }
+                        ]
+                    }
+                ],
+                encode = [
                     #list{name = list, comment = "邮件列表", explain = #mail{
                         mail_id = #u64{comment = "邮件ID"},
                         receive_time = #u32{comment = "接收时间"},
@@ -60,10 +77,10 @@ protocol() ->
                 number = 11402,
                 comment = "阅读",
                 handler = #handler{module = mail, function = read},
-                read = [
+                decode = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -71,10 +88,10 @@ protocol() ->
                 number = 11403,
                 comment = "领取附件",
                 handler = #handler{module = mail, function = receive_attachment},
-                read = [
+                decode = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -82,10 +99,10 @@ protocol() ->
                 number = 11404,
                 comment = "删除邮件",
                 handler = #handler{module = mail, function = delete},
-                read = [
+                decode = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

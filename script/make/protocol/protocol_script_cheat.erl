@@ -38,8 +38,14 @@ protocol() ->
                 number = 60001,
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = query},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
+                    {
+                        bst(description),      %% 描述
+                        bst(command)           %% 命令
+                    }
+                ],
+                encode = [
                     #list{name = cheat_list, comment = "秘籍列表", explain = {
                         #bst{name = description, comment = "描述"},
                         #bst{name = command, comment = "命令"}
@@ -50,10 +56,10 @@ protocol() ->
                 number = 60002,
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = cheat},
-                read = [
+                decode = [
                     #bst{name = command, comment = "命令"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

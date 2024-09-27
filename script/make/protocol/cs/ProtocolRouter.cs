@@ -135,8 +135,8 @@ public static class Cast
         return (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
     }
 
-    public static System.Collections.ArrayList ToList(this object data)
+    public static System.Collections.Generic.List<System.Object> ToList(this object data)
     {
-        return (System.Collections.ArrayList)data;
+        return (System.Collections.Generic.List<System.Object>)data;
     }
 }

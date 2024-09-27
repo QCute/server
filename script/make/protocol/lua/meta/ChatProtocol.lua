@@ -6,11 +6,13 @@ return {
         },
         ["read"] = {
             {name = "list", type = "list", comment = "", explain = {
-                {name = "id", type = "u64", comment = "ID", explain = {}},
-                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                {name = "systemChat", type = "record", comment = "SystemChat", explain = {
+                    {name = "id", type = "u64", comment = "ID", explain = {}},
+                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                    {name = "type", type = "u8", comment = "类型", explain = {}},
+                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                }}
             }}
         }
     },
@@ -22,11 +24,13 @@ return {
         },
         ["read"] = {
             {name = "result", type = "rst", comment = "结果", explain = {}},
-            {name = "id", type = "u64", comment = "ID", explain = {}},
-            {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-            {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-            {name = "type", type = "u8", comment = "类型", explain = {}},
-            {name = "message", type = "bst", comment = "消息内容", explain = {}}
+            {name = "worldChat", type = "record", comment = "WorldChat", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+            }}
         }
     },
     [11604] = {
@@ -36,11 +40,13 @@ return {
         },
         ["read"] = {
             {name = "list", type = "list", comment = "", explain = {
-                {name = "id", type = "u64", comment = "ID", explain = {}},
-                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                {name = "worldChat", type = "record", comment = "WorldChat", explain = {
+                    {name = "id", type = "u64", comment = "ID", explain = {}},
+                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                    {name = "type", type = "u8", comment = "类型", explain = {}},
+                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                }}
             }}
         }
     },
@@ -52,11 +58,13 @@ return {
         },
         ["read"] = {
             {name = "result", type = "rst", comment = "结果", explain = {}},
-            {name = "id", type = "u64", comment = "ID", explain = {}},
-            {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-            {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-            {name = "type", type = "u8", comment = "类型", explain = {}},
-            {name = "message", type = "bst", comment = "消息内容", explain = {}}
+            {name = "guildChat", type = "record", comment = "GuildChat", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+            }}
         }
     },
     [11606] = {
@@ -66,11 +74,13 @@ return {
         },
         ["read"] = {
             {name = "list", type = "list", comment = "", explain = {
-                {name = "id", type = "u64", comment = "ID", explain = {}},
-                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                {name = "guildChat", type = "record", comment = "GuildChat", explain = {
+                    {name = "id", type = "u64", comment = "ID", explain = {}},
+                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                    {name = "type", type = "u8", comment = "类型", explain = {}},
+                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                }}
             }}
         }
     },
@@ -83,10 +93,12 @@ return {
         },
         ["read"] = {
             {name = "result", type = "rst", comment = "结果", explain = {}},
-            {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
-            {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
-            {name = "type", type = "u8", comment = "类型", explain = {}},
-            {name = "message", type = "bst", comment = "消息内容", explain = {}}
+            {name = "privateChat", type = "record", comment = "PrivateChat", explain = {
+                {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
+                {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+            }}
         }
     },
     [11608] = {
@@ -97,10 +109,12 @@ return {
         },
         ["read"] = {
             {name = "list", type = "list", comment = "", explain = {
-                {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
-                {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
-                {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                {name = "privateChat", type = "record", comment = "PrivateChat", explain = {
+                    {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
+                    {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
+                    {name = "type", type = "u8", comment = "类型", explain = {}},
+                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
+                }}
             }}
         }
     }

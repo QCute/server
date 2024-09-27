@@ -100,56 +100,112 @@ parse_meta_lua_loop([#meta{name = Name, type = Type, explain = [], comment = Com
     Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~w}", [Padding, word:to_lower_hump(Name), Type, Comment, {}])),
     parse_meta_lua_loop(T, Depth, [Code | List]);
 
-parse_meta_lua_loop([#meta{name = _, type = tuple, comment = _, explain = Explain} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_lua_loop(Explain, Depth, []),
-    parse_meta_lua_loop(T, Depth, [SubCodes | List]);
-
-parse_meta_lua_loop([#meta{name = _, type = record, comment = _, explain = Explain} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_lua_loop(Explain, Depth, []),
-    parse_meta_lua_loop(T, Depth, [SubCodes | List]);
-
-parse_meta_lua_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain, key = undefined} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
+parse_meta_lua_loop([#meta{name = Name, type = Type = tuple, comment = Comment, explain = Explain} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
+
+    %% recursive
+    SubCodes = parse_meta_lua_loop(Explain, Depth + 1, []),
+
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+
     parse_meta_lua_loop(T, Depth, [Code | List]);
 
-parse_meta_lua_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain, key = Key} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
+parse_meta_lua_loop([#meta{name = Name, type = Type = record, comment = Comment, explain = Explain} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
+
+    %% recursive
+    SubCodes = parse_meta_lua_loop(Explain, Depth + 1, []),
+
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", key = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+
     parse_meta_lua_loop(T, Depth, [Code | List]);
 
-parse_meta_lua_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain, key = undefined} | T], Depth, List) ->
-    %% recursive
-    SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
+parse_meta_lua_loop([#meta{name = Name, type = Type = maps, comment = Comment, explain = Explain} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
+
+    %% recursive
+    SubCodes = parse_meta_lua_loop(Explain, Depth + 1, []),
+
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+
     parse_meta_lua_loop(T, Depth, [Code | List]);
 
-parse_meta_lua_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain, key = Key} | T], Depth, List) ->
+parse_meta_lua_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain = #meta{type = SubType}, key = undefined} | T], Depth, List) ->
     %% recursive
     SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", key = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
+    TargetLeft = ["{" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~ts\n~ts\n~s~ts}", [Padding, word:to_lower_hump(Name), list, Comment, TargetLeft, SubCodes, Padding, TargetRight])),
+    parse_meta_lua_loop(T, Depth, [Code | List]);
+
+parse_meta_lua_loop([#meta{name = Name, type = list, comment = Comment, explain = Explain = #meta{type = SubType}, key = Key} | T], Depth, List) ->
+    %% recursive
+    SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    TargetLeft = ["{" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", key = \"~ts\", explain = ~ts\n~ts\n~s~ts}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), TargetLeft, SubCodes, Padding, TargetRight])),
+    parse_meta_lua_loop(T, Depth, [Code | List]);
+
+parse_meta_lua_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain = #meta{type = SubType}, key = undefined} | T], Depth, List) ->
+    %% recursive
+    SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    TargetLeft = ["{" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~ts\n~ts\n~s~ts}", [Padding, word:to_lower_hump(Name), list, Comment, TargetLeft, SubCodes, Padding, TargetRight])),
+    parse_meta_lua_loop(T, Depth, [Code | List]);
+
+parse_meta_lua_loop([#meta{name = Name, type = ets, comment = Comment, explain = Explain = #meta{type = SubType}, key = Key} | T], Depth, List) ->
+    %% recursive
+    SubCodes = parse_meta_lua_loop([Explain], Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    TargetLeft = ["{" || SubType == tuple orelse SubType == record],
+    TargetRight = ["}" || SubType == tuple orelse SubType == record],
+    Code = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", key = \"~ts\", explain = ~ts\n~ts\n~s~ts}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), TargetLeft, SubCodes, Padding, TargetRight])),
     parse_meta_lua_loop(T, Depth, [Code | List]).
 
 %%%===================================================================
 %%% encode
 %%%===================================================================
 %% lua code
+parse_encode_lua(Protocol, Meta = #meta{}) ->
+    %% start with 3 tabs(4 space) padding
+    Padding = lists:duplicate(1, "    "),
+    {_, Codes} = parse_encode_lua_loop([Meta], 2, undefined, "data", [], []),
+
+    %% codes format
+    CodesDefault = lists:concat([
+        Padding, "    ", "return table", "\n"
+    ]),
+    CodesBlock = lists:append(Codes, [CodesDefault]),
+
+    %% format one protocol define
+    Code = lists:concat([
+        "if protocol == ", Protocol, " then", "\n",
+        Padding, "    ", "local offset = offset", "\n",
+        Padding, "    ", "local table = {}", "\n",
+        string:join(CodesBlock, "\n"),
+        Padding, "else"
+    ]),
+
+    #file{function = Code};
+
 parse_encode_lua(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
     Padding = lists:duplicate(1, "    "),
@@ -182,7 +238,7 @@ parse_encode_lua_loop([#meta{name = Name, type = binary, comment = Comment} | T]
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = ", Scope, Target, "\n",
@@ -194,7 +250,7 @@ parse_encode_lua_loop([#meta{name = Name, type = bool, explain = [], comment = C
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">I1\", ", Scope, Target, " ~= 0 and 1 or 0)", "\n",
@@ -206,7 +262,7 @@ parse_encode_lua_loop([#meta{name = Name, type = u8, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">I1\", ", Scope, Target, ")", "\n",
@@ -218,7 +274,7 @@ parse_encode_lua_loop([#meta{name = Name, type = u16, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">I2\", ", Scope, Target, ")", "\n",
@@ -230,7 +286,7 @@ parse_encode_lua_loop([#meta{name = Name, type = u32, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">I4\", ", Scope, Target, ")", "\n",
@@ -242,7 +298,7 @@ parse_encode_lua_loop([#meta{name = Name, type = u64, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">I8\", ", Scope, Target, ")", "\n",
@@ -254,7 +310,7 @@ parse_encode_lua_loop([#meta{name = Name, type = i8, explain = [], comment = Com
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">i1\", ", Scope, Target, ")", "\n",
@@ -266,7 +322,7 @@ parse_encode_lua_loop([#meta{name = Name, type = i16, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">i2\", ", Scope, Target, ")", "\n",
@@ -278,7 +334,7 @@ parse_encode_lua_loop([#meta{name = Name, type = i32, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">i4\", ", Scope, Target, ")", "\n",
@@ -290,7 +346,7 @@ parse_encode_lua_loop([#meta{name = Name, type = i64, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">i8\", ", Scope, Target, ")", "\n",
@@ -302,7 +358,7 @@ parse_encode_lua_loop([#meta{name = Name, type = f32, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">f\", ", Scope, Target, ")", "\n",
@@ -314,7 +370,7 @@ parse_encode_lua_loop([#meta{name = Name, type = f64, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">d\", ", Scope, Target, ")", "\n",
@@ -326,7 +382,7 @@ parse_encode_lua_loop([#meta{name = Name, type = str, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">s2\", ", Scope, Target, ")", "\n",
@@ -338,7 +394,7 @@ parse_encode_lua_loop([#meta{name = Name, type = bst, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">s2\", ", Scope, Target, ")", "\n",
@@ -350,7 +406,7 @@ parse_encode_lua_loop([#meta{name = Name, type = rst, explain = [], comment = Co
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "table[offset] = string.pack(\">s2\", ", Scope, Target, ")", "\n",
@@ -361,7 +417,7 @@ parse_encode_lua_loop([#meta{name = Name, type = rst, explain = [], comment = Co
 parse_encode_lua_loop([#meta{name = Name, type = tuple, explain = Explain} | T], Depth, Parent, Scope, Names, List) ->
 
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
 
     %% recursive
     {SubNames, SubCodes} = parse_encode_lua_loop(Explain, Depth, tuple, lists:concat([Scope, Target]), Names, List),
@@ -372,10 +428,21 @@ parse_encode_lua_loop([#meta{name = Name, type = tuple, explain = Explain} | T],
 parse_encode_lua_loop([#meta{name = Name, type = record, explain = Explain} | T], Depth, Parent, Scope, Names, List) ->
 
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
 
     %% recursive
     {SubNames, SubCodes} = parse_encode_lua_loop(Explain, Depth, record, lists:concat([Scope, Target]), Names, List),
+
+    %% flatten
+    parse_encode_lua_loop(T, Depth, Parent, Scope, lists:reverse(SubNames), lists:reverse(SubCodes));
+
+parse_encode_lua_loop([#meta{name = Name, type = maps, explain = Explain} | T], Depth, Parent, Scope, Names, List) ->
+
+    HumpName = word:to_lower_hump(Name),
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
+
+    %% recursive
+    {SubNames, SubCodes} = parse_encode_lua_loop(Explain, Depth, maps, lists:concat([Scope, Target]), Names, List),
 
     %% flatten
     parse_encode_lua_loop(T, Depth, Parent, Scope, lists:reverse(SubNames), lists:reverse(SubCodes));
@@ -384,7 +451,7 @@ parse_encode_lua_loop([#meta{name = Name, type = list, comment = Comment, explai
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     %% recursive
     {_, SubCodes} = parse_encode_lua_loop([Explain], Depth + 1, list, lists:concat([HumpName, "ItemData"]), [], []),
     Code = [
@@ -405,7 +472,7 @@ parse_encode_lua_loop([#meta{name = Name, type = list, comment = Comment, explai
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),
-    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record],
+    Target = [["[\"", HumpName, "\"]"] || Parent == tuple orelse Parent == record orelse Parent == maps],
     %% recursive
     {_, SubCodes} = parse_encode_lua_loop([Explain], Depth + 1, list, lists:concat([HumpName, "ItemData"]), [], []),
     Code = [
@@ -423,6 +490,27 @@ parse_encode_lua_loop([#meta{name = Name, type = list, comment = Comment, explai
 %%% decode
 %%%===================================================================
 %% lua code
+parse_decode_lua(Protocol, Meta = #meta{}) ->
+    %% start with 3 tabs(4 space) padding
+    Padding = lists:duplicate(1, "    "),
+    {Fields, Codes} = parse_decode_lua_loop([Meta], 2, [], []),
+
+    %% codes format
+    CodesDefault = lists:concat([
+        Padding, "    ", "return ", string:join(Fields, ", "), "", "\n"
+    ]),
+    CodesBlock = lists:append(Codes, [CodesDefault]),
+
+    %% format one protocol define
+    Code = lists:concat([
+        "if protocol == ", Protocol, " then", "\n",
+        Padding, "    ", "local offset = offset", "\n",
+        string:join(CodesBlock, "\n"),
+        Padding, "else"
+    ]),
+
+    #file{function = Code};
+
 parse_decode_lua(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
     Padding = lists:duplicate(1, "    "),
@@ -651,6 +739,24 @@ parse_decode_lua_loop([#meta{name = Name, type = tuple, comment = Comment, expla
     parse_decode_lua_loop(T, Depth, [HumpName | Fields], [Code | List]);
 
 parse_decode_lua_loop([#meta{name = Name, type = record, comment = Comment, explain = Explain} | T], Depth, Fields, List) ->
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    HumpName = word:to_lower_hump(Name),
+
+    %% recursive
+    {SubFields, SubCodes} = parse_decode_lua_loop(Explain, Depth, [], []),
+
+    Code = [
+        Padding, "-- ", Comment, "\n",
+        string:join(SubCodes, "\n"), "\n",
+        Padding, "-- object", "\n",
+        Padding, "local ", HumpName, " = {", string:join([lists:concat([SubName, " = ", SubName]) || SubName <- SubFields], ", "), "}"
+    ],
+
+    %% flatten
+    parse_decode_lua_loop(T, Depth, [HumpName | Fields], [Code | List]);
+
+parse_decode_lua_loop([#meta{name = Name, type = maps, comment = Comment, explain = Explain} | T], Depth, Fields, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     HumpName = word:to_lower_hump(Name),

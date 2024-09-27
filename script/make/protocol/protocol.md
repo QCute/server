@@ -4,21 +4,21 @@
 ```erl
 protocol() ->
     #protocol{
-        number = 100,            %% 协议号
+        number = 100,            %% 协议簇号
         comment = ...,           %% 注释
         erl = ...,               %% erl文件路径
         html = ...,              %% html文件路径
         lua = ...,               %% lua文件路径
         js = ...,                %% js文件路径
         cs = ...,                %% cs文件路径
-        io = [                   %% 协议读写配置
+        io = [                   %% 协议编码解码配置
             #io{
                 number = ...,    %% 协议号
                 comment = ...,   %% 注释
-                read = [         %% 读取配置
+                decode = [       %% 接收解码配置
                     ...
                 ],
-                write = [        %% 写入配置
+                encode = [       %% 发送编码配置
                     ...
                 ]
             }
@@ -28,11 +28,11 @@ protocol() ->
 
 ## 例子 
 
-### 读取  
+### 解码  
 
 1. 基本类型
 ```erl
-                read = [
+                decode = [
                     #bool{name = boolean, comment = "the boolean type"},    %% 布尔值
                     #u8{name = u8, comment = "the u8 type"},                %% 8位无符号
                     #u16{name = u16, comment = "the u16 type"},             %% 16位无符号
@@ -51,28 +51,19 @@ protocol() ->
 
 2. 使用元组
 ```erl
-                read = [
-                    #tuple{
-                        name = tuple, 
-                        explain = #item{
-                            item_no = #u64{comment = "物品编号"},
-                            item_id = #u32{comment = "物品ID"},
-                            type = #u8{comment = "类型"},
-                            number = #u16{comment = "数量"}
-                        }
-                    },
-                    #item{
+                decode = [
+                    #tuple{name = tuple, explain = #item{
                         item_no = #u64{comment = "物品编号"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
                         number = #u16{comment = "数量"}
-                    }
+                    }}
                 ]
 ```
 
 3. 使用记录
 ```erl
-                read = [
+                decode = [
                     #item{
                         item_no = #u64{comment = "物品编号"},
                         item_id = #u32{comment = "物品ID"},
@@ -82,43 +73,35 @@ protocol() ->
                 ]
 ```
 
-4. 使用列表
+4. 使用映射表
 ```erl
-                read = [
-                    #list{
-                        name = list, 
-                        comment = "道具列表", 
-                        explain = #item{
-                            item_no = #u64{comment = "物品编号"},
-                            item_id = #u32{comment = "物品ID"},
-                            type = #u8{comment = "类型"},
-                            number = #u16{comment = "数量"}
-                        }
-                    }
+                decode = [
+                    #maps{name = maps, explain = {
+                        #u64{name = item_no, comment = "物品编号"},
+                        #u32{name = item_id, comment = "物品ID"},
+                        #u8{name = type, comment = "类型"},
+                        #u16{name = number, comment = "数量"}
+                    }}
                 ]
 ```
 
-5. 使用[ETS]()
+5. 使用列表
 ```erl
-                read = [
-                    #ets{
-                        name = list, 
-                        comment = "道具列表", 
-                        explain = #item{
-                            item_no = #u64{comment = "物品编号"},
-                            item_id = #u32{comment = "物品ID"},
-                            type = #u8{comment = "类型"},
-                            number = #u16{comment = "数量"}
-                        }
-                    }
+                decode = [
+                    #list{name = list, comment = "道具列表", explain = #item{
+                        item_no = #u64{comment = "物品编号"},
+                        item_id = #u32{comment = "物品ID"},
+                        type = #u8{comment = "类型"},
+                        number = #u16{comment = "数量"}
+                    }}
                 ]
 ```
 
-### 写入  
+### 编码  
 
 1. 基本类型
 ```erl
-                write = [
+                encode = [
                     #bool{name = boolean, comment = "the boolean type"},    %% 布尔值
                     #u8{name = u8, comment = "the u8 type"},                %% 8位无符号
                     #u16{name = u16, comment = "the u16 type"},             %% 16位无符号
@@ -138,22 +121,19 @@ protocol() ->
 
 2. 使用元组
 ```erl
-                write = [
-                    #tuple{
-                        name = tuple, 
-                        explain = #item{
-                            item_no = #u64{comment = "物品编号"},
-                            item_id = #u32{comment = "物品ID"},
-                            type = #u8{comment = "类型"},
-                            number = #u16{comment = "数量"}
-                        }
-                    }
+                encode = [
+                    #tuple{name = tuple, explain = #item{
+                        item_no = #u64{comment = "物品编号"},
+                        item_id = #u32{comment = "物品ID"},
+                        type = #u8{comment = "类型"},
+                        number = #u16{comment = "数量"}
+                    }}
                 ]
 ```
 
 3. 使用记录
 ```erl
-                write = [
+                encode = [
                     #item{
                         item_no = #u64{comment = "物品编号"},
                         item_id = #u32{comment = "物品ID"},
@@ -163,35 +143,51 @@ protocol() ->
                 ]
 ```
 
-4. 使用列表
+4. 使用映射表
 ```erl
-                write = [
-                    #list{
-                        name = list, 
-                        comment = "道具列表", 
-                        explain = #item{
-                            item_no = #u64{comment = "物品编号"},
-                            item_id = #u32{comment = "物品ID"},
-                            type = #u8{comment = "类型"},
-                            number = #u16{comment = "数量"}
-                        }
-                    }
+                encode = [
+                    #maps{name = maps, explain = {
+                        #u64{name = item_no, comment = "物品编号"},
+                        #u32{name = item_id, comment = "物品ID"},
+                        #u8{name = type, comment = "类型"},
+                        #u16{name = number, comment = "数量"}
+                    }}
                 ]
 ```
 
-5. 使用[ETS]()
+5. 使用列表
 ```erl
-                write = [
-                    #ets{
-                        name = list, 
-                        comment = "道具列表", 
-                        explain = #item{
-                            item_no = #u64{comment = "物品编号"},
-                            item_id = #u32{comment = "物品ID"},
-                            type = #u8{comment = "类型"},
-                            number = #u16{comment = "数量"}
-                        }
-                    }
+                encode = [
+                    #list{name = list, comment = "道具列表", explain = #item{
+                        item_no = #u64{comment = "物品编号"},
+                        item_id = #u32{comment = "物品ID"},
+                        type = #u8{comment = "类型"},
+                        number = #u16{comment = "数量"}
+                    }}
+                ]
+```
+
+6. 使用列表(指定键值)
+```erl
+                encode = [
+                    #list{name = list, comment = "道具列表", key = item_no, explain = #item{
+                        item_no = #u64{comment = "物品编号"},
+                        item_id = #u32{comment = "物品ID"},
+                        type = #u8{comment = "类型"},
+                        number = #u16{comment = "数量"}
+                    }}
+                ]
+```
+
+7. 使用[ETS]()
+```erl
+                encode = [
+                    #ets{name = list, comment = "道具列表", explain = #item{
+                        item_no = #u64{comment = "物品编号"},
+                        item_id = #u32{comment = "物品ID"},
+                        type = #u8{comment = "类型"},
+                        number = #u16{comment = "数量"}
+                    }}
                 ]
 ```
 

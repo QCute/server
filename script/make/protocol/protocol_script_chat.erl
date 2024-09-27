@@ -39,10 +39,10 @@ protocol() ->
                 number = 11602,
                 comment = "系统公告列表",
                 handler = #handler{module = chat_server, function = get_system_list},
-                read = [
+                decode = [
                     #u16{name = page, comment = "页"}
                 ],
-                write = [
+                encode = [
                     #list{name = list, explain = #system_chat{
                         id = #u64{comment = "ID"},
                         role_id = #u64{comment = "角色ID"},
@@ -56,11 +56,11 @@ protocol() ->
                 number = 11603,
                 comment = "世界聊天",
                 handler = #handler{module = chat, function = world},
-                read = [
+                decode = [
                     #u8{name = type, comment = "类型"},
                     #bst{name = message, comment = "消息"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #world_chat{
                         id = #u64{comment = "ID"},
@@ -75,10 +75,10 @@ protocol() ->
                 number = 11604,
                 comment = "世界聊天列表",
                 handler = #handler{module = chat_server, function = get_world_list},
-                read = [
+                decode = [
                     #u16{name = page, comment = "页"}
                 ],
-                write = [
+                encode = [
                     #list{name = list, explain = #world_chat{
                         id = #u64{comment = "ID"},
                         role_id = #u64{comment = "角色ID"},
@@ -92,11 +92,11 @@ protocol() ->
                 number = 11605,
                 comment = "公会聊天",
                 handler = #handler{module = chat, function = guild},
-                read = [
+                decode = [
                     #u8{name = type, comment = "类型"},
                     #bst{name = message, comment = "消息"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #guild_chat{
                         id = #u64{comment = "ID"},
@@ -111,10 +111,10 @@ protocol() ->
                 number = 11606,
                 comment = "公会聊天列表",
                 handler = #handler{module = chat_server, function = get_guild_list},
-                read = [
+                decode = [
                     #u16{name = page, comment = "页"}
                 ],
-                write = [
+                encode = [
                     #list{name = list, explain = #guild_chat{
                         id = #u64{comment = "ID"},
                         role_id = #u64{comment = "角色ID"},
@@ -128,12 +128,12 @@ protocol() ->
                 number = 11607,
                 comment = "私聊",
                 handler = #handler{module = chat, function = private},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"},
                     #u8{name = type, comment = "类型"},
                     #bst{name = message, comment = "消息"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"},
                     #private_chat{
                         sender_id = #u64{comment = "发送者角色ID"},
@@ -147,11 +147,11 @@ protocol() ->
                 number = 11608,
                 comment = "私聊列表",
                 handler = #handler{module = chat_server, function = get_private_list},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"},
                     #u16{name = page, comment = "页"}
                 ],
-                write = [
+                encode = [
                     #list{name = list, explain = #private_chat{
                         sender_id = #u64{comment = "发送者角色ID"},
                         receiver_id = #u64{comment = "接收者角色ID"},

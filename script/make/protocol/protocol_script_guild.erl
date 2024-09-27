@@ -39,8 +39,8 @@ protocol() ->
                 number = 30101,
                 comment = "公会列表",
                 handler = #handler{module = guild_server, function = query_guild},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #ets{name = list, comment = "公会列表", explain = #guild{
                         guild_id = #u64{comment = "公会ID"},
                         guild_name = #bst{comment = "公会名字"},
@@ -54,8 +54,8 @@ protocol() ->
                 comment = "成员列表",
                 number = 30102,
                 handler = #handler{module = guild_server, function = query_role},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #ets{name = list, comment = "成员列表", explain = #guild_role{
                         role_id = #u64{comment = "成员ID"},
                         role_name = #bst{comment = "成员名字"},
@@ -71,8 +71,8 @@ protocol() ->
                 number = 30103,
                 comment = "申请列表",
                 handler = #handler{module = guild_server, function = query_apply},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #ets{name = list, comment = "申请列表", explain = #guild_apply{
                         role_id = #u64{comment = "申请ID"},
                         role_name = #bst{comment = "申请名字"},
@@ -87,8 +87,8 @@ protocol() ->
                 number = 30104,
                 comment = "自身公会信息",
                 handler = #handler{module = guild_server, function = query_self_guild},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #guild{
                         guild_id = #u64{comment = "公会ID"},
                         guild_name = #bst{comment = "公会名字"},
@@ -106,8 +106,8 @@ protocol() ->
                 number = 30105,
                 comment = "自身成员信息",
                 handler = #handler{module = guild_server, function = query_self_role},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #guild_role{
                         role_id = #u64{comment = "成员ID"},
                         role_name = #bst{comment = "成员名字"},
@@ -123,8 +123,8 @@ protocol() ->
                 number = 30106,
                 comment = "自身申请信息",
                 handler = #handler{module = guild_server, function = query_self_apply},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #list{name = list, explain = #guild_apply{
                         guild_id = #u64{comment = "公会ID"},
                         guild_name = #bst{comment = "公会名字"},
@@ -136,11 +136,11 @@ protocol() ->
                 number = 30107,
                 comment = "创建公会",
                 handler = #handler{module = guild_server, function = create},
-                read = [
+                decode = [
                     #u8{name = type, comment = "类型"},
                     #bst{name = guild_name, comment = "公会名"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -148,10 +148,10 @@ protocol() ->
                 number = 30108,
                 comment = "申请",
                 handler = #handler{module = guild_server, function = apply},
-                read = [
+                decode = [
                     #u64{name = guild_id, comment = "公会ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -159,10 +159,10 @@ protocol() ->
                 number = 30109,
                 comment = "取消申请",
                 handler = #handler{module = guild_server, function = cancel_apply},
-                read = [
+                decode = [
                     #u64{name = guild_id, comment = "公会ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -170,8 +170,8 @@ protocol() ->
                 number = 30110,
                 comment = "取消全部申请",
                 handler = #handler{module = guild_server, function = cancel_all_apply},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -179,10 +179,10 @@ protocol() ->
                 number = 30111,
                 comment = "允许申请",
                 handler = #handler{module = guild_server, function = approve_apply},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -190,8 +190,8 @@ protocol() ->
                 number = 30112,
                 comment = "允许全部申请",
                 handler = #handler{module = guild_server, function = approve_all_apply},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -199,10 +199,10 @@ protocol() ->
                 number = 30113,
                 comment = "拒绝申请",
                 handler = #handler{module = guild_server, function = reject_apply},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -210,8 +210,8 @@ protocol() ->
                 number = 30114,
                 comment = "拒绝全部申请",
                 handler = #handler{module = guild_server, function = reject_all_apply},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -219,8 +219,8 @@ protocol() ->
                 number = 30115,
                 comment = "退出",
                 handler = #handler{module = guild_server, function = leave},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -228,8 +228,8 @@ protocol() ->
                 number = 30116,
                 comment = "解散",
                 handler = #handler{module = guild_server, function = dismiss},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -237,10 +237,10 @@ protocol() ->
                 number = 30117,
                 comment = "踢出",
                 handler = #handler{module = guild_server, function = kick},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -248,11 +248,11 @@ protocol() ->
                 number = 30118,
                 comment = "调整位置",
                 handler = #handler{module = guild_server, function = update_job},
-                read = [
+                decode = [
                     #u64{name = role_id, comment = "角色ID"},
                     #u8{name = job, comment = "位置"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -260,8 +260,8 @@ protocol() ->
                 number = 30119,
                 comment = "升级",
                 handler = #handler{module = guild_server, function = upgrade_level},
-                read = [],
-                write = [
+                decode = [],
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
@@ -269,10 +269,10 @@ protocol() ->
                 number = 30120,
                 comment = "更改公告",
                 handler = #handler{module = guild_server, function = change_notice},
-                read = [
+                decode = [
                     #bst{name = notice, comment = "公告"}
                 ],
-                write = [
+                encode = [
                     #rst{name = result, comment = "结果"}
                 ]
             }

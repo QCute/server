@@ -544,9 +544,9 @@ make_cs_pattern(List) ->
         return (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
     }
 
-    public static System.Collections.ArrayList ToList(this object data)
+    public static System.Collections.Generic.List<System.Object> ToList(this object data)
     {
-        return (System.Collections.ArrayList)data;
+        return (System.Collections.Generic.List<System.Object>)data;
     }
 }",
     [#{pattern => "(?s).*", code => lists:concat([Code, "\n", "\n", Cast])}].
@@ -592,7 +592,7 @@ make_cs_meta_pattern(List) ->
         "    ", "}"
     ],
     Code = lists:flatten([
-        "using List = System.Collections.ArrayList;", "\n",
+        "using List = System.Collections.Generic.List<System.Object>;", "\n",
         "using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;", "\n",
         "\n",
         "public class ProtocolDefine", "\n",
