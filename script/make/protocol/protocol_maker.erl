@@ -146,8 +146,8 @@ parse_decode(Protocol, undefined, _) ->
     Html = #set{},
     #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
 
-parse_decode(Protocol, SyntaxList, Handler) when is_list(SyntaxList) ->
-    MetaList = [parse_decode_unit(Syntax) || Syntax <- SyntaxList],
+parse_decode(Protocol, Syntax, Handler) when is_list(SyntaxList) ->
+    MetaList = parse_decode_unit([], Syntax),
     %% erl decode
     ErlCode = protocol_maker_erl:parse_decode_erl(Protocol, MetaList),
     ErlRequestCode = protocol_maker_erl:parse_request_erl(Protocol, MetaList, Handler),
@@ -173,16 +173,46 @@ parse_decode(Protocol, SyntaxList, Handler) when is_list(SyntaxList) ->
 parse_decode(Protocol, _, _) ->
     #data{protocol = Protocol}.
 
+
+
 %% parse unit
-parse_decode_unit(Name, Data) when is_tuple(Data) ->
-    ok;
+parse_decode_meta(Name, Meta, Token) ->
+    NameList = record:find(element(1, Meta)),
+    TupleToken = take_tuple_token(Token),
+    TupleComment = take_tuple_comment(Token),
+    Explain = [parse_decode_meta(Key, Value, Token) || {Key, Value} <- lists:zip(NameList, tuple_to_list(Meta)), ?IS_META(Meta)],
+    #meta{name = Name, type = object, comment = Comment, explain = Explain};
 
-parse_decode_unit(Name, Data = #{}) ->
-    [parse_decode_unit(Key, Value) || {Key, Value} <- maps:to_list(Data)];
+parse_decode_meta(Name, Meta, Token) when is_tuple(Meta) andalso tuple_size(Meta) > 0 andalso is_atom(element(1, Meta)) ->
+    NameList = record:find(element(1, Meta)),
+    RecordComment = take_record_comment(Token),
+    Explain = [parse_decode_meta(Key, Value, Token) || {Key, Value} <- lists:zip(NameList, tuple_to_list(Meta)), ?IS_META(Meta)],
+    #meta{name = Name, type = object, comment = Comment, explain = Explain};
 
-parse_decode_unit(Name, [Data]) ->
-    #{name => Name, meta => parse_decode_unit([], Data)};
+parse_decode_meta(Name, Meta = #{}, Token) ->
+    HumpName = word:to_hump(Name),
+    MapComment = take_maps_comment(Token),
+    Explain = [parse_decode_meta(Key, Value, Token) || {Key, Value} <- maps:to_list(Meta), ?IS_META(Value)],
+    #meta{name = HumpName, type = object, comment = Comment, explain = Explain};
 
+parse_decode_meta(Name, [Meta], Token) ->
+    HumpName = word:to_hump(Name),
+    ListComment = take_list_comment(Token),
+    Explain = parse_decode_meta([], Meta, Token),
+    #meta{name = HumpName, type = list, comment = Comment, explain = Explain};
+
+parse_decode_meta(Name, Meta = {'$bin$', Size}, Token) ->
+    HumpName = word:to_hump(Name),
+    Type = string:trim(atom_to_list(Meta), "$"),
+    #meta{name = HumpName, type = Type, comment = Comment};
+
+parse_decode_meta(Name, Meta, Token) when ?IS_UNIT(Meta) ->
+    HumpName = word:to_hump(Name),
+    Type = string:trim(atom_to_list(Meta), "$"),
+    #meta{name = HumpName, type = Type, comment = Comment};
+
+parse_decode_meta(_, Meta, _) ->
+    erlang:throw(lists:flatten(io_lib:format("Unsupported decode meta: ~tp", [Meta]))).
 
 
 

@@ -105,31 +105,37 @@ protocol() ->
                     #u32{name = skill_id, comment = "技能Id"},
                     #list{name = target_list, comment = "对象列表", explain = #u64{name = target_id, comment = "ID"}}
                 ],
-                encode = [
+                encode = #{
                     #u64{name = fighter_id, comment = "战斗对象Id"},
                     #u32{name = perform_skill_id, comment = "技能Id"},
-                    #list{name = list, comment = "对象列表", explain = #fighter{
-                        id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        attribute = #record{comment = "属性", explain = #attribute{
-                            fc = #u64{comment = "战力"},
-                            hp = #u64{comment = "血量"},
-                            health = #u64{comment = "健康"}
-                        }},
-                        skill = #list{comment = "技能列表", explain = #battle_skill{
-                            skill_id = #u32{comment = "技能ID"},
-                            time = #u32{comment = "时间"},
-                            number = #u32{comment = "数量"}
-                        }},
-                        buff = #list{comment = "Buff列表", explain = #battle_buff{
-                            buff_id = #u32{comment = "BuffID"},
-                            expire_time = #u32{comment = "过期时间"},
-                            overlap = #u32{comment = "数量"}
-                        }},
-                        x = #u16{comment = "X坐标"},
-                        y = #u16{comment = "Y坐标"}
-                    }}
-                ]
+                    fighter_list => [
+                        #fighter{
+                            id = u64("ID"),
+                            type = u8("类型"),
+                            attribute = #attribute{
+                                fc = u64("战力"),
+                                hp = u64("血量"),
+                                health = u64("健康")
+                            },
+                            skill = [
+                                #battle_skill{
+                                    skill_id = u32("技能ID"),
+                                    time = u32("时间"),
+                                    number = u32("数量")
+                                }
+                            ],
+                            buff = [
+                                #battle_buff{
+                                    buff_id = u32("BuffID"),
+                                    expire_time = u32("过期时间"),
+                                    overlap = u32("数量")
+                                }
+                            ],
+                            x = u16("X坐标"),
+                            y = u16("Y坐标")
+                        }
+                    ]
+                }
             }
         ]
     }.

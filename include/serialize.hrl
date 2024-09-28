@@ -1,4 +1,5 @@
 -compile(nowarn_unused_function).
+-compile(nowarn_unused_vars).
 
 %% 协议配置
 -record(protocol, {
@@ -63,22 +64,30 @@
 
 
 
-zero() -> ok.
-bin(Size) -> Size.
-bool() -> ok.
-u8() -> ok.
-u16() -> ok.
-u32() -> ok.
-u64() -> ok.
-i8() -> ok.
-i16() -> ok.
-i32() -> ok.
-i64() -> ok.
-f32() -> ok.
-f64() -> ok.
-str() -> ok.
-bst() -> ok.
+zero() -> '$zero$'.
+bin(Size) -> {'$bin$', Size}.
+bool() -> '$bool$'.
+u8() -> '$u8$'.
+u16() -> '$u16$'.
+u32() -> '$u32$'.
+u64() -> '$u64$'.
+i8() -> '$i8$'.
+i16() -> '$i64$'.
+i32() -> '$i32$'.
+i64() -> '$i64$'.
+f32() -> '$f32$'.
+f64() -> '$f64$'.
+str() -> '$str$'.
+bst() -> '$bst$'.
 
+
+-define(IS_UNSIGNED(Unit), Unit == '$u8$' orelse Unit == '$u16$' orelse Unit == '$u32$' orelse Unit == '$u64$').
+-define(IS_SIGNED(Unit), Unit == '$i8$' orelse Unit == '$i16$' orelse Unit == '$i32$' orelse Unit == '$i64$').
+-define(IS_FLOAT(Unit), Unit == '$f32$' orelse Unit == '$f64$').
+-define(IS_STRING(Unit), Unit == '$str$' orelse Unit == '$bst$').
+-define(IS_SEQ(Unit), (is_tuple(Unit) andalso tuple_size(Unit) > 0 andalso is_atom(element(1, Unit) andalso is_record(Unit, element(1, Unit)))) orelse is_map(Unit) orelse is_list(Unit)).
+-define(IS_UNIT(Unit), Unit == '$zero$' orelse (is_tuple(Unit) andalso tuple_size(Unit) == 2 andalso element(1, Unit) == '$bin$') orelse Unit == '$bool$' orelse ?IS_UNSIGNED(Unit) orelse ?IS_SIGNED(Unit) orelse ?IS_FLOAT(Unit) orelse ?IS_STRING(Unit)).
+-define(IS_META(Meta), ?IS_UNIT(Meta) orelse ?IS_SEQ(Meta)).
 
 %% take encode row from epp:parse_file
 %% take comment from erl_scan:string
@@ -93,9 +102,9 @@ bst() -> ok.
 %%     可使用rst自动转换成多语言(i18n)字符串
 %%     可使用零字节占位符忽略元组中不需要写入的元素
 
--define(IS_UNSIGNED(Unit), is_record(Unit, u8) orelse is_record(Unit, u16) orelse is_record(Unit, u32) orelse is_record(Unit, u64)).
--define(IS_SIGNED(Unit), is_record(Unit, i8) orelse is_record(Unit, i16) orelse is_record(Unit, i32) orelse is_record(Unit, i64)).
--define(IS_FLOAT(Unit), is_record(Unit, f32) orelse is_record(Unit, f64)).
--define(IS_STRING(Unit), is_record(Unit, str) orelse is_record(Unit, bst)).
--define(IS_SEQ(Unit), is_record(Unit, list) orelse is_record(Unit, tuple) orelse is_record(Unit, maps) orelse is_record(Unit, ets)).
--define(IS_UNIT(Unit), IS_UNSIGNED(Unit) orelse IS_SIGNED(Unit) orelse IS_FLOAT(Unit) orelse IS_STRING(Unit) orelse IS_SEQ(Unit)).
+% -define(IS_UNSIGNED(Unit), is_record(Unit, u8) orelse is_record(Unit, u16) orelse is_record(Unit, u32) orelse is_record(Unit, u64)).
+% -define(IS_SIGNED(Unit), is_record(Unit, i8) orelse is_record(Unit, i16) orelse is_record(Unit, i32) orelse is_record(Unit, i64)).
+% -define(IS_FLOAT(Unit), is_record(Unit, f32) orelse is_record(Unit, f64)).
+% -define(IS_STRING(Unit), is_record(Unit, str) orelse is_record(Unit, bst)).
+% -define(IS_SEQ(Unit), is_record(Unit, list) orelse is_record(Unit, tuple) orelse is_record(Unit, maps) orelse is_record(Unit, ets)).
+% -define(IS_UNIT(Unit), IS_UNSIGNED(Unit) orelse IS_SIGNED(Unit) orelse IS_FLOAT(Unit) orelse IS_STRING(Unit) orelse IS_SEQ(Unit)).

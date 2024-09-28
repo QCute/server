@@ -42,17 +42,17 @@ protocol() ->
                 decode = [],
                 encode = [
                     #mail{
-                        mail_id = u64(),                  %% 邮件ID
-                        receive_time = u32(),             %% 接收时间
-                        expire_time = u32(),              %% 有效时间
-                        read_time = u32(),                %% 读取时间
-                        receive_attachment_time = u32(),  %% 领取附件时间
-                        title = bst(),                    %% 标题
-                        content = bst(),                  %% 内容
-                        attachment = [                    %% 附件列表
+                        mail_id = u64(),                       %% 邮件ID
+                        receive_time = u32(),                  %% 接收时间
+                        expire_time = u32(),                   %% 有效时间
+                        read_time = u32(),                     %% 读取时间
+                        receive_attachment_time = u32(),       %% 领取附件时间
+                        title = bst(),                         %% 标题
+                        content = bst(),                       %% 内容
+                        attachment = [                         %% 附件列表
                             {
-                                item_id = u32(),          %% 物品ID
-                                number = u16()            %% 数量
+                                _item_id_ = u32(),             %% 物品ID
+                                _number_ = u16()               %% 数量
                             }
                         ]
                     }
