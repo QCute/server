@@ -40,10 +40,8 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS(30),
                 comment = "心跳包",
                 handler = #handler{module = account, function = heartbeat, state = client, response = send, imp = ""},
-                decode = [],
-                encode = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = {},
+                encode = rst()                             %% 结果
             },
             #io{
                 number = 10001,
@@ -54,6 +52,19 @@ protocol() ->
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"}
                 ],
+                decode = #{
+                    server_id => u16(),
+                    account_name => bst()
+                },
+                encode = #{
+                    result => rst(),
+                    list => [
+                        #{
+                            role_id => u64(),
+                            role_name => bst()
+                        }
+                    ]
+                },
                 encode = [
                     #rst{name = result, comment = "结果"},
                     #list{name = list, comment = "角色名列表", explain = {
@@ -67,6 +78,17 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS,
                 comment = "创建账户",
                 handler = #handler{module = account, function = create, state = client, response = send, imp = ""},
+                decode = {
+                    role_name = bst(),
+                    server_id = u16(),
+                    account_name = bst(),
+                    sex = u8(),
+                    classes = u8(),
+                    channel = bst(),
+                    device_id = bst(),
+                    mac = bst(),
+                    device_type = bst()
+                },
                 decode = [
                     #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},

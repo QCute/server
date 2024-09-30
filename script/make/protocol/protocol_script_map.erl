@@ -80,8 +80,8 @@ protocol() ->
                 comment = "战斗对象移动",
                 handler = #handler{module = map_server, function = move, alias = "fighter_move"},
                 decode = {
-                    _x_ = u16(),                             %% X坐标
-                    _y_ = u16()                              %% Y坐标
+                    x = u16(),                             %% X坐标
+                    y = u16()                              %% Y坐标
                 },
                 encode = #fighter{
                     id = u64(),                            %% ID
@@ -101,38 +101,40 @@ protocol() ->
                 number = 20014,
                 comment = "发起战斗",
                 handler = #handler{module = map_server, function = attack},
-                decode = [
-                    #u32{name = skill_id, comment = "技能Id"},
-                    #list{name = target_list, comment = "对象列表", explain = #u64{name = target_id, comment = "ID"}}
-                ],
-                encode = #{
-                    #u64{name = fighter_id, comment = "战斗对象Id"},
-                    #u32{name = perform_skill_id, comment = "技能Id"},
-                    fighter_list => [
+                decode = {
+                    skill_id = u32(),                      %% 技能Id
+                    target_list = [                        %% 战斗对象ID列表
+                        u64()                              %% 战斗对象ID
+                    ]
+                },
+                encode = {
+                    fighter_id = u64(),                    %% 战斗对象Id
+                    perform_skill_id = u32(),              %% 技能Id
+                    fighter_list = [
                         #fighter{
-                            id = u64("ID"),
-                            type = u8("类型"),
-                            attribute = #attribute{
-                                fc = u64("战力"),
-                                hp = u64("血量"),
-                                health = u64("健康")
+                            id = u64(),                    %% ID
+                            type = u8(),                   %% 类型
+                            attribute = #attribute{        %% 属性
+                                fc = u64(),                %% 战力
+                                hp = u64(),                %% 血量
+                                health = u64()             %% 健康
                             },
-                            skill = [
+                            skill = [                      %% 技能列表
                                 #battle_skill{
-                                    skill_id = u32("技能ID"),
-                                    time = u32("时间"),
-                                    number = u32("数量")
+                                    skill_id = u32(),      %% 技能ID
+                                    time = u32(),          %% 时间
+                                    number = u32()         %% 数量
                                 }
                             ],
-                            buff = [
+                            buff = [                       %% Buff列表
                                 #battle_buff{
-                                    buff_id = u32("BuffID"),
-                                    expire_time = u32("过期时间"),
-                                    overlap = u32("数量")
+                                    buff_id = u32(),       %% BuffID
+                                    expire_time = u32(),   %% 过期时间
+                                    overlap = u32()        %% 数量
                                 }
                             ],
-                            x = u16("X坐标"),
-                            y = u16("Y坐标")
+                            x = u16(),                     %% X坐标
+                            y = u16()                      %% Y坐标
                         }
                     ]
                 }

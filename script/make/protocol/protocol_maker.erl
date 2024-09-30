@@ -6,14 +6,6 @@
 -module(protocol_maker).
 -export([start/1]).
 -include("../../../include/serialize.hrl").
-%% ast metadata
--record(meta, {name = [], type, comment = [], explain = [], key}).
-%% file
--record(file, {import = [], export = [], function = [], extra = []}).
-%% language code set
--record(set, {code = #file{}, meta = #file{}, handler = #file{}}).
-%% protocol data
--record(data, {protocol = 0, erl = #set{}, lua = #set{}, js = #set{}, cs = #set{}, html = #set{}}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -146,192 +138,29 @@ parse_decode(Protocol, undefined, _) ->
     Html = #set{},
     #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
 
-parse_decode(Protocol, Syntax, Handler) when is_list(SyntaxList) ->
-    MetaList = parse_decode_unit([], Syntax),
+parse_decode(Protocol, Meta, Handler)->
     %% erl decode
-    ErlCode = protocol_maker_erl:parse_decode_erl(Protocol, MetaList),
-    ErlRequestCode = protocol_maker_erl:parse_request_erl(Protocol, MetaList, Handler),
+    ErlCode = protocol_maker_erl:parse_decode_erl(Protocol, Meta),
+    ErlRequestCode = protocol_maker_erl:parse_request_erl(Protocol, Meta, Handler),
     Erl = #set{code = ErlCode, handler = ErlRequestCode},
     %% lua
-    LuaCode = protocol_maker_lua:parse_encode_lua(Protocol, MetaList),
-    LuaMeta = protocol_maker_lua:parse_meta_lua(Protocol, MetaList),
+    LuaCode = protocol_maker_lua:parse_encode_lua(Protocol, Meta),
+    LuaMeta = protocol_maker_lua:parse_meta_lua(Protocol, Meta),
     Lua = #set{code = LuaCode, meta = LuaMeta},
     %% js
-    JsCode = protocol_maker_js:parse_encode_js(Protocol, MetaList),
-    JsMeta = protocol_maker_js:parse_meta_js(Protocol, MetaList),
+    JsCode = protocol_maker_js:parse_encode_js(Protocol, Meta),
+    JsMeta = protocol_maker_js:parse_meta_js(Protocol, Meta),
     Js = #set{code = JsCode, meta = JsMeta},
     %% cs
-    CsCode = protocol_maker_cs:parse_encode_cs(Protocol, MetaList),
-    CsMeta = protocol_maker_cs:parse_meta_cs(Protocol, MetaList),
+    CsCode = protocol_maker_cs:parse_encode_cs(Protocol, Meta),
+    CsMeta = protocol_maker_cs:parse_meta_cs(Protocol, Meta),
     Cs = #set{code = CsCode, meta = CsMeta},
     %% html
-    HtmlCode = protocol_maker_html:parse_code_html(Protocol, MetaList),
+    HtmlCode = protocol_maker_html:parse_code_html(Protocol, Meta),
     Html = #set{meta = HtmlCode},
     %% code set
-    #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
+    #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html}.
 
-parse_decode(Protocol, _, _) ->
-    #data{protocol = Protocol}.
-
-
-
-%% parse unit
-parse_decode_meta(Name, Meta, Token) ->
-    NameList = record:find(element(1, Meta)),
-    TupleToken = take_tuple_token(Token),
-    TupleComment = take_tuple_comment(Token),
-    Explain = [parse_decode_meta(Key, Value, Token) || {Key, Value} <- lists:zip(NameList, tuple_to_list(Meta)), ?IS_META(Meta)],
-    #meta{name = Name, type = object, comment = Comment, explain = Explain};
-
-parse_decode_meta(Name, Meta, Token) when is_tuple(Meta) andalso tuple_size(Meta) > 0 andalso is_atom(element(1, Meta)) ->
-    NameList = record:find(element(1, Meta)),
-    RecordComment = take_record_comment(Token),
-    Explain = [parse_decode_meta(Key, Value, Token) || {Key, Value} <- lists:zip(NameList, tuple_to_list(Meta)), ?IS_META(Meta)],
-    #meta{name = Name, type = object, comment = Comment, explain = Explain};
-
-parse_decode_meta(Name, Meta = #{}, Token) ->
-    HumpName = word:to_hump(Name),
-    MapComment = take_maps_comment(Token),
-    Explain = [parse_decode_meta(Key, Value, Token) || {Key, Value} <- maps:to_list(Meta), ?IS_META(Value)],
-    #meta{name = HumpName, type = object, comment = Comment, explain = Explain};
-
-parse_decode_meta(Name, [Meta], Token) ->
-    HumpName = word:to_hump(Name),
-    ListComment = take_list_comment(Token),
-    Explain = parse_decode_meta([], Meta, Token),
-    #meta{name = HumpName, type = list, comment = Comment, explain = Explain};
-
-parse_decode_meta(Name, Meta = {'$bin$', Size}, Token) ->
-    HumpName = word:to_hump(Name),
-    Type = string:trim(atom_to_list(Meta), "$"),
-    #meta{name = HumpName, type = Type, comment = Comment};
-
-parse_decode_meta(Name, Meta, Token) when ?IS_UNIT(Meta) ->
-    HumpName = word:to_hump(Name),
-    Type = string:trim(atom_to_list(Meta), "$"),
-    #meta{name = HumpName, type = Type, comment = Comment};
-
-parse_decode_meta(_, Meta, _) ->
-    erlang:throw(lists:flatten(io_lib:format("Unsupported decode meta: ~tp", [Meta]))).
-
-
-
-parse_decode_unit(Unit = #binary{name = Name, comment = Comment, explain = Explain}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = Explain};
-
-parse_decode_unit(Unit = #bool{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #u8{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #u16{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #u32{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #u64{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #u128{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #i8{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #i16{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #i32{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #i64{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #i128{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #f32{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #f64{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #bst{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #str{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_decode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) when is_tuple(Explain) andalso tuple_size(Explain) > 0 andalso not is_atom(element(1, Explain)) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
-    %% hump name
-    HumpName = word:to_hump(Name),
-    %% format sub unit
-    SubMeta = parse_decode_unit(#tuple{explain = Explain}),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
-
-parse_decode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
-    %% hump name
-    HumpName = word:to_hump(Name),
-    %% format sub unit
-    SubMeta = parse_decode_unit(Explain),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
-
-%% structure unit
-parse_decode_unit(Unit = #maps{name = Name, comment = Comment, explain = Explain}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("Tuple name could not be undefined: ~tp", [Unit]))),
-    %% format per unit
-    List = [parse_decode_unit(Field) || Field <- tuple_to_list(Explain)],
-    #meta{name = Name, type = element(1, Unit), comment = Comment, explain = List};
-
-%% structure unit
-parse_decode_unit(Unit = #tuple{name = Name, comment = Comment, explain = Explain}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("Tuple name could not be undefined: ~tp", [Unit]))),
-    %% format per unit
-    List = [parse_decode_unit(Field) || Field <- tuple_to_list(Explain)],
-    #meta{name = Name, type = element(1, Unit), comment = Comment, explain = List};
-
-parse_decode_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
-
-    %% get beam abstract code
-    Tag = element(1, Record),
-    NameList = record:find(Tag),
-    %% error when beam abstract code empty
-    NameList == [] andalso erlang:throw(need_to_update_beam_abstract_code),
-    tuple_size(Record) =/= length(NameList) andalso erlang:throw(need_to_update_beam_abstract_code),
-
-    %% hump name
-    HumpName = word:to_hump(Tag),
-
-    %% zip field value and field name
-    ZipList = lists:zip(tuple_to_list(Record), NameList),
-
-    %% format per unit
-    List = [parse_decode_unit(case element(2, Field) of [] -> setelement(2, Field, Name); _ -> Field end) || {Field, Name} <- ZipList, is_unit(Field)],
-    KeyNameList = [Name || {Field, Name} <- ZipList, is_unit(Field)],
-    #meta{name = HumpName, type = record, comment = HumpName, explain = List, key = KeyNameList};
-
-parse_decode_unit(Unit) ->
-    erlang:throw(lists:flatten(io_lib:format("Unsupported decode unit: ~tp", [Unit]))).
 
 %%%===================================================================
 %%% Parse Encode Part
@@ -347,194 +176,25 @@ parse_encode(Protocol, undefined, _, _) ->
     Html = #set{},
     #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
 
-parse_encode(Protocol, SyntaxList, Handler, ErlName) when is_list(SyntaxList) ->
-    MetaList = [parse_encode_unit(Syntax) || Syntax <- SyntaxList],
+parse_encode(Protocol, Meta, Handler, ErlName) ->
     %% erl encode
-    ErlCode = protocol_maker_erl:parse_encode_erl(Protocol, MetaList),
-    ErlResponseCode = protocol_maker_erl:parse_response_erl(Protocol, MetaList, Handler, ErlName),
+    ErlCode = protocol_maker_erl:parse_encode_erl(Protocol, Meta),
+    ErlResponseCode = protocol_maker_erl:parse_response_erl(Protocol, Meta, Handler, ErlName),
     Erl = #set{code = ErlCode, handler = ErlResponseCode},
     %% lua
-    LuaCode = protocol_maker_lua:parse_decode_lua(Protocol, MetaList),
-    LuaMeta = protocol_maker_lua:parse_meta_lua(Protocol, MetaList),
+    LuaCode = protocol_maker_lua:parse_decode_lua(Protocol, Meta),
+    LuaMeta = protocol_maker_lua:parse_meta_lua(Protocol, Meta),
     Lua = #set{code = LuaCode, meta = LuaMeta},
     %% js
-    JsCode = protocol_maker_js:parse_decode_js(Protocol, MetaList),
-    JsMeta = protocol_maker_js:parse_meta_js(Protocol, MetaList),
+    JsCode = protocol_maker_js:parse_decode_js(Protocol, Meta),
+    JsMeta = protocol_maker_js:parse_meta_js(Protocol, Meta),
     Js = #set{code = JsCode, meta = JsMeta},
     %% cs
-    CsCode = protocol_maker_cs:parse_decode_cs(Protocol, MetaList),
-    CsMeta = protocol_maker_cs:parse_meta_cs(Protocol, MetaList),
+    CsCode = protocol_maker_cs:parse_decode_cs(Protocol, Meta),
+    CsMeta = protocol_maker_cs:parse_meta_cs(Protocol, Meta),
     Cs = #set{code = CsCode, meta = CsMeta},
     %% html
-    HtmlCode = protocol_maker_html:parse_code_html(Protocol, MetaList),
+    HtmlCode = protocol_maker_html:parse_code_html(Protocol, Meta),
     Html = #set{meta = HtmlCode},
     %% code set
-    #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html};
-
-parse_encode(Protocol, _, _, _) ->
-    #data{protocol = Protocol}.
-
-%% parse unit
-parse_encode_unit(Unit = #zero{}) ->
-    #meta{name = "", type = element(1, Unit), comment = "", explain = []};
-
-parse_encode_unit(Unit = #binary{name = Name, comment = Comment, explain = Explain}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = Explain};
-
-parse_encode_unit(Unit = #bool{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #u8{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #u16{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #u32{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #u64{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #u128{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #i8{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #i16{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #i32{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #i64{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #i128{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #f32{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #f64{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #rst{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #bst{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #str{name = Name, comment = Comment}) ->
-    HumpName = word:to_hump(Name),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = []};
-
-parse_encode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) when is_tuple(Explain) andalso tuple_size(Explain) > 0 andalso not is_atom(element(1, Explain)) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
-    %% hump name
-    HumpName = word:to_hump(Name),
-    %% format sub unit
-    SubMeta = parse_encode_unit(#tuple{explain = Explain}),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
-
-parse_encode_unit(Unit = #list{name = Name, comment = Comment, explain = Explain, key = Key}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("List name could not be undefined: ~tp", [Unit]))),
-    %% hump name
-    HumpName = word:to_hump(Name),
-    %% format sub unit
-    SubMeta = parse_encode_unit(Explain),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
-
-parse_encode_unit(Unit = #ets{name = Name, comment = Comment, explain = Explain, key = Key}) when is_tuple(Explain) andalso tuple_size(Explain) > 0 andalso not is_atom(element(1, Explain)) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("ETS name could not be undefined: ~tp", [Unit]))),
-    %% hump name
-    HumpName = word:to_hump(Name),
-    %% format sub unit
-    SubMeta = parse_encode_unit(#record{explain = Explain}),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
-
-parse_encode_unit(Unit = #ets{name = Name, comment = Comment, explain = Explain, key = Key}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("ETS name could not be undefined: ~tp", [Unit]))),
-    %% hump name
-    HumpName = word:to_hump(Name),
-    %% format sub unit
-    SubMeta = parse_encode_unit(Explain),
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = SubMeta, key = Key};
-
-%% structure unit
-parse_encode_unit(Unit = #maps{name = Name, comment = Comment, explain = Explain}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("Tuple name could not be undefined: ~tp", [Unit]))),
-    HumpName = word:to_hump(Name),
-    %% format per unit
-    List = [parse_encode_unit(Field) || Field <- tuple_to_list(Explain)],
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = List};
-
-%% structure unit
-parse_encode_unit(Unit = #tuple{name = Name, comment = Comment, explain = Explain}) ->
-    Name == undefined andalso erlang:throw(lists:flatten(io_lib:format("Tuple name could not be undefined: ~tp", [Unit]))),
-    HumpName = word:to_hump(Name),
-    %% format per unit
-    List = [parse_encode_unit(Field) || Field <- tuple_to_list(Explain)],
-    #meta{name = HumpName, type = element(1, Unit), comment = Comment, explain = List};
-
-parse_encode_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
-    %% get beam abstract code
-    Tag = element(1, Record),
-    NameList = record:find(Tag),
-    %% throw error when beam abstract code empty
-    NameList == [] andalso erlang:throw(need_to_update_beam_abstract_code),
-    tuple_size(Record) =/= length(NameList) andalso erlang:throw(need_to_update_beam_abstract_code),
-
-    %% hump name
-    HumpName = word:to_hump(Tag),
-
-    %% zip field value and field name
-    ZipList = lists:zip(tuple_to_list(Record), NameList),
-    %% format per unit
-    List = [parse_encode_unit(case element(2, Field) of [] -> setelement(2, Field, Name); _ -> Field end) || {Field, Name} <- ZipList, is_unit(Field)],
-    KeyNameList = [Name || {Field, Name} <- ZipList, is_unit(Field)],
-    #meta{name = HumpName, type = record, comment = HumpName, explain = List, key = KeyNameList};
-
-parse_encode_unit(Unit) ->
-    erlang:throw(lists:flatten(io_lib:format("Unsupported encode unit: ~tp", [Unit]))).
-
-%%%===================================================================
-%%% Common Tool
-%%%===================================================================
-
-%% is bit unit
-is_unit(#u8{}) -> true;
-is_unit(#u16{}) -> true;
-is_unit(#u32{}) -> true;
-is_unit(#u64{}) -> true;
-is_unit(#u128{}) -> true;
-is_unit(#i8{}) -> true;
-is_unit(#i16{}) -> true;
-is_unit(#i32{}) -> true;
-is_unit(#i64{}) -> true;
-is_unit(#i128{}) -> true;
-is_unit(#rst{}) -> true;
-is_unit(#bst{}) -> true;
-is_unit(#str{}) -> true;
-is_unit(#binary{}) -> true;
-is_unit(#list{}) -> true;
-is_unit(#ets{}) -> true;
-is_unit(#tuple{}) -> true;
-is_unit(_) -> false.
+    #data{protocol = Protocol, erl = Erl, lua = Lua, js = Js, cs = Cs, html = Html}.

@@ -7,14 +7,6 @@
 -export([format/3]).
 -export([parse_code_html/2]).
 -include("../../../include/serialize.hrl").
-%% ast metadata
--record(meta, {name = [], type, comment = [], explain = [], key}).
-%% file
--record(file, {import = [], export = [], function = [], extra = []}).
-%% language code set
--record(set, {code = #file{}, meta = #file{}, handler = #file{}}).
-%% protocol data
--record(data, {protocol = 0, erl = #set{}, lua = #set{}, js = #set{}, cs = #set{}, html = #set{}}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -237,6 +229,12 @@ format_head(HtmlName) ->
             flex-direction: column;
         }
 
+        .right > .protocol > .read .digest .type .object,
+        .right > .protocol > .write .digest .type .object {
+            color: #ed0d0c;
+            font-weight: bold;
+        }
+
         .right > .protocol > .read .digest .type .list,
         .right > .protocol > .write .digest .type .list {
             color: #ed0d0c;
@@ -330,7 +328,7 @@ format_head(HtmlName) ->
         function copy(event, target) {
             const inputValue = document.createElement('input');
             document.body. appendChild(inputValue);
-            inputValue.value = (target.innerText.split(':')[1] || target.innerText).trim();
+            inputValue.value = target.innerText.trim();
             inputValue.select();
             document.execCommand('copy');
             document.body.removeChild(inputValue);
@@ -392,34 +390,16 @@ format_content(Protocol, Comment, #data{html = #set{meta = #file{extra = Read}}}
 %%% meta
 %%%===================================================================
 %% html code
-parse_code_html(_, []) ->
-    #file{};
-
-parse_code_html(_, Meta = #meta{}) ->
+parse_code_html(_, Meta = #meta{name = Name, type = Type}) ->
     %% start with 3 tabs(4 space) padding
     %% Padding = lists:duplicate(3, "    "),
-    Codes = parse_code_html_loop([Meta], 4, list, undefined, []),
+    NewName = maps:get(Name == [] andalso ?IS_UNIT(Type), #{true => '~', false => Name}),
+    Codes = parse_code_html_loop([Meta#meta{name = NewName}], 4, Type, undefined, []),
     %% format one protocol define
     %% lists:concat(["        \"", Protocol, "\" &nbsp;[\n", Codes, "\n        ]"]).
     %% lists:concat(["[\n", Codes, "\n", Padding, "]"]).
     Code = lists:concat([
-        %% Padding, Padding, "<div class='title' id='protocol-", Protocol, "'>●", Meta#meta.name, "(", Protocol, ")</div>", "\n",
-        "\n",
-        Codes, "\n",
-        "\n"
-    ]),
-
-    #file{extra = Code};
-
-parse_code_html(_, Meta) ->
-    %% start with 3 tabs(4 space) padding
-    %% Padding = lists:duplicate(3, "    "),
-    Codes = parse_code_html_loop(Meta, 4, root, undefined, []),
-    %% format one protocol define
-    %% lists:concat(["        \"", Protocol, "\" &nbsp;[\n", Codes, "\n        ]"]).
-    %% lists:concat(["[\n", Codes, "\n", Padding, "]"]).
-    Code = lists:concat([
-        %% Padding, Padding, "<div class='title' id='protocol-", Protocol, "'>●", Meta#meta.name, "(", Protocol, ")</div>", "\n",
+        %% Padding, Padding, "<div class='title' id='protocol-", Protocol, "'>·", Meta#meta.name, "(", Protocol, ")</div>", "\n",
         "\n",
         Codes, "\n",
         "\n"
@@ -434,7 +414,7 @@ parse_code_html_loop([], _, _, _, List) ->
 parse_code_html_loop([#meta{name = _, type = zero} | T], Depth, Parent, Key, List) ->
     parse_code_html_loop(T, Depth, Parent, Key, List);
 
-parse_code_html_loop([#meta{name = Name, type = binary, comment = Comment, explain = Length} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = binary, explain = Length, comment = Comment} | T], Depth, Parent, Key, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -459,7 +439,7 @@ parse_code_html_loop([#meta{name = Name, type = binary, comment = Comment, expla
     ])),
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = Type, comment = Comment, explain = []} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = Type, explain = undefined, comment = Comment} | T], Depth, Parent, Key, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -484,16 +464,16 @@ parse_code_html_loop([#meta{name = Name, type = Type, comment = Comment, explain
     ])),
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = [], type = tuple, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = tuple, explain = Explain, comment = Comment} | T], Depth, Parent, Key, List) ->
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, tuple, undefined, []),
+    SubCodes = parse_code_html_loop(tuple_to_list(Explain), Depth + 2, tuple, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Type = "map",
-    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    Type = "object",
+    NameKey = lists:concat(["</span>[<span onclick='copy(event, this)'>", word:to_lower_hump(Key),  "</span><span>] = "]),
     IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
-    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, ""),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, [lists:concat([Name, " "]) || Name =/= []]),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
@@ -504,56 +484,7 @@ parse_code_html_loop([#meta{name = [], type = tuple, comment = Comment, explain 
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
-        Padding, "    ", "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "<div class='inner type'><span onclick='copy(event, this)'><span class='", Type, "'>", "</span></span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "    ", "<div class='inner comment'><span onclick='copy(event, this)'>", Comment, "</span><div class='tips'>已复制</div></div>", "\n",
-        Padding, "    ", "</div>", "\n",
-        Padding, "    ", "<div class='sub'>", "\n",
-        Padding, "    ", "    ", "<div class='line' style='left: ", (Depth - 2) * 16 - 4, "px;'></div>", "\n",
-        %% Padding, "    ", "    ", "<div class='explain'>", "\n",
-        SubCodes, "\n",
-        %% Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "</div>", "\n",
-        Padding, "    ", "<div class='digest'>", "\n",
-        Padding, "    ", "    ", "<div class='inner name'>", "\n",
-        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
-        Padding, "    ", "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span>}</span>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
-        Padding, "    ", "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "</div>", "\n",
-        Padding, "    ", "</div>", "\n",
-        Padding, "</div>"
-    ])),
-    parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
-
-parse_code_html_loop([#meta{name = Name, type = tuple, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
-    %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, tuple, undefined, []),
-    %% alignment padding
-    Padding = lists:duplicate(Depth, "    "),
-    %% format one field
-    Type = "map",
-    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
-    IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
-    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
-    Code = lists:flatten(lists:concat([
-        Padding, "<div class='field'>", "\n",
-        Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
-        Padding, "    ", "<div class='digest'>", "\n",
-        Padding, "    ", "    ", "<div class='inner name'>", "\n",
-        Padding, "    ", "    ", "    ", "<div class='pad' style='width: ", (Depth - 3) * 16, "px;position: relative;'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<div class='top' style='width: calc(" , 100 / (Depth - 3), "% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
-        Padding, "    ", "    ", "    ", "</div>", "\n",
-        Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
@@ -582,14 +513,16 @@ parse_code_html_loop([#meta{name = Name, type = tuple, comment = Comment, explai
     ])),
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = record, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = record, explain = Explain, comment = Comment} | T], Depth, Parent, Key, List) ->
+    SubExplain = [Meta || Meta = #meta{} <- tuple_to_list(Explain)],
+
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, record, undefined, []),
+    SubCodes = parse_code_html_loop(SubExplain, Depth + 2, record, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Type = "map",
-    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    Type = "object",
+    NameKey = lists:concat(["</span>[<span onclick='copy(event, this)'>", word:to_lower_hump(Key),  "</span><span>] = "]),
     IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
     FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
     Code = lists:flatten(lists:concat([
@@ -602,7 +535,7 @@ parse_code_html_loop([#meta{name = Name, type = record, comment = Comment, expla
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
@@ -631,14 +564,14 @@ parse_code_html_loop([#meta{name = Name, type = record, comment = Comment, expla
     ])),
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = maps, comment = Comment, explain = Explain = [_ | _]} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = maps, explain = Explain, comment = Comment} | T], Depth, Parent, Key, List) ->
     %% recursive
-    SubCodes = parse_code_html_loop(Explain, Depth + 2, maps, undefined, []),
+    SubCodes = parse_code_html_loop(maps:values(Explain), Depth + 2, maps, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Type = "map",
-    NameKey = lists:concat(["[", word:to_lower_hump(Key),  "] = "]),
+    Type = "object",
+    NameKey = lists:concat(["</span>[<span onclick='copy(event, this)'>", word:to_lower_hump(Key),  "</span><span>] = "]),
     IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
     FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
     Code = lists:flatten(lists:concat([
@@ -651,7 +584,7 @@ parse_code_html_loop([#meta{name = Name, type = maps, comment = Comment, explain
         Padding, "    ", "    ", "    ", "    ", "<div class='bottom' style='width: calc(", (Depth - 3) * 16, "% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "    ", "<div class='align' style='width: calc(100% - ", (Depth - 3) * 16, "px);'>", "\n",
-        Padding, "    ", "    ", "    ", "    ", "<span onclick='copy(event, this)'>", FieldName, "</span><span>{</span>", "\n",
+        Padding, "    ", "    ", "    ", "    ", "<span>", FieldName, "</span><span>{</span>", "\n",
         Padding, "    ", "    ", "    ", "    ", "<div class='tips'>已复制</div>", "\n",
         Padding, "    ", "    ", "    ", "</div>", "\n",
         Padding, "    ", "    ", "</div>", "\n",
@@ -681,8 +614,9 @@ parse_code_html_loop([#meta{name = Name, type = maps, comment = Comment, explain
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
 parse_code_html_loop([#meta{name = Name, type = list, explain = Explain, comment = Comment, key = undefined} | T], Depth, Parent, Key, List) ->
+    SubExplain = [Meta#meta{name = maps:get(SubName == [] andalso ?IS_UNIT(SubType), #{true => '~', false => SubName})} || Meta = #meta{name = SubName, type = SubType} <- Explain],
     %% recursive
-    SubCodes = parse_code_html_loop([Explain], Depth + 2, list, undefined, []),
+    SubCodes = parse_code_html_loop(SubExplain, Depth + 2, list, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -727,8 +661,9 @@ parse_code_html_loop([#meta{name = Name, type = list, explain = Explain, comment
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
 parse_code_html_loop([#meta{name = Name, type = list, explain = Explain, comment = Comment, key = SubKey} | T], Depth, Parent, Key, List) ->
+    SubExplain = [Meta#meta{name = maps:get(SubName == [] andalso ?IS_UNIT(SubType), #{true => '~', false => SubName})} || Meta = #meta{name = SubName, type = SubType} <- Explain],
     %% recursive
-    SubCodes = parse_code_html_loop([Explain], Depth + 2, list, SubKey, []),
+    SubCodes = parse_code_html_loop(SubExplain, Depth + 2, list, SubKey, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -772,9 +707,10 @@ parse_code_html_loop([#meta{name = Name, type = list, explain = Explain, comment
     ])),
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = undefined} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = []} | T], Depth, Parent, Key, List) ->
+    SubExplain = [Meta#meta{name = maps:get(SubName == [] andalso ?IS_UNIT(SubType), #{true => '~', false => SubName})} || Meta = #meta{name = SubName, type = SubType} <- Explain],
     %% recursive
-    SubCodes = parse_code_html_loop([Explain], Depth + 2, ets, undefined, []),
+    SubCodes = parse_code_html_loop(SubExplain, Depth + 2, ets, undefined, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
@@ -818,9 +754,12 @@ parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment 
     ])),
     parse_code_html_loop(T, Depth, Parent, Key, [Code | List]);
 
-parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = SubKey} | T], Depth, Parent, Key, List) ->
+parse_code_html_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = [SubKey]} | T], Depth, Parent, Key, List) ->
+
+    SubExplain = [Meta#meta{name = maps:get(SubName == [] andalso ?IS_UNIT(SubType), #{true => '~', false => SubName})} || Meta = #meta{name = SubName, type = SubType} <- Explain],
+
     %% recursive
-    SubCodes = parse_code_html_loop([Explain], Depth + 2, ets, SubKey, []),
+    SubCodes = parse_code_html_loop(SubExplain, Depth + 2, ets, SubKey, []),
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
