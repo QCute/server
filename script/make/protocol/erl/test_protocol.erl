@@ -104,10 +104,40 @@ decode_single_65535(_Rest_ = <<_/binary>>, Size, SingleLength, List) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(65535, Data) ->
-    Data65535 = <<(protocol:text(Data))/binary>>,
+encode(65535, {Bin, Bool, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, Str, Bst, {Bin, {U8, Str}, List, Single}, IndexList, KeyList}) ->
+    Data65535 = <<Bin:6/binary, (type:to_flag(Bool)):8, U8:8, U16:16, U32:32, U64:64, I8:8/signed, I16:16/signed, I32:32/signed, I64:64/signed, F32:32/float, F64:64/float, (begin StrBinary = unicode:characters_to_binary(Str), <<(byte_size(StrBinary)):16, StrBinary/binary>> end)/binary, (byte_size(Bst)):16, (Bst)/binary, Bin:6/binary, U8:8, (begin StrBinary = unicode:characters_to_binary(Str), <<(byte_size(StrBinary)):16, StrBinary/binary>> end)/binary, (encode_list_65535(<<>>, 0, List))/binary, (encode_single_65535(<<>>, 0, Single))/binary, (encode_index_list_65535(<<>>, 0, IndexList))/binary, (encode_key_list_65535(<<>>, 0, KeyList))/binary>>,
     {ok, <<(byte_size(Data65535)):16, 65535:16, Data65535/binary>>};
 
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
+
+encode_key_list_65535(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_key_list_65535(Acc = <<_/binary>>, Length, [{Bin, Bool, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, Str, Bst} | KeyList]) ->
+    encode_key_list_65535(<<Acc/binary, Bin:6/binary, (type:to_flag(Bool)):8, U8:8, U16:16, U32:32, U64:64, I8:8/signed, I16:16/signed, I32:32/signed, I64:64/signed, F32:32/float, F64:64/float, (begin StrBinary = unicode:characters_to_binary(Str), <<(byte_size(StrBinary)):16, StrBinary/binary>> end)/binary, (byte_size(Bst)):16, (Bst)/binary>>, Length + 1, KeyList).
+
+encode_index_list_65535(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_index_list_65535(Acc = <<_/binary>>, Length, [{Bin, {U8, Str}, List, Single} | IndexList]) ->
+    encode_index_list_65535(<<Acc/binary, Bin:6/binary, U8:8, (begin StrBinary = unicode:characters_to_binary(Str), <<(byte_size(StrBinary)):16, StrBinary/binary>> end)/binary, (encode_list_65535(<<>>, 0, List))/binary, (encode_single_65535(<<>>, 0, Single))/binary>>, Length + 1, IndexList).
+
+encode_single_65535(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_single_65535(Acc = <<_/binary>>, Length, [SingleItem | Single]) ->
+    encode_single_65535(<<Acc/binary, SingleItem:8>>, Length + 1, Single).
+
+encode_list_65535(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_65535(Acc = <<_/binary>>, Length, [{I16, Bst} | List]) ->
+    encode_list_65535(<<Acc/binary, I16:16/signed, (byte_size(Bst)):16, (Bst)/binary>>, Length + 1, List).
+
+encode_list_65535(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_65535(Acc = <<_/binary>>, Length, [{I16, Bst} | List]) ->
+    encode_list_65535(<<Acc/binary, I16:16/signed, (byte_size(Bst)):16, (Bst)/binary>>, Length + 1, List).
+
+encode_single_65535(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_single_65535(Acc = <<_/binary>>, Length, [SingleItem | Single]) ->
+    encode_single_65535(<<Acc/binary, SingleItem:8>>, Length + 1, Single).
 

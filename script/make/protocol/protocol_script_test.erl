@@ -124,7 +124,89 @@ protocol() ->
                         }
                     ]
                 },
-                encode = rst()
+                encode = {
+                    bin = binary(6),                       %% bin
+                    bool = bool(),                         %% bool
+
+                    u8 = u8(),                             %% u8
+                    u16 = u16(),                           %% u16
+                    u32 = u32(),                           %% u32
+                    u64 = u64(),                           %% u64
+                    i8 = i8(),                             %% i8
+                    i16 = i16(),                           %% i16
+                    i32 = i32(),                           %% i32
+                    i64 = i64(),                           %% i16
+                    f32 = f32(),                           %% f32
+                    f64 = f64(),                           %% f64
+                    str = str(),                           %% str
+                    bst = bst(),                           %% bst
+
+                    %% meta(bst, bst(), "bst")
+                    %% meta(tuple, {...}, "tuple")
+                    tuple = {                              %% tuple
+                        bin = binary(6),                   %% tuple bin
+
+                        sub = {                            %% tuple tuple
+                            u8 = u8(),                     %% tuple tuple u8
+                            str = str()                    %% tuple tuple str
+                        },
+
+                        list = [                           %% tuple list
+                            {
+                                i16 = i16(),               %% tuple list i16
+                                bst = bst()                %% tuple list bst
+                            }
+                        ],
+
+                        single = [                         %% u8
+                            u8()
+                        ]
+                    },
+
+                    %% meta(index_list, [object("", #{...}, "")], "list")
+                    index_list = [                         %% list
+                        {
+                            bin = binary(6),               %% tuple bin
+
+                            sub = {                        %% tuple tuple
+                                u8 = u8(),                 %% tuple tuple u8
+                                str = str()                %% tuple tuple str
+                            },
+
+                            list = [                       %% tuple list
+                                {
+                                    i16 = i16(),           %% tuple list i16
+                                    bst = bst()            %% tuple list bst
+                                }
+                            ],
+
+                            single = [                     %% u8
+                                u8()
+                            ]
+                        }
+                    ],
+
+                    %% meta(key_list, [map(u8, #{...}, "")], "list")
+                    key_list = [
+                        u8 = {
+                            bin = binary(6),               %% bin
+                            bool = bool(),                 %% bool
+
+                            u8 = u8(),                     %% u8
+                            u16 = u16(),                   %% u16
+                            u32 = u32(),                   %% u32
+                            u64 = u64(),                   %% u64
+                            i8 = i8(),                     %% i8
+                            i16 = i16(),                   %% i16
+                            i32 = i32(),                   %% i32
+                            i64 = i64(),                   %% i64
+                            f32 = f32(),                   %% f32
+                            f64 = f64(),                   %% f64
+                            str = str(),                   %% str
+                            bst = bst()                    %% bst
+                        }
+                    ]
+                }
             }
         ]
     }.

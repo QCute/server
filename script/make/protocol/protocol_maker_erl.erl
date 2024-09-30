@@ -606,12 +606,12 @@ parse_encode_erl_loop([#meta{name = Name, type = f64, explain = undefined} | T],
 
 parse_encode_erl_loop([#meta{name = Name, type = str, explain = undefined} | T], Protocol, Depth, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
-    Code = io_lib:format("(begin ~sBinary = unicode:characters_to_binary(~s), <<(byte_size(~sBinary)):16, ~sBinary/binary>> end)/binary", [Name, Name, Name, Name]),
+    Code = io_lib:format("(begin ~sBinary = unicode:characters_to_binary(~s), <<(byte_size(~sBinary)):16, ~sBinary/binary>> end)/binary", [HumpName, HumpName, HumpName, HumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Records, Functions, [HumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = bst, explain = undefined} | T], Protocol, Depth, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
-    Code = io_lib:format("(byte_size(~s)):16, (~s)/binary", [Name, Name]),
+    Code = io_lib:format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Records, Functions, [HumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = rst, explain = undefined} | T], Protocol, Depth, Records, Functions, Names, List) ->

@@ -521,12 +521,222 @@ export default class TestProtocol {
         switch (protocol) {
             case 65535: {
                 // 
-                const dataLength = view.getUint16(offset, false);
+                // bin
+                const bin = view.buffer.slice(offset, offset + 6);
+                offset = offset + 6;
+                // bool
+                const bool = view.getUint8(offset, false) !== 0;
+                offset = offset + 1;
+                // u8
+                const u8 = view.getUint8(offset, false);
+                offset = offset + 1;
+                // u16
+                const u16 = view.getUint16(offset, false);
                 offset = offset + 2;
-                const dataArray = new Uint8Array(view.buffer.slice(offset, offset + dataLength));
-                const data = textDecoder.decode(dataArray);
-                offset = offset + dataLength;
-                return data;
+                // u32
+                const u32 = view.getUint32(offset, false);
+                offset = offset + 4;
+                // u64
+                const u64 = view.getBigUint64(offset, false);
+                offset = offset + 8;
+                // i8
+                const i8 = view.getInt8(offset, false);
+                offset = offset + 1;
+                // i16
+                const i16 = view.getInt16(offset, false);
+                offset = offset + 2;
+                // i32
+                const i32 = view.getInt32(offset, false);
+                offset = offset + 4;
+                // i16
+                const i64 = view.getBigInt64(offset, false);
+                offset = offset + 8;
+                // f32
+                const f32 = view.getFloat32(offset, false);
+                offset = offset + 4;
+                // f64
+                const f64 = view.getFloat64(offset, false);
+                offset = offset + 8;
+                // str
+                const strLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const strArray = new Uint8Array(view.buffer.slice(offset, offset + strLength));
+                const str = textDecoder.decode(strArray);
+                offset = offset + strLength;
+                // bst
+                const bstLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const bstArray = new Uint8Array(view.buffer.slice(offset, offset + bstLength));
+                const bst = textDecoder.decode(bstArray);
+                offset = offset + bstLength;
+                // tuple
+                // tuple bin
+                const bin = view.buffer.slice(offset, offset + 6);
+                offset = offset + 6;
+                // tuple tuple
+                // tuple tuple u8
+                const u8 = view.getUint8(offset, false);
+                offset = offset + 1;
+                // tuple tuple str
+                const strLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const strArray = new Uint8Array(view.buffer.slice(offset, offset + strLength));
+                const str = textDecoder.decode(strArray);
+                offset = offset + strLength;
+                // object
+                const sub = {u8, str};
+                // tuple list
+                const list = [];
+                let listLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                while (--listLength >= 0) {
+                    // 
+                    // tuple list i16
+                    const i16 = view.getInt16(offset, false);
+                    offset = offset + 2;
+                    // tuple list bst
+                    const bstLength = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    const bstArray = new Uint8Array(view.buffer.slice(offset, offset + bstLength));
+                    const bst = textDecoder.decode(bstArray);
+                    offset = offset + bstLength;
+                    // object
+                    const listItem = {i16, bst};
+                    // add
+                    list.push(listItem);
+                }
+                // u8
+                const single = [];
+                let singleLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                while (--singleLength >= 0) {
+                    // 
+                    const singleItem = view.getUint8(offset, false);
+                    offset = offset + 1;
+                    // add
+                    single.push(singleItem);
+                }
+                // object
+                const tuple = {bin, sub, list, single};
+                // list
+                const indexList = [];
+                let indexListLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                while (--indexListLength >= 0) {
+                    // 
+                    // tuple bin
+                    const bin = view.buffer.slice(offset, offset + 6);
+                    offset = offset + 6;
+                    // tuple tuple
+                    // tuple tuple u8
+                    const u8 = view.getUint8(offset, false);
+                    offset = offset + 1;
+                    // tuple tuple str
+                    const strLength = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    const strArray = new Uint8Array(view.buffer.slice(offset, offset + strLength));
+                    const str = textDecoder.decode(strArray);
+                    offset = offset + strLength;
+                    // object
+                    const sub = {u8, str};
+                    // tuple list
+                    const list = [];
+                    let listLength = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    while (--listLength >= 0) {
+                        // 
+                        // tuple list i16
+                        const i16 = view.getInt16(offset, false);
+                        offset = offset + 2;
+                        // tuple list bst
+                        const bstLength = view.getUint16(offset, false);
+                        offset = offset + 2;
+                        const bstArray = new Uint8Array(view.buffer.slice(offset, offset + bstLength));
+                        const bst = textDecoder.decode(bstArray);
+                        offset = offset + bstLength;
+                        // object
+                        const listItem = {i16, bst};
+                        // add
+                        list.push(listItem);
+                    }
+                    // u8
+                    const single = [];
+                    let singleLength = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    while (--singleLength >= 0) {
+                        // 
+                        const singleItem = view.getUint8(offset, false);
+                        offset = offset + 1;
+                        // add
+                        single.push(singleItem);
+                    }
+                    // object
+                    const indexListItem = {bin, sub, list, single};
+                    // add
+                    indexList.push(indexListItem);
+                }
+                // 
+                const keyList = {};
+                let keyListLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                while (--keyListLength >= 0) {
+                    // 
+                    // bin
+                    const bin = view.buffer.slice(offset, offset + 6);
+                    offset = offset + 6;
+                    // bool
+                    const bool = view.getUint8(offset, false) !== 0;
+                    offset = offset + 1;
+                    // u8
+                    const u8 = view.getUint8(offset, false);
+                    offset = offset + 1;
+                    // u16
+                    const u16 = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    // u32
+                    const u32 = view.getUint32(offset, false);
+                    offset = offset + 4;
+                    // u64
+                    const u64 = view.getBigUint64(offset, false);
+                    offset = offset + 8;
+                    // i8
+                    const i8 = view.getInt8(offset, false);
+                    offset = offset + 1;
+                    // i16
+                    const i16 = view.getInt16(offset, false);
+                    offset = offset + 2;
+                    // i32
+                    const i32 = view.getInt32(offset, false);
+                    offset = offset + 4;
+                    // i64
+                    const i64 = view.getBigInt64(offset, false);
+                    offset = offset + 8;
+                    // f32
+                    const f32 = view.getFloat32(offset, false);
+                    offset = offset + 4;
+                    // f64
+                    const f64 = view.getFloat64(offset, false);
+                    offset = offset + 8;
+                    // str
+                    const strLength = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    const strArray = new Uint8Array(view.buffer.slice(offset, offset + strLength));
+                    const str = textDecoder.decode(strArray);
+                    offset = offset + strLength;
+                    // bst
+                    const bstLength = view.getUint16(offset, false);
+                    offset = offset + 2;
+                    const bstArray = new Uint8Array(view.buffer.slice(offset, offset + bstLength));
+                    const bst = textDecoder.decode(bstArray);
+                    offset = offset + bstLength;
+                    // object
+                    const keyListItem = {bin, bool, u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, str, bst};
+                    // add
+                    keyList[u8] = keyListItem;
+                }
+                // object
+                const  = {bin, bool, u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, str, bst, tuple, indexList, keyList};
+                return ;
             }
             default: throw("unknown protocol define: " + protocol)
         }
