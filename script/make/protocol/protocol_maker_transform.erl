@@ -62,11 +62,11 @@ convert_from_io_record([], _, List) ->
     lists:reverse(List);
 
 convert_from_io_record([{record_field, RecordFieldRowColumn, {atom, AtomRowColumn, encode}, Data} | T], Comment, List) ->
-    New = {record_field, RecordFieldRowColumn, {atom, AtomRowColumn, encode}, convert(Data, [], Comment)},
+    New = {record_field, RecordFieldRowColumn, {atom, AtomRowColumn, encode}, convert(Data, data, Comment)},
     convert_from_io_record(T, Comment, [New | List]);
 
 convert_from_io_record([{record_field, RecordFieldRowColumn, {atom, AtomRowColumn, decode}, Data} | T], Comment, List) ->
-    New = {record_field, RecordFieldRowColumn, {atom, AtomRowColumn, decode}, convert(Data, [], Comment)},
+    New = {record_field, RecordFieldRowColumn, {atom, AtomRowColumn, decode}, convert(Data, data, Comment)},
     convert_from_io_record(T, Comment, [New | List]);
 
 convert_from_io_record([Other | T], Comment, List) ->

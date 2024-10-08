@@ -8,10 +8,10 @@ export default class TestProtocol {
                     (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                     view = extendView;
                 }
-                // bin
-                const bin = data[""]["bin"];
-                (new Uint8Array(view.buffer, offset)).set(new Uint8Array(bin));
-                offset = offset + bin.byteLength;
+                // binary
+                const binary = data["data"]["binary"];
+                (new Uint8Array(view.buffer, offset)).set(new Uint8Array(binary));
+                offset = offset + binary.byteLength;
                 // extend
                 while (view.byteLength < offset + 1) {
                     const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
@@ -19,7 +19,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // bool
-                view.setUint8(offset, data[""]["bool"] ? 1 : 0, false);
+                view.setUint8(offset, data["data"]["bool"] ? 1 : 0, false);
                 offset = offset + 1;
                 // extend
                 while (view.byteLength < offset + 1) {
@@ -28,7 +28,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // u8
-                view.setUint8(offset, data[""]["u8"], false);
+                view.setUint8(offset, data["data"]["u8"], false);
                 offset = offset + 1;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -37,7 +37,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // u16
-                view.setUint16(offset, data[""]["u16"], false);
+                view.setUint16(offset, data["data"]["u16"], false);
                 offset = offset + 2;
                 // extend
                 while (view.byteLength < offset + 4) {
@@ -46,7 +46,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // u32
-                view.setUint32(offset, data[""]["u32"], false);
+                view.setUint32(offset, data["data"]["u32"], false);
                 offset = offset + 4;
                 // extend
                 while (view.byteLength < offset + 8) {
@@ -55,7 +55,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // u64
-                view.setBigUint64(offset, data[""]["u64"], false);
+                view.setBigUint64(offset, data["data"]["u64"], false);
                 offset = offset + 8;
                 // extend
                 while (view.byteLength < offset + 1) {
@@ -64,7 +64,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // i8
-                view.setInt8(offset, data[""]["i8"], false);
+                view.setInt8(offset, data["data"]["i8"], false);
                 offset = offset + 1;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -73,7 +73,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // i16
-                view.setInt16(offset, data[""]["i16"], false);
+                view.setInt16(offset, data["data"]["i16"], false);
                 offset = offset + 2;
                 // extend
                 while (view.byteLength < offset + 4) {
@@ -82,7 +82,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // i32
-                view.setInt32(offset, data[""]["i32"], false);
+                view.setInt32(offset, data["data"]["i32"], false);
                 offset = offset + 4;
                 // extend
                 while (view.byteLength < offset + 8) {
@@ -91,7 +91,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // i16
-                view.setBigInt64(offset, data[""]["i64"], false);
+                view.setBigInt64(offset, data["data"]["i64"], false);
                 offset = offset + 8;
                 // extend
                 while (view.byteLength < offset + 4) {
@@ -100,7 +100,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // f32
-                view.setFloat32(offset, data[""]["f32"], false);
+                view.setFloat32(offset, data["data"]["f32"], false);
                 offset = offset + 4;
                 // extend
                 while (view.byteLength < offset + 8) {
@@ -109,7 +109,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // f64
-                view.setFloat64(offset, data[""]["f64"], false);
+                view.setFloat64(offset, data["data"]["f64"], false);
                 offset = offset + 8;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -118,7 +118,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // str
-                const strArray = textEncoder.encode(data[""]["str"]);
+                const strArray = textEncoder.encode(data["data"]["str"]);
                 view.setUint16(offset, strArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -136,7 +136,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // bst
-                const bstArray = textEncoder.encode(data[""]["bst"]);
+                const bstArray = textEncoder.encode(data["data"]["bst"]);
                 view.setUint16(offset, bstArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -153,10 +153,10 @@ export default class TestProtocol {
                     (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                     view = extendView;
                 }
-                // tuple bin
-                const bin = data[""]["tuple"]["bin"];
-                (new Uint8Array(view.buffer, offset)).set(new Uint8Array(bin));
-                offset = offset + bin.byteLength;
+                // tuple binary
+                const binary = data["data"]["tuple"]["binary"];
+                (new Uint8Array(view.buffer, offset)).set(new Uint8Array(binary));
+                offset = offset + binary.byteLength;
                 // extend
                 while (view.byteLength < offset + 1) {
                     const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
@@ -164,7 +164,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // tuple tuple u8
-                view.setUint8(offset, data[""]["tuple"]["sub"]["u8"], false);
+                view.setUint8(offset, data["data"]["tuple"]["sub"]["u8"], false);
                 offset = offset + 1;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -173,7 +173,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // tuple tuple str
-                const strArray = textEncoder.encode(data[""]["tuple"]["sub"]["str"]);
+                const strArray = textEncoder.encode(data["data"]["tuple"]["sub"]["str"]);
                 view.setUint16(offset, strArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -191,7 +191,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // tuple list
-                const listData = data[""]["tuple"]["list"];
+                const listData = data["data"]["tuple"]["list"];
                 view.setUint16(offset, listData.length, false);
                 offset = offset + 2;
                 for (const listDataItem of listData) {
@@ -229,8 +229,8 @@ export default class TestProtocol {
                     (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                     view = extendView;
                 }
-                // u8
-                const singleData = data[""]["tuple"]["single"];
+                // 
+                const singleData = data["data"]["tuple"]["single"];
                 view.setUint16(offset, singleData.length, false);
                 offset = offset + 2;
                 for (const singleDataItem of singleData) {
@@ -240,8 +240,8 @@ export default class TestProtocol {
                         (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                         view = extendView;
                     }
-                    // 
-                    view.setUint8(offset, singleDataItem, false);
+                    // bool
+                    view.setUint8(offset, singleDataItem ? 1 : 0, false);
                     offset = offset + 1;
                 }
                 // extend
@@ -251,7 +251,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // list
-                const indexListData = data[""]["indexList"];
+                const indexListData = data["data"]["indexList"];
                 view.setUint16(offset, indexListData.length, false);
                 offset = offset + 2;
                 for (const indexListDataItem of indexListData) {
@@ -261,10 +261,10 @@ export default class TestProtocol {
                         (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                         view = extendView;
                     }
-                    // tuple bin
-                    const bin = indexListDataItem["bin"];
-                    (new Uint8Array(view.buffer, offset)).set(new Uint8Array(bin));
-                    offset = offset + bin.byteLength;
+                    // tuple binary
+                    const binary = indexListDataItem["binary"];
+                    (new Uint8Array(view.buffer, offset)).set(new Uint8Array(binary));
+                    offset = offset + binary.byteLength;
                     // extend
                     while (view.byteLength < offset + 1) {
                         const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
@@ -337,7 +337,7 @@ export default class TestProtocol {
                         (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                         view = extendView;
                     }
-                    // u8
+                    // 
                     const singleData = indexListDataItem["single"];
                     view.setUint16(offset, singleData.length, false);
                     offset = offset + 2;
@@ -348,8 +348,8 @@ export default class TestProtocol {
                             (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                             view = extendView;
                         }
-                        // 
-                        view.setUint8(offset, singleDataItem, false);
+                        // bool
+                        view.setUint8(offset, singleDataItem ? 1 : 0, false);
                         offset = offset + 1;
                     }
                 }
@@ -360,7 +360,7 @@ export default class TestProtocol {
                     view = extendView;
                 }
                 // 
-                const keyListData = data[""]["keyList"];
+                const keyListData = data["data"]["keyList"];
                 view.setUint16(offset, Object.keys(keyListData).length, false);
                 offset = offset + 2;
                 for (const keyListDataKey in keyListData) {
@@ -371,10 +371,10 @@ export default class TestProtocol {
                         (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
                         view = extendView;
                     }
-                    // bin
-                    const bin = keyListDataItem["bin"];
-                    (new Uint8Array(view.buffer, offset)).set(new Uint8Array(bin));
-                    offset = offset + bin.byteLength;
+                    // binary
+                    const binary = keyListDataItem["binary"];
+                    (new Uint8Array(view.buffer, offset)).set(new Uint8Array(binary));
+                    offset = offset + binary.byteLength;
                     // extend
                     while (view.byteLength < offset + 1) {
                         const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
@@ -521,8 +521,8 @@ export default class TestProtocol {
         switch (protocol) {
             case 65535: {
                 // 
-                // bin
-                const bin = view.buffer.slice(offset, offset + 6);
+                // binary
+                const binary = view.buffer.slice(offset, offset + 6);
                 offset = offset + 6;
                 // bool
                 const bool = view.getUint8(offset, false) !== 0;
@@ -570,8 +570,8 @@ export default class TestProtocol {
                 const bst = textDecoder.decode(bstArray);
                 offset = offset + bstLength;
                 // tuple
-                // tuple bin
-                const bin = view.buffer.slice(offset, offset + 6);
+                // tuple binary
+                const binary = view.buffer.slice(offset, offset + 6);
                 offset = offset + 6;
                 // tuple tuple
                 // tuple tuple u8
@@ -605,27 +605,27 @@ export default class TestProtocol {
                     // add
                     list.push(listItem);
                 }
-                // u8
+                // 
                 const single = [];
                 let singleLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--singleLength >= 0) {
-                    // 
-                    const singleItem = view.getUint8(offset, false);
+                    // bool
+                    const singleItem = view.getUint8(offset, false) !== 0;
                     offset = offset + 1;
                     // add
                     single.push(singleItem);
                 }
                 // object
-                const tuple = {bin, sub, list, single};
+                const tuple = {binary, sub, list, single};
                 // list
                 const indexList = [];
                 let indexListLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--indexListLength >= 0) {
                     // 
-                    // tuple bin
-                    const bin = view.buffer.slice(offset, offset + 6);
+                    // tuple binary
+                    const binary = view.buffer.slice(offset, offset + 6);
                     offset = offset + 6;
                     // tuple tuple
                     // tuple tuple u8
@@ -659,19 +659,19 @@ export default class TestProtocol {
                         // add
                         list.push(listItem);
                     }
-                    // u8
+                    // 
                     const single = [];
                     let singleLength = view.getUint16(offset, false);
                     offset = offset + 2;
                     while (--singleLength >= 0) {
-                        // 
-                        const singleItem = view.getUint8(offset, false);
+                        // bool
+                        const singleItem = view.getUint8(offset, false) !== 0;
                         offset = offset + 1;
                         // add
                         single.push(singleItem);
                     }
                     // object
-                    const indexListItem = {bin, sub, list, single};
+                    const indexListItem = {binary, sub, list, single};
                     // add
                     indexList.push(indexListItem);
                 }
@@ -681,8 +681,8 @@ export default class TestProtocol {
                 offset = offset + 2;
                 while (--keyListLength >= 0) {
                     // 
-                    // bin
-                    const bin = view.buffer.slice(offset, offset + 6);
+                    // binary
+                    const binary = view.buffer.slice(offset, offset + 6);
                     offset = offset + 6;
                     // bool
                     const bool = view.getUint8(offset, false) !== 0;
@@ -730,13 +730,13 @@ export default class TestProtocol {
                     const bst = textDecoder.decode(bstArray);
                     offset = offset + bstLength;
                     // object
-                    const keyListItem = {bin, bool, u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, str, bst};
+                    const keyListItem = {binary, bool, u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, str, bst};
                     // add
                     keyList[u8] = keyListItem;
                 }
                 // object
-                const  = {bin, bool, u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, str, bst, tuple, indexList, keyList};
-                return ;
+                const data = {binary, bool, u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, str, bst, tuple, indexList, keyList};
+                return data;
             }
             default: throw("unknown protocol define: " + protocol)
         }

@@ -42,7 +42,7 @@ protocol() ->
                 handler = #handler{module = test, function = test_protocol, protocol = true},
                 comment = "协议测试",
                 decode = {
-                    bin = binary(6),                       %% bin
+                    binary = binary(6),                    %% binary
                     bool = bool(),                         %% bool
 
                     u8 = u8(),                             %% u8
@@ -61,7 +61,7 @@ protocol() ->
                     %% meta(bst, bst(), "bst")
                     %% meta(tuple, {...}, "tuple")
                     tuple = {                              %% tuple
-                        bin = binary(6),                   %% tuple bin
+                        binary = binary(6),                %% tuple binary
 
                         sub = {                            %% tuple tuple
                             u8 = u8(),                     %% tuple tuple u8
@@ -75,15 +75,15 @@ protocol() ->
                             }
                         ],
 
-                        single = [                         %% u8
-                            u8()
+                        single = [
+                            bool()                         %% bool
                         ]
                     },
 
                     %% meta(index_list, [object("", #{...}, "")], "list")
                     index_list = [                         %% list
                         {
-                            bin = binary(6),               %% tuple bin
+                            binary = binary(6),            %% tuple binary
 
                             sub = {                        %% tuple tuple
                                 u8 = u8(),                 %% tuple tuple u8
@@ -97,8 +97,8 @@ protocol() ->
                                 }
                             ],
 
-                            single = [                     %% u8
-                                u8()
+                            single = [
+                                bool()                     %% bool
                             ]
                         }
                     ],
@@ -106,7 +106,7 @@ protocol() ->
                     %% meta(key_list, [map(u8, #{...}, "")], "list")
                     key_list = [
                         u8 = {
-                            bin = binary(6),               %% bin
+                            binary = binary(6),            %% binary
                             bool = bool(),                 %% bool
 
                             u8 = u8(),                     %% u8
@@ -125,7 +125,7 @@ protocol() ->
                     ]
                 },
                 encode = {
-                    bin = binary(6),                       %% bin
+                    binary = binary(6),                    %% binary
                     bool = bool(),                         %% bool
 
                     u8 = u8(),                             %% u8
@@ -144,7 +144,7 @@ protocol() ->
                     %% meta(bst, bst(), "bst")
                     %% meta(tuple, {...}, "tuple")
                     tuple = {                              %% tuple
-                        bin = binary(6),                   %% tuple bin
+                        binary = binary(6),                %% tuple binary
 
                         sub = {                            %% tuple tuple
                             u8 = u8(),                     %% tuple tuple u8
@@ -158,15 +158,15 @@ protocol() ->
                             }
                         ],
 
-                        single = [                         %% u8
-                            u8()
+                        single = [
+                            bool()                         %% bool
                         ]
                     },
 
                     %% meta(index_list, [object("", #{...}, "")], "list")
                     index_list = [                         %% list
                         {
-                            bin = binary(6),               %% tuple bin
+                            binary = binary(6),            %% tuple binary
 
                             sub = {                        %% tuple tuple
                                 u8 = u8(),                 %% tuple tuple u8
@@ -180,8 +180,8 @@ protocol() ->
                                 }
                             ],
 
-                            single = [                     %% u8
-                                u8()
+                            single = [
+                                bool()                     %% bool
                             ]
                         }
                     ],
@@ -189,7 +189,7 @@ protocol() ->
                     %% meta(key_list, [map(u8, #{...}, "")], "list")
                     key_list = [
                         u8 = {
-                            bin = binary(6),               %% bin
+                            binary = binary(6),            %% binary
                             bool = bool(),                 %% bool
 
                             u8 = u8(),                     %% u8

@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_account).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/time.hrl").
 -include("../../../include/journal.hrl").
@@ -48,30 +50,19 @@ protocol() ->
                 interval = ?SECOND_MILLISECONDS,
                 comment = "查询账户",
                 handler = #handler{module = account, function = query, state = client, response = send, imp = ""},
-                decode = [
-                    #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account_name, comment = "账户名"}
-                ],
-                decode = #{
-                    server_id => u16(),
-                    account_name => bst()
+                decode = {
+                    server_id = u16(),                     %% 服务器ID
+                    account_name = bst()                   %% 账户名
                 },
-                encode = #{
-                    result => rst(),
-                    list => [
-                        #{
-                            role_id => u64(),
-                            role_name => bst()
+                encode = {
+                    result = rst(),                        %% 结果
+                    list = [                               %% 角色名列表
+                        {
+                            role_id = u64(),               %% 角色ID
+                            role_name = bst()              %% 角色名
                         }
                     ]
-                },
-                encode = [
-                    #rst{name = result, comment = "结果"},
-                    #list{name = list, comment = "角色名列表", explain = {
-                        #u64{name = role_id, comment = "角色ID"},
-                        #bst{name = role_name, comment = "角色名"}
-                    }}
-                ]
+                }
             },
             #io{
                 number = 10002,
@@ -79,57 +70,42 @@ protocol() ->
                 comment = "创建账户",
                 handler = #handler{module = account, function = create, state = client, response = send, imp = ""},
                 decode = {
-                    role_name = bst(),
-                    server_id = u16(),
-                    account_name = bst(),
-                    sex = u8(),
-                    classes = u8(),
-                    channel = bst(),
-                    device_id = bst(),
-                    mac = bst(),
-                    device_type = bst()
+                    role_name = bst(),                     %% 角色名
+                    server_id = u16(),                     %% 服务器ID
+                    account_name = bst(),                  %% 账户名
+                    sex = u8(),                            %% 性别
+                    classes = u8(),                        %% 职业
+                    channel = bst(),                       %% 渠道
+                    device_id = bst(),                     %% 设备
+                    mac = bst(),                           %% mac地址
+                    device_type = bst()                    %% 设备类型
                 },
-                decode = [
-                    #bst{name = role_name, comment = "角色名"},
-                    #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account_name, comment = "账户名"},
-                    #u8{name = sex, comment = "性别"},
-                    #u8{name = classes, comment = "职业"},
-                    #bst{name = channel, comment = "渠道"},
-                    #bst{name = device_id, comment = "设备"},
-                    #bst{name = mac, comment = "mac地址"},
-                    #bst{name = device_type, comment = "设备类型"}
-                ],
-                encode = [
-                    #rst{name = result, comment = "结果"},
-                    #u64{name = role_id, comment = "角色ID"},
-                    #bst{name = role_name, comment = "角色名"}
-                ]
+                encode = {
+                    result = rst(),                        %% 结果
+                    role_id = u64(),                       %% 角色ID
+                    role_name = bst()                      %% 角色名
+                }
             },
             #io{
                 number = 10003,
                 interval = ?SECOND_MILLISECONDS,
                 comment = "登录",
                 handler = #handler{module = account, function = login, state = client, response = send, imp = ""},
-                decode = [
-                    #u64{name = role_id, comment = "角色ID"},
-                    #bst{name = role_name, comment = "角色名"},
-                    #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account_name, comment = "账户名"}
-                ],
-                encode = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = {
+                    role_id = u64(),                       %% 角色ID
+                    role_name = bst(),                     %% 角色名
+                    server_id = u16(),                     %% 服务器ID
+                    account_name = bst()                   %% 账户名
+                },
+                encode = rst()                             %% 结果
             },
             #io{
                 number = 10004,
                 interval = ?SECOND_MILLISECONDS,
                 comment = "退出",
                 handler = #handler{module = account, function = logout, state = client, response = send, imp = ""},
-                decode = [],
-                encode = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = {},
+                encode = rst()                             %% 结果
             },
             #io{
                 number = 0,

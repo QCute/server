@@ -4,59 +4,59 @@ function TestProtocol.encode(offset, protocol, data)
     if protocol == 65535 then
         local offset = offset
         local table = {}
-        -- bin
-        table[offset] = data[""]["bin"]
+        -- binary
+        table[offset] = data["data"]["binary"]
         offset = offset + 1
         -- bool
-        table[offset] = string.pack(">I1", data[""]["bool"] ~= 0 and 1 or 0)
+        table[offset] = string.pack(">I1", data["data"]["bool"] ~= 0 and 1 or 0)
         offset = offset + 1
         -- u8
-        table[offset] = string.pack(">I1", data[""]["u8"])
+        table[offset] = string.pack(">I1", data["data"]["u8"])
         offset = offset + 1
         -- u16
-        table[offset] = string.pack(">I2", data[""]["u16"])
+        table[offset] = string.pack(">I2", data["data"]["u16"])
         offset = offset + 1
         -- u32
-        table[offset] = string.pack(">I4", data[""]["u32"])
+        table[offset] = string.pack(">I4", data["data"]["u32"])
         offset = offset + 1
         -- u64
-        table[offset] = string.pack(">I8", data[""]["u64"])
+        table[offset] = string.pack(">I8", data["data"]["u64"])
         offset = offset + 1
         -- i8
-        table[offset] = string.pack(">i1", data[""]["i8"])
+        table[offset] = string.pack(">i1", data["data"]["i8"])
         offset = offset + 1
         -- i16
-        table[offset] = string.pack(">i2", data[""]["i16"])
+        table[offset] = string.pack(">i2", data["data"]["i16"])
         offset = offset + 1
         -- i32
-        table[offset] = string.pack(">i4", data[""]["i32"])
+        table[offset] = string.pack(">i4", data["data"]["i32"])
         offset = offset + 1
         -- i16
-        table[offset] = string.pack(">i8", data[""]["i64"])
+        table[offset] = string.pack(">i8", data["data"]["i64"])
         offset = offset + 1
         -- f32
-        table[offset] = string.pack(">f", data[""]["f32"])
+        table[offset] = string.pack(">f", data["data"]["f32"])
         offset = offset + 1
         -- f64
-        table[offset] = string.pack(">d", data[""]["f64"])
+        table[offset] = string.pack(">d", data["data"]["f64"])
         offset = offset + 1
         -- str
-        table[offset] = string.pack(">s2", data[""]["str"])
+        table[offset] = string.pack(">s2", data["data"]["str"])
         offset = offset + 1
         -- bst
-        table[offset] = string.pack(">s2", data[""]["bst"])
+        table[offset] = string.pack(">s2", data["data"]["bst"])
         offset = offset + 1
-        -- tuple bin
-        table[offset] = data[""]["tuple"]["bin"]
+        -- tuple binary
+        table[offset] = data["data"]["tuple"]["binary"]
         offset = offset + 1
         -- tuple tuple u8
-        table[offset] = string.pack(">I1", data[""]["tuple"]["sub"]["u8"])
+        table[offset] = string.pack(">I1", data["data"]["tuple"]["sub"]["u8"])
         offset = offset + 1
         -- tuple tuple str
-        table[offset] = string.pack(">s2", data[""]["tuple"]["sub"]["str"])
+        table[offset] = string.pack(">s2", data["data"]["tuple"]["sub"]["str"])
         offset = offset + 1
         -- tuple list
-        local listTable = data[""]["tuple"]["list"]
+        local listTable = data["data"]["tuple"]["list"]
         table[offset] = string.pack(">I2", #listTable)
         offset = offset + 1
         for listIndex = 1, #listTable do
@@ -68,24 +68,24 @@ function TestProtocol.encode(offset, protocol, data)
             table[offset] = string.pack(">s2", listItemData["bst"])
             offset = offset + 1
         end
-        -- u8
-        local singleTable = data[""]["tuple"]["single"]
+        -- 
+        local singleTable = data["data"]["tuple"]["single"]
         table[offset] = string.pack(">I2", #singleTable)
         offset = offset + 1
         for singleIndex = 1, #singleTable do
             local singleItemData = singleTable[singleIndex]
-            -- 
-            table[offset] = string.pack(">I1", singleItemData)
+            -- bool
+            table[offset] = string.pack(">I1", singleItemData ~= 0 and 1 or 0)
             offset = offset + 1
         end
         -- list
-        local indexListTable = data[""]["indexList"]
+        local indexListTable = data["data"]["indexList"]
         table[offset] = string.pack(">I2", #indexListTable)
         offset = offset + 1
         for indexListIndex = 1, #indexListTable do
             local indexListItemData = indexListTable[indexListIndex]
-            -- tuple bin
-            table[offset] = indexListItemData["bin"]
+            -- tuple binary
+            table[offset] = indexListItemData["binary"]
             offset = offset + 1
             -- tuple tuple u8
             table[offset] = string.pack(">I1", indexListItemData["sub"]["u8"])
@@ -106,24 +106,24 @@ function TestProtocol.encode(offset, protocol, data)
                 table[offset] = string.pack(">s2", listItemData["bst"])
                 offset = offset + 1
             end
-            -- u8
+            -- 
             local singleTable = indexListItemData["single"]
             table[offset] = string.pack(">I2", #singleTable)
             offset = offset + 1
             for singleIndex = 1, #singleTable do
                 local singleItemData = singleTable[singleIndex]
-                -- 
-                table[offset] = string.pack(">I1", singleItemData)
+                -- bool
+                table[offset] = string.pack(">I1", singleItemData ~= 0 and 1 or 0)
                 offset = offset + 1
             end
         end
         -- 
-        local keyListTable = data[""]["keyList"]
+        local keyListTable = data["data"]["keyList"]
         table[offset] = string.pack(">I2", #keyListTable)
         offset = offset + 1
         for _, keyListItemData in pairs(keyListTable) do
-            -- bin
-            table[offset] = keyListItemData["bin"]
+            -- binary
+            table[offset] = keyListItemData["binary"]
             offset = offset + 1
             -- bool
             table[offset] = string.pack(">I1", keyListItemData["bool"] ~= 0 and 1 or 0)
@@ -175,8 +175,8 @@ function TestProtocol.decode(offset, protocol, data)
     if protocol == 65535 then
         local offset = offset
         -- 
-        -- bin
-        local bin = string.unpack("c6", data, offset)
+        -- binary
+        local binary = string.unpack("c6", data, offset)
         offset = offset + 6
         -- bool
         local bool = string.unpack(">I1", data, offset) ~= 0
@@ -218,8 +218,8 @@ function TestProtocol.decode(offset, protocol, data)
         local bst = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(bst)
         -- tuple
-        -- tuple bin
-        local bin = string.unpack("c6", data, offset)
+        -- tuple binary
+        local binary = string.unpack("c6", data, offset)
         offset = offset + 6
         -- tuple tuple
         -- tuple tuple u8
@@ -246,26 +246,26 @@ function TestProtocol.decode(offset, protocol, data)
             local listItem = {i16 = i16, bst = bst}
             list[listIndex] = listItem
         end
-        -- u8
+        -- 
         local single = {}
         local singleLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for singleIndex = 1, singleLength do
-            -- 
-            local singleItem = string.unpack(">I1", data, offset)
+            -- bool
+            local singleItem = string.unpack(">I1", data, offset) ~= 0
             offset = offset + 1
             single[singleIndex] = singleItem
         end
         -- object
-        local tuple = {bin = bin, sub = sub, list = list, single = single}
+        local tuple = {binary = binary, sub = sub, list = list, single = single}
         -- list
         local indexList = {}
         local indexListLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for indexListIndex = 1, indexListLength do
             -- 
-            -- tuple bin
-            local bin = string.unpack("c6", data, offset)
+            -- tuple binary
+            local binary = string.unpack("c6", data, offset)
             offset = offset + 6
             -- tuple tuple
             -- tuple tuple u8
@@ -292,18 +292,18 @@ function TestProtocol.decode(offset, protocol, data)
                 local listItem = {i16 = i16, bst = bst}
                 list[listIndex] = listItem
             end
-            -- u8
+            -- 
             local single = {}
             local singleLength = string.unpack(">I2", data, offset)
             offset = offset + 2
             for singleIndex = 1, singleLength do
-                -- 
-                local singleItem = string.unpack(">I1", data, offset)
+                -- bool
+                local singleItem = string.unpack(">I1", data, offset) ~= 0
                 offset = offset + 1
                 single[singleIndex] = singleItem
             end
             -- object
-            local indexListItem = {bin = bin, sub = sub, list = list, single = single}
+            local indexListItem = {binary = binary, sub = sub, list = list, single = single}
             indexList[indexListIndex] = indexListItem
         end
         -- 
@@ -312,8 +312,8 @@ function TestProtocol.decode(offset, protocol, data)
         offset = offset + 2
         for keyListIndex = 1, keyListLength do
             -- 
-            -- bin
-            local bin = string.unpack("c6", data, offset)
+            -- binary
+            local binary = string.unpack("c6", data, offset)
             offset = offset + 6
             -- bool
             local bool = string.unpack(">I1", data, offset) ~= 0
@@ -355,12 +355,12 @@ function TestProtocol.decode(offset, protocol, data)
             local bst = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(bst)
             -- object
-            local keyListItem = {bin = bin, bool = bool, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst}
+            local keyListItem = {binary = binary, bool = bool, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst}
             keyList[u8] = keyListItem
         end
         -- object
-        local  = {bin = bin, bool = bool, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst, tuple = tuple, indexList = indexList, keyList = keyList}
-        return 
+        local data = {binary = binary, bool = bool, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst, tuple = tuple, indexList = indexList, keyList = keyList}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

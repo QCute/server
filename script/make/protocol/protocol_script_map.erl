@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_map).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -94,7 +96,7 @@ protocol() ->
                 comment = "战斗对象离开",
                 handler = #handler{alias = "fighter_leave"},
                 encode = #fighter{
-                    id = u64()                             %% ID
+                    id = u64()                             %% 战斗对象ID
                 }
             },
             #io{

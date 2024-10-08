@@ -390,10 +390,10 @@ format_content(Protocol, Comment, #data{html = #set{meta = #file{extra = Read}}}
 %%% meta
 %%%===================================================================
 %% html code
-parse_code_html(_, Meta = #meta{name = Name, type = Type}) ->
+parse_code_html(_, Meta = #meta{type = Type}) ->
     %% start with 3 tabs(4 space) padding
     %% Padding = lists:duplicate(3, "    "),
-    NewName = maps:get(Name == [] andalso ?IS_UNIT(Type), #{true => '~', false => Name}),
+    NewName = maps:get(?IS_UNIT(Type), #{true => '~', false => ""}),
     Codes = parse_code_html_loop([Meta#meta{name = NewName}], 4, Type, undefined, []),
     %% format one protocol define
     %% lists:concat(["        \"", Protocol, "\" &nbsp;[\n", Codes, "\n        ]"]).
@@ -473,7 +473,7 @@ parse_code_html_loop([#meta{name = Name, type = tuple, explain = Explain, commen
     Type = "object",
     NameKey = lists:concat(["</span>[<span onclick='copy(event, this)'>", word:to_lower_hump(Key),  "</span><span>] = "]),
     IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
-    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, [lists:concat([Name, " "]) || Name =/= []]),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, [lists:concat([word:to_lower_hump(Name), " "]) || Name =/= []]),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",
@@ -524,7 +524,7 @@ parse_code_html_loop([#meta{name = Name, type = record, explain = Explain, comme
     Type = "object",
     NameKey = lists:concat(["</span>[<span onclick='copy(event, this)'>", word:to_lower_hump(Key),  "</span><span>] = "]),
     IndexKey = maps:get(Key, #{undefined => ""}, NameKey),
-    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, lists:concat([word:to_lower_hump(Name), " "])),
+    FieldName = maps:get(Parent, #{list => IndexKey, ets => IndexKey}, [lists:concat([word:to_lower_hump(Name), " "]) || Name =/= []]),
     Code = lists:flatten(lists:concat([
         Padding, "<div class='field'>", "\n",
         Padding, "    ", "<div class='bar' style='left: ", (Depth - 4) * 16 - 4, "px;'></div>", "\n",

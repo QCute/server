@@ -2,8 +2,8 @@ return {
     [65535] = {
         ["comment"] = "协议测试",
         ["write"] = {
-            {name = "", type = "tuple", comment = "", explain = {
-                {name = "bin", type = "binary", comment = "bin", explain = 6},
+            {name = "data", type = "tuple", comment = "", explain = {
+                {name = "binary", type = "binary", comment = "binary", explain = 6},
                 {name = "bool", type = "bool", comment = "bool", explain = {}},
                 {name = "u8", type = "u8", comment = "u8", explain = {}},
                 {name = "u16", type = "u16", comment = "u16", explain = {}},
@@ -18,42 +18,42 @@ return {
                 {name = "str", type = "str", comment = "str", explain = {}},
                 {name = "bst", type = "bst", comment = "bst", explain = {}},
                 {name = "tuple", type = "tuple", comment = "tuple", explain = {
-                    {name = "bin", type = "binary", comment = "tuple bin", explain = 6},
+                    {name = "binary", type = "binary", comment = "tuple binary", explain = 6},
                     {name = "sub", type = "tuple", comment = "tuple tuple", explain = {
                         {name = "u8", type = "u8", comment = "tuple tuple u8", explain = {}},
                         {name = "str", type = "str", comment = "tuple tuple str", explain = {}}
                     }},
-                    {name = "list", type = "list", comment = "tuple list", explain = {
+                    {name = "list", type = "list", comment = "tuple list", explain = 
                         {name = "", type = "tuple", comment = "", explain = {
                             {name = "i16", type = "i16", comment = "tuple list i16", explain = {}},
                             {name = "bst", type = "bst", comment = "tuple list bst", explain = {}}
                         }}
-                    }},
-                    {name = "single", type = "list", comment = "u8", explain = 
-                        {name = "", type = "u8", comment = "", explain = {}}
+                    },
+                    {name = "single", type = "list", comment = "", explain = 
+                        {name = "", type = "bool", comment = "bool", explain = {}}
                     }
                 }},
-                {name = "indexList", type = "list", comment = "list", explain = {
+                {name = "indexList", type = "list", comment = "list", explain = 
                     {name = "", type = "tuple", comment = "", explain = {
-                        {name = "bin", type = "binary", comment = "tuple bin", explain = 6},
+                        {name = "binary", type = "binary", comment = "tuple binary", explain = 6},
                         {name = "sub", type = "tuple", comment = "tuple tuple", explain = {
                             {name = "u8", type = "u8", comment = "tuple tuple u8", explain = {}},
                             {name = "str", type = "str", comment = "tuple tuple str", explain = {}}
                         }},
-                        {name = "list", type = "list", comment = "tuple list", explain = {
+                        {name = "list", type = "list", comment = "tuple list", explain = 
                             {name = "", type = "tuple", comment = "", explain = {
                                 {name = "i16", type = "i16", comment = "tuple list i16", explain = {}},
                                 {name = "bst", type = "bst", comment = "tuple list bst", explain = {}}
                             }}
-                        }},
-                        {name = "single", type = "list", comment = "u8", explain = 
-                            {name = "", type = "u8", comment = "", explain = {}}
+                        },
+                        {name = "single", type = "list", comment = "", explain = 
+                            {name = "", type = "bool", comment = "bool", explain = {}}
                         }
                     }}
-                }},
-                {name = "keyList", type = "map", comment = "", key = "u8", explain = {
+                },
+                {name = "keyList", type = "map", comment = "", key = "u8", explain = 
                     {name = "", type = "tuple", comment = "", explain = {
-                        {name = "bin", type = "binary", comment = "bin", explain = 6},
+                        {name = "binary", type = "binary", comment = "binary", explain = 6},
                         {name = "bool", type = "bool", comment = "bool", explain = {}},
                         {name = "u8", type = "u8", comment = "u8", explain = {}},
                         {name = "u16", type = "u16", comment = "u16", explain = {}},
@@ -68,12 +68,12 @@ return {
                         {name = "str", type = "str", comment = "str", explain = {}},
                         {name = "bst", type = "bst", comment = "bst", explain = {}}
                     }}
-                }}
+                }
             }}
         },
         ["read"] = {
-            {name = "", type = "tuple", comment = "", explain = {
-                {name = "bin", type = "binary", comment = "bin", explain = 6},
+            {name = "data", type = "tuple", comment = "", explain = {
+                {name = "binary", type = "binary", comment = "binary", explain = 6},
                 {name = "bool", type = "bool", comment = "bool", explain = {}},
                 {name = "u8", type = "u8", comment = "u8", explain = {}},
                 {name = "u16", type = "u16", comment = "u16", explain = {}},
@@ -88,42 +88,42 @@ return {
                 {name = "str", type = "str", comment = "str", explain = {}},
                 {name = "bst", type = "bst", comment = "bst", explain = {}},
                 {name = "tuple", type = "tuple", comment = "tuple", explain = {
-                    {name = "bin", type = "binary", comment = "tuple bin", explain = 6},
+                    {name = "binary", type = "binary", comment = "tuple binary", explain = 6},
                     {name = "sub", type = "tuple", comment = "tuple tuple", explain = {
                         {name = "u8", type = "u8", comment = "tuple tuple u8", explain = {}},
                         {name = "str", type = "str", comment = "tuple tuple str", explain = {}}
                     }},
-                    {name = "list", type = "list", comment = "tuple list", explain = {
+                    {name = "list", type = "list", comment = "tuple list", explain = 
                         {name = "", type = "tuple", comment = "", explain = {
                             {name = "i16", type = "i16", comment = "tuple list i16", explain = {}},
                             {name = "bst", type = "bst", comment = "tuple list bst", explain = {}}
                         }}
-                    }},
-                    {name = "single", type = "list", comment = "u8", explain = 
-                        {name = "", type = "u8", comment = "", explain = {}}
+                    },
+                    {name = "single", type = "list", comment = "", explain = 
+                        {name = "", type = "bool", comment = "bool", explain = {}}
                     }
                 }},
-                {name = "indexList", type = "list", comment = "list", explain = {
+                {name = "indexList", type = "list", comment = "list", explain = 
                     {name = "", type = "tuple", comment = "", explain = {
-                        {name = "bin", type = "binary", comment = "tuple bin", explain = 6},
+                        {name = "binary", type = "binary", comment = "tuple binary", explain = 6},
                         {name = "sub", type = "tuple", comment = "tuple tuple", explain = {
                             {name = "u8", type = "u8", comment = "tuple tuple u8", explain = {}},
                             {name = "str", type = "str", comment = "tuple tuple str", explain = {}}
                         }},
-                        {name = "list", type = "list", comment = "tuple list", explain = {
+                        {name = "list", type = "list", comment = "tuple list", explain = 
                             {name = "", type = "tuple", comment = "", explain = {
                                 {name = "i16", type = "i16", comment = "tuple list i16", explain = {}},
                                 {name = "bst", type = "bst", comment = "tuple list bst", explain = {}}
                             }}
-                        }},
-                        {name = "single", type = "list", comment = "u8", explain = 
-                            {name = "", type = "u8", comment = "", explain = {}}
+                        },
+                        {name = "single", type = "list", comment = "", explain = 
+                            {name = "", type = "bool", comment = "bool", explain = {}}
                         }
                     }}
-                }},
-                {name = "keyList", type = "map", comment = "", key = "u8", explain = {
+                },
+                {name = "keyList", type = "map", comment = "", key = "u8", explain = 
                     {name = "", type = "tuple", comment = "", explain = {
-                        {name = "bin", type = "binary", comment = "bin", explain = 6},
+                        {name = "binary", type = "binary", comment = "binary", explain = 6},
                         {name = "bool", type = "bool", comment = "bool", explain = {}},
                         {name = "u8", type = "u8", comment = "u8", explain = {}},
                         {name = "u16", type = "u16", comment = "u16", explain = {}},
@@ -138,7 +138,7 @@ return {
                         {name = "str", type = "str", comment = "str", explain = {}},
                         {name = "bst", type = "bst", comment = "bst", explain = {}}
                     }}
-                }}
+                }
             }}
         }
     }

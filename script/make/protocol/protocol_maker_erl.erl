@@ -177,8 +177,7 @@ parse_request_erl(Protocol, Meta, #handler{module = Module, function = Function,
 %%    lists:concat(["#", "{", string:join(NameList, ", "), "}"]);
 
 parse_request_erl_name(#meta{name = Name}) ->
-    NewName = maps:get(Name == [], #{true => "data", false => Name}),
-    word:to_hump(NewName).
+    word:to_hump(Name).
 
 %%%===================================================================
 %%% response creator
@@ -296,17 +295,15 @@ parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function
 %%    word:to_hump(Name);
 
 parse_response_erl_name(#meta{name = Name}) ->
-    NewName = maps:get(Name == [], #{true => "data", false => Name}),
-    word:to_hump(NewName).
+    word:to_hump(Name).
 
 %%%===================================================================
 %%% decode
 %%%===================================================================
 %% erl code
-parse_decode_erl(Protocol, Meta = #meta{name = Name, type = Type}) ->
-    NewName = maps:get(Name == [] andalso ?IS_UNIT(Type), #{true => "data", false => Name}),
+parse_decode_erl(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
-    {_, Records, Functions, Names, Codes} = parse_decode_erl_loop([Meta#meta{name = NewName}], Protocol, 1, "", [], [], [], []),
+    {_, Records, Functions, Names, Codes} = parse_decode_erl_loop([Meta], Protocol, 1, "", [], [], [], []),
 
     %% codes format
     CodesDefault = lists:concat([
@@ -322,136 +319,137 @@ parse_decode_erl(Protocol, Meta = #meta{name = Name, type = Type}) ->
 
     #file{import = Records, function = Code, extra = string:join(Functions, "\n")}.
 
-parse_decode_erl_loop([], _, _, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([], _, _, Scope, Records, Functions, Names, List) ->
     %% construct as a list
     %% {string:join(lists:reverse(Functions), "\n"), string:join(lists:reverse(Names), ", "), string:join(lists:reverse(List), "\n")};
-    {ScopeArgs, lists:reverse(Records), lists:reverse(Functions), lists:reverse(Names), lists:reverse(List)};
+    {Scope, lists:reverse(Records), lists:reverse(Functions), lists:reverse(Names), lists:reverse(List)};
 
-parse_decode_erl_loop([#meta{name = Name, type = binary, explain = Length} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = binary, explain = Length} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":", Length, "/binary, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":", Length, "/binary, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
+
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = bool, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = bool, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, "Flag:8, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,", "\n",
+        "    ", "<<", HumpName, "Flag:8, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,", "\n",
         "    ", HumpName, " = type:to_boolean(", HumpName, "Flag),"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = u8, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = u8, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":8, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":8, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = u16, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = u16, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":16, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":16, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = u32, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = u32, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":32, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":32, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = u64, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = u64, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":64, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":64, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = i8, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = i8, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":8/signed, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":8/signed, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = i16, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = i16, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":16/signed, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":16/signed, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = i32, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = i32, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":32/signed, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":32/signed, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = i64, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = i64, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":64/signed, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":64/signed, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = f32, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = f32, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":32/float, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":32/float, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = f64, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = f64, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, ":64/float, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, ":64/float, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = str, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = str, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, "BinaryLength:16, ", HumpName, "Binary:", HumpName, "BinaryLength/binary, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,", "\n",
+        "    ", "<<", HumpName, "BinaryLength:16, ", HumpName, "Binary:", HumpName, "BinaryLength/binary, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,", "\n",
         "    ", HumpName, " = unicode:characters_to_list(", HumpName, "Binary),"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = bst, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = bst, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, "Length:16, ", HumpName, ":", HumpName, "Length/binary, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, "Length:16, ", HumpName, ":", HumpName, "Length/binary, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = rst, explain = undefined} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = rst, explain = undefined} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
     Code = lists:concat([
-        "    ", "<<", HumpName, "Length:16, ", HumpName, ":", HumpName, "Length/binary, _", HumpName, "Rest_/binary>> = _", ScopeArgs, "Rest_,"
+        "    ", "<<", HumpName, "Length:16, ", HumpName, ":", HumpName, "Length/binary, _", HumpName, "Rest_/binary>> = _", Scope, "Rest_,"
     ]),
 
     %% stacked
     parse_decode_erl_loop(T, Protocol, Depth, HumpName, Records, Functions, [HumpName | Names], [Code | List]);
 
-parse_decode_erl_loop([#meta{name = _, type = tuple, explain = Explain} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = _, type = tuple, explain = Explain} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     %% recursive
-    {NextScopeArgs, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(tuple_to_list(Explain), Protocol, Depth, ScopeArgs, [], [], [], []),
+    {NextScope, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(tuple_to_list(Explain), Protocol, Depth, Scope, [], [], [], []),
 
     SubName = lists:concat([
         "{", string:join(SubNames, ", "), "}"
@@ -460,13 +458,13 @@ parse_decode_erl_loop([#meta{name = _, type = tuple, explain = Explain} | T], Pr
     SubCode = string:join(SubCodes, "\n"),
 
     %% stacked
-    parse_decode_erl_loop(T, Protocol, Depth, NextScopeArgs, lists:append(SubRecords, Records), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
+    parse_decode_erl_loop(T, Protocol, Depth, NextScope, lists:append(SubRecords, Records), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     SubExplain = [Meta || Meta = #meta{} <- tuple_to_list(Explain)],
 
     %% recursive
-    {NextScopeArgs, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth, ScopeArgs, [], [], [], []),
+    {NextScope, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth, Scope, [], [], [], []),
 
     SubName = lists:concat([
         "#", word:to_snake(Name), "{", string:join([lists:concat([word:to_snake(FieldName), " = ", FieldName]) || FieldName <- SubNames], ", "), "}"
@@ -476,13 +474,13 @@ parse_decode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T]
     
     SubCode = string:join(SubCodes, "\n"),
 
-    parse_decode_erl_loop(T, Protocol, Depth, NextScopeArgs, lists:append(SubRecords, [Record | Records]), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
+    parse_decode_erl_loop(T, Protocol, Depth, NextScope, lists:append(SubRecords, [Record | Records]), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
 
-parse_decode_erl_loop([#meta{name = _, type = maps, explain = Explain} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = _, type = maps, explain = Explain} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     SubExplain = maps:values(Explain),
 
     %% recursive
-    {NextScopeArgs, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth, ScopeArgs, [], [], [], []),
+    {NextScope, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth, Scope, [], [], [], []),
 
     SubName = lists:concat([
         "#", "{", string:join([lists:concat([word:to_snake(FieldName), " => ", FieldName]) || FieldName <- SubNames], ", "), "}"
@@ -490,27 +488,27 @@ parse_decode_erl_loop([#meta{name = _, type = maps, explain = Explain} | T], Pro
 
     SubCode = string:join(SubCodes, "\n"),
 
-    parse_decode_erl_loop(T, Protocol, Depth, NextScopeArgs, lists:append(SubRecords, Records), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
+    parse_decode_erl_loop(T, Protocol, Depth, NextScope, lists:append(SubRecords, Records), lists:append(SubFunctions, Functions), [SubName | Names], [SubCode | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain, key = _} | T], Protocol, Depth, ScopeArgs, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain, key = _} | T], Protocol, Depth, Scope, Records, Functions, Names, List) ->
     HumpName = word:to_hump(Name),
 
     SubExplain = [Meta#meta{name = maps:get(SubName, #{[] => lists:concat([HumpName, "Item"])}, SubName)} || Meta = #meta{name = SubName} <- Explain],
 
     %% recursive
-    {NextScopeArgs, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth + 1, "", [], [], [], []),
+    {NextScope, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth + 1, "", [], [], [], []),
 
     SubFunction = lists:concat([
         "decode_", word:to_snake(HumpName), "_", Protocol, "(<<_/binary>>, Size, 0, List) ->", "\n",
         "    ", "{Size, List};", "\n",
         "decode_", word:to_snake(HumpName), "_", Protocol, "(_Rest_ = <<_/binary>>, Size, ", HumpName, "Length, List) ->", "\n",
         string:join(SubCodes, "\n"), "\n",
-        "    ", "decode_", word:to_snake(HumpName), "_", Protocol, "(_", NextScopeArgs, "Rest_, Size + byte_size(_Rest_) - byte_size(_", NextScopeArgs, "Rest_), ", HumpName, "Length - 1, ", "[", string:join(SubNames, ", "), " | List]).", "\n",
+        "    ", "decode_", word:to_snake(HumpName), "_", Protocol, "(_", NextScope, "Rest_, Size + byte_size(_Rest_) - byte_size(_", NextScope, "Rest_), ", HumpName, "Length - 1, ", "[", string:join(SubNames, ", "), " | List]).", "\n",
         [lists:concat(["\n", Sub]) || Sub <- SubFunctions]
     ]),
 
     Code = lists:concat([
-        "    ", "<<", HumpName, "Length:16, _", HumpName, "LengthRest_/binary>> = _", ScopeArgs, "Rest_,", "\n",
+        "    ", "<<", HumpName, "Length:16, _", HumpName, "LengthRest_/binary>> = _", Scope, "Rest_,", "\n",
         "    ", "{", HumpName, "ByteSize, ", HumpName, "} = decode_", word:to_snake(HumpName), "_", Protocol, "(_", HumpName, "LengthRest_, 0, ", HumpName, "Length, [])", ",", "\n",
         "    ", "<<_:", HumpName, "ByteSize/binary, _", HumpName, "Rest_/binary>> = _", HumpName, "LengthRest_,"
     ]),
@@ -521,10 +519,9 @@ parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain, key = 
 %%% encode
 %%%===================================================================
 %% erl code
-parse_encode_erl(Protocol, Meta = #meta{name = Name, type = Type}) ->
-    NewName = maps:get(Name == [] andalso ?IS_UNIT(Type), #{true => "data", false => Name}),
+parse_encode_erl(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
-    {Records, Functions, Names, Codes} = parse_encode_erl_loop([Meta#meta{name = NewName}], Protocol, 1, [], [], [], []),
+    {Records, Functions, Names, Codes} = parse_encode_erl_loop([Meta], Protocol, 1, [], [], [], []),
 
     %% format one protocol define
     Code = lists:concat([

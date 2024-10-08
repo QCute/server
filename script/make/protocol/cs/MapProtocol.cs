@@ -8,28 +8,24 @@ public static class MapProtocol
             {
                 return;
             }
-            case 20011:
-            {
-                return;
-            }
             case 20012:
             {
-                // x坐标
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data["x"]));
-                // y坐标
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data["y"]));
+                // X坐标
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["x"]));
+                // Y坐标
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["y"]));
                 return;
             }
             case 20014:
             {
                 // 技能Id
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data["skillId"]));
-                // 对象列表
-                var targetListData = (System.Collections.Generic.List<System.Object>)data["targetList"];
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["skillId"]));
+                // 战斗对象ID列表
+                var targetListData = (System.Collections.Generic.List<System.Object>)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["targetList"];
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)targetListData.Count));
                 foreach(System.UInt64 targetListDataItem in targetListData)
                 {
-                    // ID
+                    // 战斗对象ID
                     writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)targetListDataItem));
                 }
                 return;
@@ -44,26 +40,39 @@ public static class MapProtocol
         {
             case 20001:
             {
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {};
+                // 
+
+                // object
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {};
+                return data;
             }
             case 20011:
             {
-                // 对象列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.Generic.List<System.Object>(listLength);
-                while (listLength-- > 0)
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
-                    // Fighter
+                    // 
                     // ID
                     var id = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 类型
                     var type = reader.ReadByte();
+                    // 属性
+                    // 战力
+                    var fc = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 血量
+                    var hp = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 健康
+                    var health = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // object
+                    var attribute = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fc", fc}, {"hp", hp}, {"health", health}};
                     // 技能列表
                     var skillLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var skill = new System.Collections.Generic.List<System.Object>(skillLength);
                     while (skillLength-- > 0)
                     {
-                        // BattleSkill
+                        // 
                         // 技能ID
                         var skillId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // 时间
@@ -80,7 +89,7 @@ public static class MapProtocol
                     var buff = new System.Collections.Generic.List<System.Object>(buffLength);
                     while (buffLength-- > 0)
                     {
-                        // BattleBuff
+                        // 
                         // BuffID
                         var buffId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // 过期时间
@@ -97,15 +106,15 @@ public static class MapProtocol
                     // Y坐标
                     var y = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var fighter = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"type", type}, {"skill", skill}, {"buff", buff}, {"x", x}, {"y", y}};
+                    var fighter = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"type", type}, {"attribute", attribute}, {"skill", skill}, {"buff", buff}, {"x", x}, {"y", y}};
                     // add
-                    list.Add(fighter);
+                    data.Add(fighter);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 20012:
             {
-                // Fighter
+                // 
                 // ID
                 var id = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // X坐标
@@ -114,39 +123,49 @@ public static class MapProtocol
                 var y = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 // object
                 var fighter = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"x", x}, {"y", y}};
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fighter", fighter}};
+                return fighter;
             }
             case 20013:
             {
-                // Fighter
-                // ID
+                // 
+                // 战斗对象ID
                 var id = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // object
                 var fighter = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}};
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fighter", fighter}};
+                return fighter;
             }
             case 20014:
             {
+                // 
                 // 战斗对象Id
                 var fighterId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 技能Id
                 var performSkillId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                // 对象列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.Generic.List<System.Object>(listLength);
-                while (listLength-- > 0)
+                // 
+                var fighterListLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var fighterList = new System.Collections.Generic.List<System.Object>(fighterListLength);
+                while (fighterListLength-- > 0)
                 {
-                    // Fighter
+                    // 
                     // ID
                     var id = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 类型
                     var type = reader.ReadByte();
+                    // 属性
+                    // 战力
+                    var fc = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 血量
+                    var hp = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 健康
+                    var health = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // object
+                    var attribute = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fc", fc}, {"hp", hp}, {"health", health}};
                     // 技能列表
                     var skillLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var skill = new System.Collections.Generic.List<System.Object>(skillLength);
                     while (skillLength-- > 0)
                     {
-                        // BattleSkill
+                        // 
                         // 技能ID
                         var skillId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // 时间
@@ -163,7 +182,7 @@ public static class MapProtocol
                     var buff = new System.Collections.Generic.List<System.Object>(buffLength);
                     while (buffLength-- > 0)
                     {
-                        // BattleBuff
+                        // 
                         // BuffID
                         var buffId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // 过期时间
@@ -180,11 +199,13 @@ public static class MapProtocol
                     // Y坐标
                     var y = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var fighter = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"type", type}, {"skill", skill}, {"buff", buff}, {"x", x}, {"y", y}};
+                    var fighter = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"type", type}, {"attribute", attribute}, {"skill", skill}, {"buff", buff}, {"x", x}, {"y", y}};
                     // add
-                    list.Add(fighter);
+                    fighterList.Add(fighter);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fighterId", fighterId}, {"performSkillId", performSkillId}, {"list", list}};
+                // object
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fighterId", fighterId}, {"performSkillId", performSkillId}, {"fighterList", fighterList}};
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

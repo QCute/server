@@ -29,7 +29,7 @@
     state = user,                                     %% 进程状态参数名
     alias = false,                                    %% true:使用模块名, false:使用函数名, 其他:使用指定值
     protocol = false,                                 %% 包含协议号
-    response = buffer,                                %% 响应发送方式send:直接发送, buffer:缓存发送
+    response = buffer,                                %% 响应发送方式send:直接发送, buffer:缓存队列发送
     imp = user                                        %% sender名字
 }).
 
