@@ -309,7 +309,7 @@ parse_decode_erl(Protocol, Meta) ->
     CodesDefault = lists:concat([
         "    ", "{ok, ", string:join(Names, ", "), "};", "\n"
     ]),
-    CodesBlock = lists:append(Codes, [CodesDefault]),
+    CodesBlock = [Code || Code <- lists:append(Codes, [CodesDefault]), Code =/= []],
 
     %% format one protocol define
     Code = lists:concat([
@@ -526,7 +526,7 @@ parse_encode_erl(Protocol, Meta) ->
     %% format one protocol define
     Code = lists:concat([
         "encode(", Protocol, ", ", string:join(Names, ", "), ") ->" "\n",
-        "    ", "Data", Protocol, " = <<", string:join(Codes, ", "), ">>,", "\n",
+        "    ", "Data", Protocol, " = <<", string:join([Code || Code <- Codes, Code =/= []], ", "), ">>,", "\n",
         "    ", "{ok, <<(byte_size(Data", Protocol, ")):16, ", Protocol, ":16, Data", Protocol, "/binary>>};", "\n"
     ]),
 

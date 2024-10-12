@@ -11,9 +11,9 @@ public static class AccountProtocol
             case 10001:
             {
                 // 服务器ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data["serverId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["serverId"]));
                 // 账户名
-                var accountNameBytes = encoding.GetBytes((System.String)data["accountName"]);
+                var accountNameBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["accountName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)accountNameBytes.Length));
                 writer.Write(accountNameBytes);
                 return;
@@ -21,33 +21,33 @@ public static class AccountProtocol
             case 10002:
             {
                 // 角色名
-                var roleNameBytes = encoding.GetBytes((System.String)data["roleName"]);
+                var roleNameBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["roleName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)roleNameBytes.Length));
                 writer.Write(roleNameBytes);
                 // 服务器ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data["serverId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["serverId"]));
                 // 账户名
-                var accountNameBytes = encoding.GetBytes((System.String)data["accountName"]);
+                var accountNameBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["accountName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)accountNameBytes.Length));
                 writer.Write(accountNameBytes);
                 // 性别
-                writer.Write((System.Byte)data["sex"]);
+                writer.Write((System.Byte)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["sex"]);
                 // 职业
-                writer.Write((System.Byte)data["classes"]);
+                writer.Write((System.Byte)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["classes"]);
                 // 渠道
-                var channelBytes = encoding.GetBytes((System.String)data["channel"]);
+                var channelBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["channel"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)channelBytes.Length));
                 writer.Write(channelBytes);
                 // 设备
-                var deviceIdBytes = encoding.GetBytes((System.String)data["deviceId"]);
+                var deviceIdBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["deviceId"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)deviceIdBytes.Length));
                 writer.Write(deviceIdBytes);
                 // mac地址
-                var macBytes = encoding.GetBytes((System.String)data["mac"]);
+                var macBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["mac"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)macBytes.Length));
                 writer.Write(macBytes);
                 // 设备类型
-                var deviceTypeBytes = encoding.GetBytes((System.String)data["deviceType"]);
+                var deviceTypeBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["deviceType"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)deviceTypeBytes.Length));
                 writer.Write(deviceTypeBytes);
                 return;
@@ -55,15 +55,15 @@ public static class AccountProtocol
             case 10003:
             {
                 // 角色ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["roleId"]));
                 // 角色名
-                var roleNameBytes = encoding.GetBytes((System.String)data["roleName"]);
+                var roleNameBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["roleName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)roleNameBytes.Length));
                 writer.Write(roleNameBytes);
                 // 服务器ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data["serverId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["serverId"]));
                 // 账户名
-                var accountNameBytes = encoding.GetBytes((System.String)data["accountName"]);
+                var accountNameBytes = encoding.GetBytes((System.String)((System.Collections.Generic.Dictionary<System.String, System.Object>)data["data"])["accountName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)accountNameBytes.Length));
                 writer.Write(accountNameBytes);
                 return;
@@ -83,12 +83,13 @@ public static class AccountProtocol
             case 10000:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 10001:
             {
+                // 
                 // 结果
                 var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var result = encoding.GetString(reader.ReadBytes(resultLength));
@@ -97,18 +98,24 @@ public static class AccountProtocol
                 var list = new System.Collections.Generic.List<System.Object>(listLength);
                 while (listLength-- > 0)
                 {
+                    // 
                     // 角色ID
                     var roleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 角色名
                     var roleNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var roleName = encoding.GetString(reader.ReadBytes(roleNameLength));
+                    // object
+                    var listItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}});
+                    list.Add(listItem);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"list", list}};
+                // object
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"list", list}};
+                return data;
             }
             case 10002:
             {
+                // 
                 // 结果
                 var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var result = encoding.GetString(reader.ReadBytes(resultLength));
@@ -117,21 +124,23 @@ public static class AccountProtocol
                 // 角色名
                 var roleNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var roleName = encoding.GetString(reader.ReadBytes(roleNameLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"roleId", roleId}, {"roleName", roleName}};
+                // object
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"roleId", roleId}, {"roleName", roleName}};
+                return data;
             }
             case 10003:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 10004:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

@@ -12,7 +12,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 服务器ID
-                view.setUint16(offset, data["serverId"], false);
+                view.setUint16(offset, data["data"]["serverId"], false);
                 offset = offset + 2;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -21,7 +21,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 账户名
-                const accountNameArray = textEncoder.encode(data["accountName"]);
+                const accountNameArray = textEncoder.encode(data["data"]["accountName"]);
                 view.setUint16(offset, accountNameArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -42,7 +42,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 角色名
-                const roleNameArray = textEncoder.encode(data["roleName"]);
+                const roleNameArray = textEncoder.encode(data["data"]["roleName"]);
                 view.setUint16(offset, roleNameArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -60,7 +60,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 服务器ID
-                view.setUint16(offset, data["serverId"], false);
+                view.setUint16(offset, data["data"]["serverId"], false);
                 offset = offset + 2;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -69,7 +69,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 账户名
-                const accountNameArray = textEncoder.encode(data["accountName"]);
+                const accountNameArray = textEncoder.encode(data["data"]["accountName"]);
                 view.setUint16(offset, accountNameArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -87,7 +87,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 性别
-                view.setUint8(offset, data["sex"], false);
+                view.setUint8(offset, data["data"]["sex"], false);
                 offset = offset + 1;
                 // extend
                 while (view.byteLength < offset + 1) {
@@ -96,7 +96,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 职业
-                view.setUint8(offset, data["classes"], false);
+                view.setUint8(offset, data["data"]["classes"], false);
                 offset = offset + 1;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -105,7 +105,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 渠道
-                const channelArray = textEncoder.encode(data["channel"]);
+                const channelArray = textEncoder.encode(data["data"]["channel"]);
                 view.setUint16(offset, channelArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -123,7 +123,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 设备
-                const deviceIdArray = textEncoder.encode(data["deviceId"]);
+                const deviceIdArray = textEncoder.encode(data["data"]["deviceId"]);
                 view.setUint16(offset, deviceIdArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -141,7 +141,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // mac地址
-                const macArray = textEncoder.encode(data["mac"]);
+                const macArray = textEncoder.encode(data["data"]["mac"]);
                 view.setUint16(offset, macArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -159,7 +159,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 设备类型
-                const deviceTypeArray = textEncoder.encode(data["deviceType"]);
+                const deviceTypeArray = textEncoder.encode(data["data"]["deviceType"]);
                 view.setUint16(offset, deviceTypeArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -180,7 +180,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 角色ID
-                view.setBigUint64(offset, data["roleId"], false);
+                view.setBigUint64(offset, data["data"]["roleId"], false);
                 offset = offset + 8;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -189,7 +189,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 角色名
-                const roleNameArray = textEncoder.encode(data["roleName"]);
+                const roleNameArray = textEncoder.encode(data["data"]["roleName"]);
                 view.setUint16(offset, roleNameArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -207,7 +207,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 服务器ID
-                view.setUint16(offset, data["serverId"], false);
+                view.setUint16(offset, data["data"]["serverId"], false);
                 offset = offset + 2;
                 // extend
                 while (view.byteLength < offset + 2) {
@@ -216,7 +216,7 @@ export default class AccountProtocol {
                     view = extendView;
                 }
                 // 账户名
-                const accountNameArray = textEncoder.encode(data["accountName"]);
+                const accountNameArray = textEncoder.encode(data["data"]["accountName"]);
                 view.setUint16(offset, accountNameArray.length, false);
                 offset = offset + 2;
                 // extend
@@ -240,14 +240,15 @@ export default class AccountProtocol {
         switch (protocol) {
             case 10000: {
                 // 结果
-                const resultLength = view.getUint16(offset, false);
+                const dataLength = view.getUint16(offset, false);
                 offset = offset + 2;
-                const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
-                const result = textDecoder.decode(resultArray);
-                offset = offset + resultLength;
-                return {result};
+                const dataArray = new Uint8Array(view.buffer.slice(offset, offset + dataLength));
+                const data = textDecoder.decode(dataArray);
+                offset = offset + dataLength;
+                return data;
             }
             case 10001: {
+                // 
                 // 结果
                 const resultLength = view.getUint16(offset, false);
                 offset = offset + 2;
@@ -259,6 +260,7 @@ export default class AccountProtocol {
                 let listLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--listLength >= 0) {
+                    // 
                     // 角色ID
                     const roleId = view.getBigUint64(offset, false);
                     offset = offset + 8;
@@ -268,12 +270,17 @@ export default class AccountProtocol {
                     const roleNameArray = new Uint8Array(view.buffer.slice(offset, offset + roleNameLength));
                     const roleName = textDecoder.decode(roleNameArray);
                     offset = offset + roleNameLength;
+                    // object
+                    const listItem = {roleId, roleName};
                     // add
-                    list.push({roleId, roleName});
+                    list.push(listItem);
                 }
-                return {result, list};
+                // object
+                const data = {result, list};
+                return data;
             }
             case 10002: {
+                // 
                 // 结果
                 const resultLength = view.getUint16(offset, false);
                 offset = offset + 2;
@@ -289,25 +296,27 @@ export default class AccountProtocol {
                 const roleNameArray = new Uint8Array(view.buffer.slice(offset, offset + roleNameLength));
                 const roleName = textDecoder.decode(roleNameArray);
                 offset = offset + roleNameLength;
-                return {result, roleId, roleName};
+                // object
+                const data = {result, roleId, roleName};
+                return data;
             }
             case 10003: {
                 // 结果
-                const resultLength = view.getUint16(offset, false);
+                const dataLength = view.getUint16(offset, false);
                 offset = offset + 2;
-                const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
-                const result = textDecoder.decode(resultArray);
-                offset = offset + resultLength;
-                return {result};
+                const dataArray = new Uint8Array(view.buffer.slice(offset, offset + dataLength));
+                const data = textDecoder.decode(dataArray);
+                offset = offset + dataLength;
+                return data;
             }
             case 10004: {
                 // 结果
-                const resultLength = view.getUint16(offset, false);
+                const dataLength = view.getUint16(offset, false);
                 offset = offset + 2;
-                const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
-                const result = textDecoder.decode(resultArray);
-                offset = offset + resultLength;
-                return {result};
+                const dataArray = new Uint8Array(view.buffer.slice(offset, offset + dataLength));
+                const data = textDecoder.decode(dataArray);
+                offset = offset + dataLength;
+                return data;
             }
             default: throw("unknown protocol define: " + protocol)
         }
