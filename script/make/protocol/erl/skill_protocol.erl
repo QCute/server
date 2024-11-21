@@ -7,27 +7,27 @@ decode(11701, _Rest_ = <<_/binary>>) ->
     {ok, {}};
 
 decode(11702, _Rest_ = <<_/binary>>) ->
-    <<:32, _Rest_/binary>> = _Rest_,
-    {ok, };
+    <<Data:32, _DataRest_/binary>> = _Rest_,
+    {ok, Data};
 
 decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(11701, ) ->
-    Data11701 = <<(encode__11701(<<>>, 0, ))/binary>>,
+encode(11701, Data) ->
+    Data11701 = <<(encode_data_11701(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data11701)):16, 11701:16, Data11701/binary>>};
 
-encode(11702, ) ->
-    Data11702 = <<(protocol:text())/binary>>,
+encode(11702, Data) ->
+    Data11702 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data11702)):16, 11702:16, Data11702/binary>>};
 
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__11701(Acc = <<_/binary>>, Length, []) ->
+encode_data_11701(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__11701(Acc = <<_/binary>>, Length, [#skill{skill_id = SkillId, level = Level} | ]) ->
-    encode__11701(<<Acc/binary, SkillId:32, Level:16>>, Length + 1, ).
+encode_data_11701(Acc = <<_/binary>>, Length, [#skill{skill_id = SkillId, level = Level} | Data]) ->
+    encode_data_11701(<<Acc/binary, SkillId:32, Level:16>>, Length + 1, Data).
 

@@ -3,8 +3,8 @@
 -export([send_query/2]).
 -include("user.hrl").
 
-handle(User, 12101, Data) ->
-    bubble:query(User, Data);
+handle(User, 12101, {}) ->
+    bubble:query(User);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

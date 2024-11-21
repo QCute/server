@@ -3,8 +3,8 @@
 -export([send_query/2]).
 -include("user.hrl").
 
-handle(User, 50001, Data) ->
-    notice:query(User, Data);
+handle(User, 50001, {}) ->
+    notice:query(User);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

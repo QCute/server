@@ -12,8 +12,8 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(50001, ) ->
-    Data50001 = <<(encode__50001(<<>>, 0, ))/binary>>,
+encode(50001, Data) ->
+    Data50001 = <<(encode_data_50001(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data50001)):16, 50001:16, Data50001/binary>>};
 
 encode(50002, {Scope, Type, Title, Msg}) ->
@@ -23,8 +23,8 @@ encode(50002, {Scope, Type, Title, Msg}) ->
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__50001(Acc = <<_/binary>>, Length, []) ->
+encode_data_50001(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__50001(Acc = <<_/binary>>, Length, [#notice_role{notice_id = NoticeId, receive_time = ReceiveTime, read_time = ReadTime, title = Title, content = Content} | ]) ->
-    encode__50001(<<Acc/binary, NoticeId:64, ReceiveTime:32, ReadTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary>>, Length + 1, ).
+encode_data_50001(Acc = <<_/binary>>, Length, [#notice_role{notice_id = NoticeId, receive_time = ReceiveTime, read_time = ReadTime, title = Title, content = Content} | Data]) ->
+    encode_data_50001(<<Acc/binary, NoticeId:64, ReceiveTime:32, ReadTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary>>, Length + 1, Data).
 

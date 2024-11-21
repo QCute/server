@@ -4,8 +4,8 @@
 -export([send_cheat/2]).
 -include("user.hrl").
 
-handle(User, 60001, Data) ->
-    cheat:query(User, Data);
+handle(User, 60001, {}) ->
+    cheat:query(User);
 
 handle(User, 60002, Data) ->
     cheat:cheat(User, Data);

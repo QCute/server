@@ -6,8 +6,8 @@
 -export([send_delete/2]).
 -include("user.hrl").
 
-handle(User, 11401, Data) ->
-    mail:query(User, Data);
+handle(User, 11401, {}) ->
+    mail:query(User);
 
 handle(User, 11402, Data) ->
     mail:read(User, Data);

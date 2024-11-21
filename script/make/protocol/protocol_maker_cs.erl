@@ -206,7 +206,6 @@ parse_encode_cs(Protocol, Meta = #meta{name = Name, type = Type}) ->
 
 parse_encode_cs_loop([], _, _, _, _, Fields, List) ->
     %% construct as a list
-    %% {string:join(lists:reverse(Fields), ", "), string:join(lists:reverse(List), "\n")};
     {lists:reverse(Fields), lists:reverse(List)};
 
 parse_encode_cs_loop([#meta{name = Name, type = binary, explain = _, comment = Comment} | T], Depth, Parent, Ancestor, Scope, Fields, List) ->
@@ -594,7 +593,6 @@ parse_decode_cs(Protocol, Meta) ->
 
 parse_decode_cs_loop([], _, _, _, Fields, List) ->
     %% construct as a list
-    %% {string:join([lists:concat(["{\"", Name, "\", ", Name, "}"]) || Name <- lists:reverse(Fields)], ", "), string:join(lists:reverse(List), "\n")};
     {lists:reverse(Fields), lists:reverse(List)};
 
 parse_decode_cs_loop([#meta{name = _, type = zero} | T], Depth, Parent, Ancestor, Fields, List) ->

@@ -3,13 +3,13 @@
 -export([send_query/2]).
 -export([send_apply/2]).
 -export([send_agree/2]).
--export([send_delete/2]).
--export([send_block/2]).
--export([send_cancel_block/2]).
+-export([send_delete/3]).
+-export([send_block/3]).
+-export([send_cancel_block/3]).
 -include("user.hrl").
 
-handle(User, 11501, Data) ->
-    friend:query(User, Data);
+handle(User, 11501, {}) ->
+    friend:query(User);
 
 handle(User, 11502, Data) ->
     friend:apply(User, Data);
@@ -41,15 +41,15 @@ send_agree(User, Data) ->
     {ok, Binary} = friend_protocol:encode(11503, Data),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
-send_delete(User, Data) ->
-    {ok, Binary} = friend_protocol:encode(11504, Data),
+send_delete(User, Result, FriendRoleId) ->
+    {ok, Binary} = friend_protocol:encode(11504, {Result, FriendRoleId}),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
-send_block(User, Data) ->
-    {ok, Binary} = friend_protocol:encode(11505, Data),
+send_block(User, Result, FriendRoleId) ->
+    {ok, Binary} = friend_protocol:encode(11505, {Result, FriendRoleId}),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
-send_cancel_block(User, Data) ->
-    {ok, Binary} = friend_protocol:encode(11506, Data),
+send_cancel_block(User, Result, FriendRoleId) ->
+    {ok, Binary} = friend_protocol:encode(11506, {Result, FriendRoleId}),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

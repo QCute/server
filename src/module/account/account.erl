@@ -36,10 +36,10 @@ query(Client, ServerId, AccountName) ->
         {true, NewClient} ->
             Result = db:select(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `origin_server_id` = ? AND `account_name` = ?">>, [ServerId, AccountName]),
             List = [list_to_tuple(Row) || Row <- Result],
-            account_handler:send_query(Client, {ok, List}),
+            account_handler:send_query(Client, ok, List),
             {ok, NewClient};
         {false, NewClient} ->
-            account_handler:send_query(Client, {packet_too_fast, []}),
+            account_handler:send_query(Client, packet_too_fast, []),
             {stop, normal, NewClient}
     end.
 
@@ -48,10 +48,10 @@ query(Client, ServerId, AccountName) ->
 create(Client, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case create_check_interval(Client, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) of
         {ok, RoleId, NewClient} ->
-            account_handler:send_create(Client, {ok, RoleId, RoleName}),
+            account_handler:send_create(Client, ok, RoleId, RoleName),
             {ok, NewClient};
         {error, Reason} ->
-            account_handler:send_create(Client, {Reason, 0, <<>>}),
+            account_handler:send_create(Client, Reason, 0, <<>>),
             {stop, normal, Client}
     end.
 

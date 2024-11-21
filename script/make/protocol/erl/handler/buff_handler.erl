@@ -3,8 +3,8 @@
 -export([send_query/2]).
 -include("user.hrl").
 
-handle(User, 11801, Data) ->
-    buff:query(User, Data);
+handle(User, 11801, {}) ->
+    buff:query(User);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

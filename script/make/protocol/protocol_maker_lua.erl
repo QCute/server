@@ -194,7 +194,6 @@ parse_encode_lua(Protocol, Meta = #meta{name = Name, type = Type}) ->
 %% lua code
 parse_encode_lua_loop([], _, _, _, _, Fields, List) ->
     %% construct as a list
-    %% {string:join(lists:reverse(Fields), ", "), string:join(lists:reverse(List), "\n")};
     {lists:reverse(Fields), lists:reverse(List)};
 
 parse_encode_lua_loop([#meta{name = Name, type = binary, comment = Comment} | T], Depth, Parent, Ancestor, Scope, Fields, List) ->
@@ -599,7 +598,6 @@ parse_decode_lua(Protocol, Meta) ->
 %% lua code
 parse_decode_lua_loop([], _, _, _, Fields, List) ->
     %% construct as a list
-    %% {string:join([lists:concat([Name, " = ", Name]) || Name <- lists:reverse(Fields)], ", "), string:join(lists:reverse(List), "\n")};
     {lists:reverse(Fields), lists:reverse(List)};
 
 parse_decode_lua_loop([#meta{type = zero} | T], Depth, Parent, Ancestor, Fields, List) ->

@@ -38,8 +38,8 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(10000, ) ->
-    Data10000 = <<(protocol:text())/binary>>,
+encode(10000, Data) ->
+    Data10000 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data10000)):16, 10000:16, Data10000/binary>>};
 
 encode(10001, {Result, List}) ->
@@ -50,12 +50,12 @@ encode(10002, {Result, RoleId, RoleName}) ->
     Data10002 = <<(protocol:text(Result))/binary, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>,
     {ok, <<(byte_size(Data10002)):16, 10002:16, Data10002/binary>>};
 
-encode(10003, ) ->
-    Data10003 = <<(protocol:text())/binary>>,
+encode(10003, Data) ->
+    Data10003 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data10003)):16, 10003:16, Data10003/binary>>};
 
-encode(10004, ) ->
-    Data10004 = <<(protocol:text())/binary>>,
+encode(10004, Data) ->
+    Data10004 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data10004)):16, 10004:16, Data10004/binary>>};
 
 

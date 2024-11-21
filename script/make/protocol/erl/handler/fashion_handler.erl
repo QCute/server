@@ -3,8 +3,8 @@
 -export([send_query/2]).
 -include("user.hrl").
 
-handle(User, 12001, Data) ->
-    fashion:query(User, Data);
+handle(User, 12001, {}) ->
+    fashion:query(User);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

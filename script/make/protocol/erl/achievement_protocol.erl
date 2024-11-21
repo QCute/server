@@ -11,36 +11,36 @@ decode(12202, _Rest_ = <<_/binary>>) ->
     {ok, {}};
 
 decode(12203, _Rest_ = <<_/binary>>) ->
-    <<:32, _Rest_/binary>> = _Rest_,
-    {ok, };
+    <<Data:32, _DataRest_/binary>> = _Rest_,
+    {ok, Data};
 
 decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(12301, ) ->
-    Data12301 = <<(encode__12301(<<>>, 0, ))/binary>>,
+encode(12301, Data) ->
+    Data12301 = <<(encode_data_12301(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data12301)):16, 12301:16, Data12301/binary>>};
 
-encode(12202, ) ->
-    Data12202 = <<(encode__12202(<<>>, 0, ))/binary>>,
+encode(12202, Data) ->
+    Data12202 = <<(encode_data_12202(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data12202)):16, 12202:16, Data12202/binary>>};
 
-encode(12203, ) ->
-    Data12203 = <<(protocol:text())/binary>>,
+encode(12203, Data) ->
+    Data12203 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data12203)):16, 12203:16, Data12203/binary>>};
 
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__12301(Acc = <<_/binary>>, Length, []) ->
+encode_data_12301(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__12301(Acc = <<_/binary>>, Length, [#count{type = Type, total_number = TotalNumber} | ]) ->
-    encode__12301(<<Acc/binary, Type:32, TotalNumber:32>>, Length + 1, ).
+encode_data_12301(Acc = <<_/binary>>, Length, [#count{type = Type, total_number = TotalNumber} | Data]) ->
+    encode_data_12301(<<Acc/binary, Type:32, TotalNumber:32>>, Length + 1, Data).
 
-encode__12202(Acc = <<_/binary>>, Length, []) ->
+encode_data_12202(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__12202(Acc = <<_/binary>>, Length, [#achievement{achievement_id = AchievementId, type = Type} | ]) ->
-    encode__12202(<<Acc/binary, AchievementId:32, Type:32>>, Length + 1, ).
+encode_data_12202(Acc = <<_/binary>>, Length, [#achievement{achievement_id = AchievementId, type = Type} | Data]) ->
+    encode_data_12202(<<Acc/binary, AchievementId:32, Type:32>>, Length + 1, Data).
 

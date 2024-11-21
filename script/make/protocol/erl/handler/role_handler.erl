@@ -5,14 +5,14 @@
 -export([send_vip_query/2]).
 -include("user.hrl").
 
-handle(User, 10101, Data) ->
-    role:query(User, Data);
+handle(User, 10101, {}) ->
+    role:query(User);
 
-handle(User, 10102, Data) ->
-    asset:query(User, Data);
+handle(User, 10102, {}) ->
+    asset:query(User);
 
-handle(User, 10103, Data) ->
-    vip:query(User, Data);
+handle(User, 10103, {}) ->
+    vip:query(User);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

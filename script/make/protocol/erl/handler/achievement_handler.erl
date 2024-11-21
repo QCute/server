@@ -5,11 +5,11 @@
 -export([send_award/2]).
 -include("user.hrl").
 
-handle(User, 12301, Data) ->
-    achievement:query_count(User, Data);
+handle(User, 12301, {}) ->
+    achievement:query_count(User);
 
-handle(User, 12202, Data) ->
-    achievement:query(User, Data);
+handle(User, 12202, {}) ->
+    achievement:query(User);
 
 handle(User, 12203, Data) ->
     achievement:award(User, Data);

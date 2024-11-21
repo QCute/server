@@ -36,8 +36,8 @@ encode(20001, {}) ->
     Data20001 = <<>>,
     {ok, <<(byte_size(Data20001)):16, 20001:16, Data20001/binary>>};
 
-encode(20011, ) ->
-    Data20011 = <<(encode__20011(<<>>, 0, ))/binary>>,
+encode(20011, Data) ->
+    Data20011 = <<(encode_data_20011(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data20011)):16, 20011:16, Data20011/binary>>};
 
 encode(20012, #fighter{id = Id, x = X, y = Y}) ->
@@ -55,10 +55,10 @@ encode(20014, {FighterId, PerformSkillId, FighterList}) ->
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__20011(Acc = <<_/binary>>, Length, []) ->
+encode_data_20011(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__20011(Acc = <<_/binary>>, Length, [#fighter{id = Id, type = Type, attribute = #attribute{fc = AttributeFc, hp = AttributeHp, health = AttributeHealth}, skill = Skill, buff = Buff, x = X, y = Y} | ]) ->
-    encode__20011(<<Acc/binary, Id:64, Type:8, AttributeFc:64, AttributeHp:64, AttributeHealth:64, (encode_skill_20011(<<>>, 0, Skill))/binary, (encode_buff_20011(<<>>, 0, Buff))/binary, X:16, Y:16>>, Length + 1, ).
+encode_data_20011(Acc = <<_/binary>>, Length, [#fighter{id = Id, type = Type, attribute = #attribute{fc = AttributeFc, hp = AttributeHp, health = AttributeHealth}, skill = Skill, buff = Buff, x = X, y = Y} | Data]) ->
+    encode_data_20011(<<Acc/binary, Id:64, Type:8, AttributeFc:64, AttributeHp:64, AttributeHealth:64, (encode_skill_20011(<<>>, 0, Skill))/binary, (encode_buff_20011(<<>>, 0, Buff))/binary, X:16, Y:16>>, Length + 1, Data).
 
 encode_skill_20011(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;

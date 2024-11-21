@@ -98,19 +98,9 @@ parse_request_erl(0, _, #handler{module = undefined, function = undefined}) ->
 parse_request_erl(0, _, #handler{module = Module, function = Function, state = State}) ->
 
     %% default handler code
-    case State of
-        [] ->
-            StateInput = "_",
-            StateOutput = "";
-        _ ->
-            StateInput = word:to_hump(State),
-            StateOutput = word:to_hump(State)
-    end,
-
-    AllInput = [P || P <- [StateInput, "Protocol", "Data"], P =/= []],
-    Input = string:join(AllInput, ", "),
-    AllOutput = [A || A <- [StateOutput, "Protocol", "Data"], A =/= []],
-    Output = string:join(AllOutput, ", "),
+    StateName = word:to_hump(hd(lists:flatten([State, '_']))),
+    Input = string:join([StateName, "Protocol", "Data"], ", "),
+    Output = string:join([StateName, "Protocol", "Data"], ", "),
 
     Export = lists:concat([
         "-export([handle/3]).", "\n"
@@ -126,29 +116,13 @@ parse_request_erl(0, _, #handler{module = Module, function = Function, state = S
 
 parse_request_erl(Protocol, Meta, #handler{module = Module, function = Function, state = State, protocol = IsContainProtocol}) ->
 
-    Names = parse_request_erl_name(Meta),
+    ConstructNames = parse_construct_erl_name(Meta),
+    DestructNames = parse_destruct_erl_name(Meta),
 
-    case State of
-        [] ->
-            StateInput = "_",
-            StateOutput = "";
-        _ ->
-            StateInput = word:to_hump(State),
-            StateOutput = word:to_hump(State)
-    end,
-
-    case IsContainProtocol of
-        true ->
-            ProtocolInput = lists:concat([Protocol]),
-            ProtocolOutput = lists:concat([Protocol]);
-        false ->
-            ProtocolInput = lists:concat([Protocol]),
-            ProtocolOutput = ""
-    end,
-
-    AllInput = [P || P <- [StateInput, ProtocolInput, Names], P =/= []],
-    Input = string:join(AllInput, ", "),
-    AllOutput = [A || A <- [StateOutput, ProtocolOutput, Names], A =/= []],
+    StateName = word:to_hump(hd(lists:flatten([State, '_']))),
+    Input = string:join([StateName, integer_to_list(Protocol), ConstructNames], ", "),
+    ProtocolName = [integer_to_list(Protocol) || IsContainProtocol],
+    AllOutput = [A || A <- [StateName, ProtocolName, string:join(DestructNames, ", ")], A =/= []],
     Output = string:join(AllOutput, ", "),
 
     Export = lists:concat([
@@ -163,21 +137,38 @@ parse_request_erl(Protocol, Meta, #handler{module = Module, function = Function,
 
     #file{export = Export, function = Code}.
 
+%%%===================================================================
+%%% name resolver
+%%%===================================================================
 
-%%parse_request_erl_name(#meta{name = _, type = tuple, explain = Explain, comment = _}) ->
-%%    NameList = [parse_request_erl_name(Item) || Item <- tuple_to_list(Explain)],
-%%    lists:concat(["{", string:join(NameList, ", "), "}"]);
-%%
-%%parse_request_erl_name(#meta{name = Name, type = record, explain = Explain, comment = _}) ->
-%%    NameList = [lists:concat([SubName, " = ", parse_request_erl_name(Item)]) || Item = #meta{name = SubName} <- tuple_to_list(Explain)],
-%%    lists:concat(["#", word:to_snake(Name), "{", string:join(NameList, ", "), "}"]);
-%%
-%%parse_request_erl_name(#meta{name = _, type = maps, explain = Explain, comment = _}) ->
-%%    NameList = [lists:concat([SubName, " =: ", parse_request_erl_name(Item)]) || Item = #meta{name = SubName} <- maps:values(Explain)],
-%%    lists:concat(["#", "{", string:join(NameList, ", "), "}"]);
+parse_construct_erl_name(#meta{name = _, type = tuple, explain = Explain, comment = _}) ->
+   NameList = [word:to_hump(SubName) || #meta{name = SubName} <- tuple_to_list(Explain)],
+   lists:concat(["{", string:join(NameList, ", "), "}"]);
 
-parse_request_erl_name(#meta{name = Name}) ->
+%%parse_construct_erl_name(#meta{name = Name, type = record, explain = Explain, comment = _}) ->
+%%   NameList = [lists:concat([SubName, " = ", word:to_hump(SubName)]) || #meta{name = SubName} <- tuple_to_list(Explain)],
+%%   lists:concat(["#", word:to_snake(Name), "{", string:join(NameList, ", "), "}"]);
+
+%%parse_construct_erl_name(#meta{name = _, type = maps, explain = Explain, comment = _}) ->
+%%   NameList = [lists:concat([SubName, " =: ", word:to_hump(SubName)]) || #meta{name = SubName} <- maps:values(Explain)],
+%%   lists:concat(["#", "{", string:join(NameList, ", "), "}"]);
+
+parse_construct_erl_name(#meta{name = Name}) ->
     word:to_hump(Name).
+
+
+
+parse_destruct_erl_name(#meta{name = _, type = tuple, explain = Explain, comment = _}) ->
+   [word:to_hump(SubName) || #meta{name = SubName} <- tuple_to_list(Explain)];
+
+%%parse_destruct_erl_name(#meta{name = _, type = record, explain = Explain, comment = _}) ->
+%%   [lists:concat([SubName, " = ", word:to_hump(SubName)]) || #meta{name = SubName} <- tuple_to_list(Explain)];
+
+%%parse_destruct_erl_name(#meta{name = _, type = maps, explain = Explain, comment = _}) ->
+%%   [lists:concat([SubName, " =: ", word:to_hump(SubName)]) || #meta{name = SubName} <- maps:values(Explain)];
+
+parse_destruct_erl_name(#meta{name = Name}) ->
+    [word:to_hump(Name)].
 
 %%%===================================================================
 %%% response creator
@@ -190,49 +181,26 @@ parse_response_erl(_, _, #handler{module = undefined, function = undefined}, _) 
     #file{};
 parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function, state = State, alias = Alias, protocol = IsContainProtocol, response = send, imp = Imp}, Name) ->
 
-    Names = parse_response_erl_name(Meta),
+    ConstructNames = parse_construct_erl_name(Meta),
+    DestructNames = parse_destruct_erl_name(Meta),
 
-    case State of
-        [] ->
-            StateOutput = "";
-        _ ->
-            StateOutput = word:to_hump(State)
-    end,
-
-    case IsContainProtocol of
-        true ->
-            ProtocolOutput = lists:concat([Protocol]);
-        false ->
-            ProtocolOutput = ""
-    end,
-
-    case Alias of
-        true ->
-            Method = Module;
-        false ->
-            Method = Function;
-        _ ->
-            Method = Alias
-    end,
-
-    case Imp of
-        "" ->
-            Sender = "sender";
-        _ ->
-            Sender = lists:concat([word:to_snake(Imp), "_", "sender"])
-    end,
-
-    AllOutput = [A || A <- [StateOutput, ProtocolOutput, Names], A =/= []],
+    StateName = word:to_hump(hd(lists:flatten([State, '']))),
+    ProtocolName = [integer_to_list(Protocol) || IsContainProtocol],
+    AllOutput = [A || A <- lists:append([StateName, ProtocolName], DestructNames), A =/= []],
     Output = string:join(AllOutput, ", "),
+
+    Method = maps:get(Alias, #{true => Module, false => Function}, Alias),
 
     Export = lists:concat([
         "-export([send_", Method, "/", length(AllOutput), "]).", "\n"
     ]),
 
+    Sender = string:join([word:to_snake(Word) || Word <- lists:flatten([Imp, 'sender'])], "_"),
+
     Code = lists:concat([
         "send_", Method, "(", Output, ") ->", "\n",
-        "    ", "{ok, Binary} = ", Name, ":encode(", Protocol, ", ", Names, "),", "\n",
-        "    ", Sender, ":send(", StateOutput, ", Binary).", "\n",
+        "    ", "{ok, Binary} = ", Name, ":encode(", Protocol, ", ", ConstructNames, "),", "\n",
+        "    ", Sender, ":send(", StateName, ", Binary).", "\n",
         "\n"
     ]),
 
@@ -240,33 +208,15 @@ parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function
 
 parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function, state = State, alias = Alias, protocol = IsContainProtocol, response = buffer}, Name) ->
 
-    Names = parse_response_erl_name(Meta),
+    ConstructNames = parse_construct_erl_name(Meta),
+    DestructNames = parse_destruct_erl_name(Meta),
 
-    case State of
-        [] ->
-            StateOutput = "";
-        _ ->
-            StateOutput = word:to_hump(State)
-    end,
-
-    case IsContainProtocol of
-        true ->
-            ProtocolOutput = lists:concat([Protocol]);
-        false ->
-            ProtocolOutput = ""
-    end,
-
-    AllOutput = [A || A <- [StateOutput, ProtocolOutput, Names], A =/= []],
+    StateName = word:to_hump(hd(lists:flatten([State, '']))),
+    ProtocolName = [integer_to_list(Protocol) || IsContainProtocol],
+    AllOutput = [A || A <- lists:append([StateName, ProtocolName], DestructNames), A =/= []],
     Output = string:join(AllOutput, ", "),
 
-    case Alias of
-        true ->
-            Method = Module;
-        false ->
-            Method = Function;
-        _ ->
-            Method = Alias
-    end,
+    Method = maps:get(Alias, #{true => Module, false => Function}, Alias),
 
     Export = lists:concat([
         "-export([send_", Method, "/", length(AllOutput), "]).", "\n"
@@ -274,8 +224,8 @@ parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function
 
     Code = lists:concat([
         "send_", Method, "(", Output, ") ->", "\n",
-        "    ", "{ok, Binary} = ", Name, ":encode(", Protocol, ", ", Names, "),", "\n",
-        "    ", StateOutput, "#", word:to_snake(StateOutput), "{buffer = <<(", StateOutput, "#", word:to_snake(StateOutput), ".buffer)/binary, Binary/binary>>}.", "\n",
+        "    ", "{ok, Binary} = ", Name, ":encode(", Protocol, ", ", ConstructNames, "),", "\n",
+        "    ", StateName, "#", word:to_snake(StateName), "{buffer = <<(", StateName, "#", word:to_snake(StateName), ".buffer)/binary, Binary/binary>>}.", "\n",
         "\n"
     ]),
 
@@ -283,19 +233,6 @@ parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function
     [Includes] = maker:collect_include([State]),
 
     #file{export = Export, import = Includes, function = Code}.
-
-
-%%parse_response_erl_name(#meta{name = Name, type = tuple, comment = _}) ->
-%%    word:to_hump(Name);
-%%
-%%parse_response_erl_name(#meta{name = Name, type = record, comment = _}) ->
-%%    word:to_hump(Name);
-%%
-%%parse_response_erl_name(#meta{name = Name, type = maps, comment = _}) ->
-%%    word:to_hump(Name);
-
-parse_response_erl_name(#meta{name = Name}) ->
-    word:to_hump(Name).
 
 %%%===================================================================
 %%% decode
@@ -321,11 +258,11 @@ parse_decode_erl(Protocol, Meta) ->
 
 parse_decode_erl_loop([], _, _, _, _, Scope, Records, Functions, Names, List) ->
     %% construct as a list
-    %% {string:join(lists:reverse(Functions), "\n"), string:join(lists:reverse(Names), ", "), string:join(lists:reverse(List), "\n")};
     {Scope, lists:reverse(Records), lists:reverse(Functions), lists:reverse(Names), lists:reverse(List)};
 
 parse_decode_erl_loop([#meta{name = Name, type = binary, explain = Length} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -335,7 +272,8 @@ parse_decode_erl_loop([#meta{name = Name, type = binary, explain = Length} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = bool, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -346,7 +284,8 @@ parse_decode_erl_loop([#meta{name = Name, type = bool, explain = undefined} | T]
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = u8, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -356,7 +295,8 @@ parse_decode_erl_loop([#meta{name = Name, type = u8, explain = undefined} | T], 
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = u16, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -366,7 +306,8 @@ parse_decode_erl_loop([#meta{name = Name, type = u16, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = u32, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -376,7 +317,8 @@ parse_decode_erl_loop([#meta{name = Name, type = u32, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = u64, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -386,7 +328,8 @@ parse_decode_erl_loop([#meta{name = Name, type = u64, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = i8, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -396,7 +339,8 @@ parse_decode_erl_loop([#meta{name = Name, type = i8, explain = undefined} | T], 
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = i16, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -406,7 +350,8 @@ parse_decode_erl_loop([#meta{name = Name, type = i16, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = i32, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -416,7 +361,8 @@ parse_decode_erl_loop([#meta{name = Name, type = i32, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = i64, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -426,7 +372,8 @@ parse_decode_erl_loop([#meta{name = Name, type = i64, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = f32, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -436,7 +383,8 @@ parse_decode_erl_loop([#meta{name = Name, type = f32, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = f64, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -446,7 +394,8 @@ parse_decode_erl_loop([#meta{name = Name, type = f64, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = str, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -457,7 +406,8 @@ parse_decode_erl_loop([#meta{name = Name, type = str, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = bst, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -467,7 +417,8 @@ parse_decode_erl_loop([#meta{name = Name, type = bst, explain = undefined} | T],
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, PathHumpName, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = rst, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = lists:concat([
@@ -534,7 +485,8 @@ parse_decode_erl_loop([#meta{name = Name, type = maps, explain = Explain} | T], 
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, NextScope, NewRecords, NewFunctions, [SubName | Names], [SubCode | List]);
 
 parse_decode_erl_loop([#meta{name = Name, type = list, explain = Explain, key = _} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
     NewAncestor = lists:append([Name || Parent =/= list], Ancestor),
 
@@ -579,7 +531,6 @@ parse_encode_erl(Protocol, Meta) ->
 
 parse_encode_erl_loop([], _, _, _, _, Records, Functions, Names, List) ->
     %% construct as a list
-    %% {string:join(lists:reverse(Functions), "\n"), string:join(lists:reverse(Names), ", "), string:join(lists:reverse(List), ", ")};
     {lists:reverse(Records), lists:reverse(Functions), lists:reverse(Names), lists:reverse(List)};
 
 parse_encode_erl_loop([#meta{name = _, type = zero, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
@@ -587,105 +538,120 @@ parse_encode_erl_loop([#meta{name = _, type = zero, explain = undefined} | T], P
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [HumpName | Names], List);
 
 parse_encode_erl_loop([#meta{name = Name, type = binary, explain = Explain} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:~tp/binary", [PathHumpName, Explain]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = bool, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("(type:to_flag(~s)):8", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = u8, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:8", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = u16, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:16", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = u32, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:32", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = u64, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:64", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = i8, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:8/signed", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = i16, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:16/signed", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = i32, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:32/signed", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = i64, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:64/signed", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = f32, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:32/float", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = f64, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("~s:64/float", [PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = str, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("(begin ~sBinary = unicode:characters_to_binary(~s), <<(byte_size(~sBinary)):16, ~sBinary/binary>> end)/binary", [PathHumpName, PathHumpName, PathHumpName, PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = bst, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("(byte_size(~s)):16, (~s)/binary", [PathHumpName, PathHumpName]),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, Records, Functions, [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = rst, explain = undefined} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
 
     Code = io_lib:format("(protocol:text(~s))/binary", [PathHumpName]),
@@ -750,7 +716,8 @@ parse_encode_erl_loop([#meta{name = Name, type = maps, explain = Explain} | T], 
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, NewRecords, NewFunctions, [SubName | Names], [SubCode | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = list, explain = Explain, key = _} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
     NewAncestor = lists:append([Name || Parent =/= list andalso Parent =/= ets], Ancestor),
 
@@ -774,7 +741,8 @@ parse_encode_erl_loop([#meta{name = Name, type = list, explain = Explain, key = 
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, NewRecords, [SubFunction | Functions], [PathHumpName | Names], [Code | List]);
 
 parse_encode_erl_loop([#meta{name = Name, type = ets, explain = Explain, key = _} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
-    PathNames = tl(lists:reverse([Name | Ancestor])),
+    NewAncestor = [Name | Ancestor],
+    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = string:join([word:to_hump(PathName) || PathName <- PathNames], ""),
     NewAncestor = lists:append([Name || Parent =/= list andalso Parent =/= ets], Ancestor),
 

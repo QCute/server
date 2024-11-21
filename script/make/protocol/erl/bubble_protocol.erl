@@ -12,24 +12,24 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(12101, ) ->
-    Data12101 = <<(encode__12101(<<>>, 0, ))/binary>>,
+encode(12101, Data) ->
+    Data12101 = <<(encode_data_12101(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data12101)):16, 12101:16, Data12101/binary>>};
 
-encode(12102, ) ->
-    Data12102 = <<(encode__12102(<<>>, 0, ))/binary>>,
+encode(12102, Data) ->
+    Data12102 = <<(encode_data_12102(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data12102)):16, 12102:16, Data12102/binary>>};
 
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__12101(Acc = <<_/binary>>, Length, []) ->
+encode_data_12101(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__12101(Acc = <<_/binary>>, Length, [#bubble{bubble_id = BubbleId, expire_time = ExpireTime} | ]) ->
-    encode__12101(<<Acc/binary, BubbleId:32, ExpireTime:32>>, Length + 1, ).
+encode_data_12101(Acc = <<_/binary>>, Length, [#bubble{bubble_id = BubbleId, expire_time = ExpireTime} | Data]) ->
+    encode_data_12101(<<Acc/binary, BubbleId:32, ExpireTime:32>>, Length + 1, Data).
 
-encode__12102(Acc = <<_/binary>>, Length, []) ->
+encode_data_12102(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__12102(Acc = <<_/binary>>, Length, [Item | ]) ->
-    encode__12102(<<Acc/binary, Item:32>>, Length + 1, ).
+encode_data_12102(Acc = <<_/binary>>, Length, [Item | Data]) ->
+    encode_data_12102(<<Acc/binary, Item:32>>, Length + 1, Data).
 

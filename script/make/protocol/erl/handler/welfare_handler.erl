@@ -3,11 +3,11 @@
 -export([send_sign/2]).
 -export([send_award/2]).
 -export([send_query_lucky_money/2]).
--export([send_receive_lucky_money/2]).
+-export([send_receive_lucky_money/3]).
 -include("user.hrl").
 
-handle(User, 15001, Data) ->
-    sign:sign(User, Data);
+handle(User, 15001, {}) ->
+    sign:sign(User);
 
 handle(User, 15002, Data) ->
     key_server:award(User, Data);
@@ -33,7 +33,7 @@ send_query_lucky_money(User, LuckyMoney) ->
     {ok, Binary} = welfare_protocol:encode(15003, LuckyMoney),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
-send_receive_lucky_money(User, Data) ->
-    {ok, Binary} = welfare_protocol:encode(15004, Data),
+send_receive_lucky_money(User, Result, Gold) ->
+    {ok, Binary} = welfare_protocol:encode(15004, {Result, Gold}),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

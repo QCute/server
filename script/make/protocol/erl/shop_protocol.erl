@@ -16,19 +16,19 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(11301, ) ->
-    Data11301 = <<(encode__11301(<<>>, 0, ))/binary>>,
+encode(11301, Data) ->
+    Data11301 = <<(encode_data_11301(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data11301)):16, 11301:16, Data11301/binary>>};
 
-encode(11302, ) ->
-    Data11302 = <<(protocol:text())/binary>>,
+encode(11302, Data) ->
+    Data11302 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data11302)):16, 11302:16, Data11302/binary>>};
 
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__11301(Acc = <<_/binary>>, Length, []) ->
+encode_data_11301(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__11301(Acc = <<_/binary>>, Length, [#shop{shop_id = ShopId, number = Number} | ]) ->
-    encode__11301(<<Acc/binary, ShopId:32, Number:16>>, Length + 1, ).
+encode_data_11301(Acc = <<_/binary>>, Length, [#shop{shop_id = ShopId, number = Number} | Data]) ->
+    encode_data_11301(<<Acc/binary, ShopId:32, Number:16>>, Length + 1, Data).
 

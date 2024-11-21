@@ -196,7 +196,6 @@ parse_encode_js(Protocol, Meta = #meta{name = Name, type = Type}) ->
 
 parse_encode_js_loop([], _, _, _, _, Fields, List) ->
     %% construct as a list
-    %% {string:join(lists:reverse(Fields), ", "), string:join(lists:reverse(List), "\n")};
     {lists:reverse(Fields), lists:reverse(List)};
 
 parse_encode_js_loop([#meta{name = Name, type = binary, explain = Length, comment = Comment} | T], Depth, Parent, Ancestor, Scope, Fields, List) ->
@@ -730,7 +729,6 @@ parse_decode_js(Protocol, Meta) ->
 %% js code
 parse_decode_js_loop([], _, _, _, Fields, List) ->
     %% construct as a list
-    %% {string:join(lists:reverse(Fields), ", "), string:join(lists:reverse(List), "\n")};
     {lists:reverse(Fields), lists:reverse(List)};
 
 parse_decode_js_loop([#meta{name = _, type = zero} | T], Depth, Parent, Ancestor, Fields, List) ->

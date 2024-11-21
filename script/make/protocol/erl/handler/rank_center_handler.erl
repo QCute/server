@@ -7,20 +7,20 @@
 -export([send_classes/3]).
 -include("user.hrl").
 
-handle(User, 19101, Data) ->
-    rank_server:query_center(User, 19101, Data);
+handle(User, 19101, {}) ->
+    rank_server:query_center(User, 19101);
 
-handle(User, 19102, Data) ->
-    rank_server:query_center(User, 19102, Data);
+handle(User, 19102, {}) ->
+    rank_server:query_center(User, 19102);
 
-handle(User, 19103, Data) ->
-    rank_server:query_center(User, 19103, Data);
+handle(User, 19103, {}) ->
+    rank_server:query_center(User, 19103);
 
-handle(User, 19104, Data) ->
-    rank_server:query_center(User, 19104, Data);
+handle(User, 19104, {}) ->
+    rank_server:query_center(User, 19104);
 
-handle(User, 19105, Data) ->
-    rank_server:query_center(User, 19105, Data);
+handle(User, 19105, {}) ->
+    rank_server:query_center(User, 19105);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

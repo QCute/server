@@ -12,24 +12,24 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(12001, ) ->
-    Data12001 = <<(encode__12001(<<>>, 0, ))/binary>>,
+encode(12001, Data) ->
+    Data12001 = <<(encode_data_12001(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data12001)):16, 12001:16, Data12001/binary>>};
 
-encode(12002, ) ->
-    Data12002 = <<(encode__12002(<<>>, 0, ))/binary>>,
+encode(12002, Data) ->
+    Data12002 = <<(encode_data_12002(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data12002)):16, 12002:16, Data12002/binary>>};
 
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__12001(Acc = <<_/binary>>, Length, []) ->
+encode_data_12001(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__12001(Acc = <<_/binary>>, Length, [#fashion{fashion_id = FashionId, expire_time = ExpireTime} | ]) ->
-    encode__12001(<<Acc/binary, FashionId:32, ExpireTime:32>>, Length + 1, ).
+encode_data_12001(Acc = <<_/binary>>, Length, [#fashion{fashion_id = FashionId, expire_time = ExpireTime} | Data]) ->
+    encode_data_12001(<<Acc/binary, FashionId:32, ExpireTime:32>>, Length + 1, Data).
 
-encode__12002(Acc = <<_/binary>>, Length, []) ->
+encode_data_12002(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
-encode__12002(Acc = <<_/binary>>, Length, [Item | ]) ->
-    encode__12002(<<Acc/binary, Item:32>>, Length + 1, ).
+encode_data_12002(Acc = <<_/binary>>, Length, [Item | Data]) ->
+    encode_data_12002(<<Acc/binary, Item:32>>, Length + 1, Data).
 

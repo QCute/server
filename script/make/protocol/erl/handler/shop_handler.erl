@@ -4,11 +4,11 @@
 -export([send_buy/2]).
 -include("user.hrl").
 
-handle(User, 11301, Data) ->
-    shop:query(User, Data);
+handle(User, 11301, {}) ->
+    shop:query(User);
 
-handle(User, 11302, Data) ->
-    shop:buy(User, Data);
+handle(User, 11302, {ShopId, Number}) ->
+    shop:buy(User, ShopId, Number);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

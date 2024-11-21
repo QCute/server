@@ -1,16 +1,16 @@
 -module(daily_handler).
 -export([handle/3]).
 -export([send_query_count/2]).
--export([send_query/2]).
+-export([send_query/3]).
 -export([send_award/2]).
 -export([send_award_active/2]).
 -include("user.hrl").
 
-handle(User, 12301, Data) ->
-    daily:query_count(User, Data);
+handle(User, 12301, {}) ->
+    daily:query_count(User);
 
-handle(User, 12302, Data) ->
-    daily:query(User, Data);
+handle(User, 12302, {}) ->
+    daily:query(User);
 
 handle(User, 12303, Data) ->
     daily:award(User, Data);
@@ -25,8 +25,8 @@ send_query_count(User, Data) ->
     {ok, Binary} = daily_protocol:encode(12301, Data),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
-send_query(User, Data) ->
-    {ok, Binary} = daily_protocol:encode(12302, Data),
+send_query(User, Daily, DailyActive) ->
+    {ok, Binary} = daily_protocol:encode(12302, {Daily, DailyActive}),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_award(User, Data) ->

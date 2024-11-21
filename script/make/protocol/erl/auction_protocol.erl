@@ -16,8 +16,8 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(16101, ) ->
-    Data16101 = <<(encode__16101(<<>>, 0, ets:safe_fixtable(, true) andalso , ets:first()))/binary>>,
+encode(16101, Data) ->
+    Data16101 = <<(encode_data_16101(<<>>, 0, ets:safe_fixtable(Data, true) andalso Data, ets:first(Data)))/binary>>,
     {ok, <<(byte_size(Data16101)):16, 16101:16, Data16101/binary>>};
 
 encode(16102, {Result, NewPrice, #auction{auction_no = AuctionAuctionNo, auction_id = AuctionAuctionId, type = AuctionType, end_time = AuctionEndTime, now_price = AuctionNowPrice, next_price = AuctionNextPrice}}) ->
@@ -27,14 +27,14 @@ encode(16102, {Result, NewPrice, #auction{auction_no = AuctionAuctionNo, auction
 encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
-encode__16101(Acc = <<_/binary>>, Length, Tab, '$end_of_table') ->
+encode_data_16101(Acc = <<_/binary>>, Length, Tab, '$end_of_table') ->
     ets:safe_fixtable(Tab, false),
     <<Length:16, Acc/binary>>;
-encode__16101(Acc = <<_/binary>>, Length, Tab, Key) ->
+encode_data_16101(Acc = <<_/binary>>, Length, Tab, Key) ->
     case ets:lookup(Tab, Key) of
         [] ->
-            encode__16101(Acc, Length, Tab, ets:next(Tab, Key));
+            encode_data_16101(Acc, Length, Tab, ets:next(Tab, Key));
         [#auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, type = Type, end_time = EndTime, now_price = NowPrice, next_price = NextPrice}] ->
-            encode__16101(<<Acc/binary, AuctionNo:64, AuctionId:32, Number:16, Type:8, EndTime:32, NowPrice:32, NextPrice:32>>, Length + 1, Tab, ets:next(Tab, Key))
+            encode_data_16101(<<Acc/binary, AuctionNo:64, AuctionId:32, Number:16, Type:8, EndTime:32, NowPrice:32, NextPrice:32>>, Length + 1, Tab, ets:next(Tab, Key))
     end.
 

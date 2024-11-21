@@ -5,14 +5,14 @@
 -export([send_inspire/2]).
 -include("user.hrl").
 
-handle(User, 17001, Data) ->
-    dungeon:query(User, Data);
+handle(User, 17001, {}) ->
+    dungeon:query(User);
 
 handle(User, 17002, Data) ->
     dungeon:enter(User, Data);
 
-handle(User, 17005, Data) ->
-    dungeon_map:inspire(User, Data);
+handle(User, 17005, {}) ->
+    dungeon_map:inspire(User);
 
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

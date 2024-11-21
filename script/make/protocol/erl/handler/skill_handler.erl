@@ -4,8 +4,8 @@
 -export([send_learn/2]).
 -include("user.hrl").
 
-handle(User, 11701, Data) ->
-    skill:query(User, Data);
+handle(User, 11701, {}) ->
+    skill:query(User);
 
 handle(User, 11702, Data) ->
     skill:learn(User, Data);

@@ -7,16 +7,16 @@ decode(15001, _Rest_ = <<_/binary>>) ->
     {ok, {}};
 
 decode(15002, _Rest_ = <<_/binary>>) ->
-    <<Length:16, :Length/binary, _Rest_/binary>> = _Rest_,
-    {ok, };
+    <<DataLength:16, Data:DataLength/binary, _DataRest_/binary>> = _Rest_,
+    {ok, Data};
 
 decode(15003, _Rest_ = <<_/binary>>) ->
-    <<:64, _Rest_/binary>> = _Rest_,
-    {ok, };
+    <<Data:64, _DataRest_/binary>> = _Rest_,
+    {ok, Data};
 
 decode(15004, _Rest_ = <<_/binary>>) ->
-    <<:64, _Rest_/binary>> = _Rest_,
-    {ok, };
+    <<Data:64, _DataRest_/binary>> = _Rest_,
+    {ok, Data};
 
 
 decode(Protocol, Binary) ->
@@ -24,12 +24,12 @@ decode(Protocol, Binary) ->
 
 
 -spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-encode(15001, ) ->
-    Data15001 = <<(protocol:text())/binary>>,
+encode(15001, Data) ->
+    Data15001 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data15001)):16, 15001:16, Data15001/binary>>};
 
-encode(15002, ) ->
-    Data15002 = <<(protocol:text())/binary>>,
+encode(15002, Data) ->
+    Data15002 = <<(protocol:text(Data))/binary>>,
     {ok, <<(byte_size(Data15002)):16, 15002:16, Data15002/binary>>};
 
 encode(15003, #lucky_money{lucky_money_no = LuckyMoneyNo, total_gold = TotalGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = Time}) ->
