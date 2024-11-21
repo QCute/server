@@ -67,9 +67,9 @@ receive_lucky_money(User = #user{role_id = RoleId, role_name = RoleName, role = 
     case catch gen_server:call(?MODULE, {receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, GuildId, GuildName}) of
         {ok, Gold} ->
             {ok, NewUser} = asset:add(User, [{gold, Gold}], ?MODULE),
-            {ok, [ok, Gold], NewUser};
+            {ok, {ok, Gold}, NewUser};
         {'EXIT', {timeout, _}} ->
-            {error, [timeout, 0]};
+            {error, {timeout, 0}};
         Error ->
             Error
     end.
@@ -142,7 +142,7 @@ do_call({receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, GuildId,
         [LuckyMoney = #lucky_money{}] ->
             receive_check_scope(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         [] ->
-            {reply, {error, [lucky_money_not_found, 0]}, State}
+            {reply, {error, {lucky_money_not_found, 0}}, State}
     end;
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -184,12 +184,12 @@ receive_check_scope(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney =
             %% guild restrict
             receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         guild ->
-            {reply, {error, [lucky_money_not_found, 0]}, State};
+            {reply, {error, {lucky_money_not_found, 0}}, State};
         private when LuckyMoney#lucky_money.restrict == RoleId ->
             %% role restrict
             receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         private ->
-            {reply, {error, [lucky_money_not_found, 0]}, State}
+            {reply, {error, {lucky_money_not_found, 0}}, State}
     end.
 
 receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{time = Time}, State) ->
@@ -198,7 +198,7 @@ receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = 
         true ->
             receive_check_number(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         false ->
-            {reply, {error, [lucky_money_expired, 0]}, State}
+            {reply, {error, {lucky_money_expired, 0}}, State}
     end.
 
 receive_check_number(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{receive_number = ReceiveNumber, total_number = TotalNumber}, State) ->
@@ -206,7 +206,7 @@ receive_check_number(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney 
         true ->
             receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         false ->
-            {reply, {error, [lucky_money_not_found, 0]}, State}
+            {reply, {error, {lucky_money_not_found, 0}}, State}
     end.
 
 receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{receive_list = ReceiveList}, State) ->
@@ -214,7 +214,7 @@ receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #luck
         false ->
             receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         true ->
-            {reply, {error, [lucky_money_already_received, 0]}, State}
+            {reply, {error, {lucky_money_already_received, 0}}, State}
     end.
 
 receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo, remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList}, State) ->

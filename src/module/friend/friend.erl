@@ -144,7 +144,7 @@ delete(User = #user{role_id = RoleId, friend = FriendList}, FriendRoleId) ->
     friend_sql:delete(FriendRoleId, RoleId),
     %% notify the friend side
     user_server:apply_cast(FriendRoleId, fun deleted/2, [RoleId]),
-    {ok, [ok, FriendRoleId], User#user{friend = NewFriendList}}.
+    {ok, {ok, FriendRoleId}, User#user{friend = NewFriendList}}.
 
 %% delete friend side callback
 deleted(User = #user{role_id = RoleId, friend = FriendList}, FriendRoleId) ->
@@ -217,7 +217,7 @@ cancel_block_update(User = #user{role_id = RoleId, friend = FriendList}, FriendR
     friend_sql:delete(FriendRoleId, RoleId),
     %% notify the friend side
     user_server:apply_cast(FriendRoleId, fun cancel_blocked/2, [RoleId]),
-    {ok, [ok, FriendRoleId], User#user{friend = NewFriendList}}.
+    {ok, {ok, FriendRoleId}, User#user{friend = NewFriendList}}.
 
 %% delete friend side callback
 cancel_blocked(User = #user{role_id = RoleId, friend = FriendList}, FriendRoleId) ->

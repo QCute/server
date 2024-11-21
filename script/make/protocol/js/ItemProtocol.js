@@ -21,15 +21,6 @@ export default class ItemProtocol {
                 view.setBigUint64(offset, data["itemNo"], false);
                 offset = offset + 8;
                 // extend
-                while (view.byteLength < offset + 4) {
-                    const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
-                    (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
-                    view = extendView;
-                }
-                // 物品ID
-                view.setUint32(offset, data["itemId"], false);
-                offset = offset + 4;
-                // extend
                 while (view.byteLength < offset + 2) {
                     const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
                     (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));

@@ -49,7 +49,7 @@ world(User = #user{chat = Chat = #chat{world_chat_time = WorldChatTime}}, Type, 
             world_notify(User, [Type, Message]),
             {ok, User#user{chat = Chat#chat{world_chat_time = Now}}};
         {error, Error} ->
-            {error, [Error, #world_chat{}]}
+            {error, {Error, #world_chat{}}}
     end.
 
 %% @doc world notify
@@ -70,7 +70,7 @@ guild(User = #user{role_id = RoleId, chat = Chat = #chat{guild_chat_time = Guild
             guild_notify(User, [Type, Message]),
             {ok, User#user{chat = Chat#chat{guild_chat_time = Now}}};
         {error, Error} ->
-            {error, [Error, #guild_chat{}]}
+            {error, {Error, #guild_chat{}}}
     end.
 
 %% @doc guild notify
@@ -88,7 +88,7 @@ private(User = #user{role_id = RoleId}, ReceiverId, Type, Message) ->
         ok ->
             private_notify(User, ReceiverId, [ReceiverId, Type, Message]);
         {error, Error} ->
-            {error, [Error, #private_chat{}]}
+            {error, {Error, #private_chat{}}}
     end.
 
 %% @doc private notify

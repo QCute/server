@@ -65,7 +65,7 @@ bid(User, AuctionNo, NextPrice) ->
         {ok, NewUser} ->
             do_bid(NewUser, AuctionNo, NextPrice);
         _ ->
-            {error, [gold_not_enough, 0, #auction{}]}
+            {error, {gold_not_enough, 0, #auction{}}}
     end.
 
 do_bid(NewUser = #user{role_id = RoleId, role_name = RoleName, role = #role{server_id = ServerId}, guild = #guild_role{guild_id = GuildId, guild_name = GuildName}}, AuctionNo, NextPrice) ->
@@ -74,7 +74,7 @@ do_bid(NewUser = #user{role_id = RoleId, role_name = RoleName, role = #role{serv
             asset:push(NewUser),
             {ok, Result, NewUser};
         {'EXIT', {timeout, _}} ->
-            {ok, [timeout, 0, #auction{}], NewUser};
+            {ok, {timeout, 0, #auction{}}, NewUser};
         Error ->
             Error
     end.
@@ -192,25 +192,25 @@ inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName) 
         [Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = GuildId, bid_type = ?AUCTION_BID_TYPE_NORMAL, next_price = NextPrice}] ->
             NewAuction = auction_update(Auction, AuctionRole),
             ets:insert(?MODULE, NewAuction),
-            {ok, [ok, 0, NewAuction]};
+            {ok, {ok, 0, NewAuction}};
         [Auction = #auction{type = ?AUCTION_TYPE_ALL, bid_type = ?AUCTION_BID_TYPE_NORMAL, next_price = NextPrice}] ->
             NewAuction = auction_update(Auction, AuctionRole),
             ets:insert(?MODULE, NewAuction),
-            {ok, [ok, 0, NewAuction]};
+            {ok, {ok, 0, NewAuction}};
         [Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = GuildId, bid_type = ?AUCTION_BID_TYPE_ONCE, next_price = NextPrice, timer = Timer}] ->
             %% update top bidder
             NewAuction = auction_update(Auction, AuctionRole),
             auction_over(NewAuction, Timer),
-            {ok, [ok, 0, NewAuction]};
+            {ok, {ok, 0, NewAuction}};
         [Auction = #auction{type = ?AUCTION_TYPE_ALL, bid_type = ?AUCTION_BID_TYPE_ONCE, next_price = NextPrice, timer = Timer}] ->
             %% update top bidder
             NewAuction = auction_update(Auction, AuctionRole),
             auction_over(NewAuction, Timer),
-            {ok, [ok, 0, NewAuction]};
+            {ok, {ok, 0, NewAuction}};
         [#auction{next_price = OtherNextPrice}] ->
-            {error, [auction_price_changed, OtherNextPrice, #auction{}]};
+            {error, {auction_price_changed, OtherNextPrice, #auction{}}};
         _ ->
-            {error, [auction_not_found, 0, #auction{}]}
+            {error, {auction_not_found, 0, #auction{}}}
     end.
 
 %% auction update

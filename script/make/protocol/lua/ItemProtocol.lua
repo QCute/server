@@ -19,9 +19,6 @@ function ItemProtocol.encode(offset, protocol, data)
         -- 物品编号
         table[offset] = string.pack(">I8", data["itemNo"])
         offset = offset + 1
-        -- 物品ID
-        table[offset] = string.pack(">I4", data["itemId"])
-        offset = offset + 1
         -- 数量
         table[offset] = string.pack(">I2", data["number"])
         offset = offset + 1

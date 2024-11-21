@@ -22,8 +22,6 @@ public static class ItemProtocol
                 var dataCast = (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
                 // 物品编号
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)dataCast["itemNo"]));
-                // 物品ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)dataCast["itemId"]));
                 // 数量
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)dataCast["number"]));
                 // 类型

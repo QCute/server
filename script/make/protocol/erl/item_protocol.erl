@@ -15,10 +15,9 @@ decode(11103, _Rest_ = <<_/binary>>) ->
 
 decode(11106, _Rest_ = <<_/binary>>) ->
     <<ItemNo:64, _ItemNoRest_/binary>> = _Rest_,
-    <<ItemId:32, _ItemIdRest_/binary>> = _ItemNoRest_,
-    <<Number:16, _NumberRest_/binary>> = _ItemIdRest_,
+    <<Number:16, _NumberRest_/binary>> = _ItemNoRest_,
     <<Type:8, _TypeRest_/binary>> = _NumberRest_,
-    {ok, {ItemNo, ItemId, Number, Type}};
+    {ok, {ItemNo, Number, Type}};
 
 decode(Protocol, Binary) ->
     {error, Protocol, Binary}.

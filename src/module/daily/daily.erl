@@ -51,7 +51,7 @@ query_count(#user{count = Count}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{daily = Daily, daily_active = DailyActive}) ->
-    {ok, [Daily, DailyActive]}.
+    {ok, {Daily, DailyActive}}.
 
 %%%===================================================================
 %%% Internal functions

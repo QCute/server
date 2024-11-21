@@ -66,7 +66,6 @@ public static class ItemProtocol
                 {"write", new List() {
                     new Map() { {"name", "data"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
                         new Map() { {"name", "itemNo"}, {"type", "u64"}, {"comment", "物品编号"}, {"explain", new List()} },
-                        new Map() { {"name", "itemId"}, {"type", "u32"}, {"comment", "物品ID"}, {"explain", new List()} },
                         new Map() { {"name", "number"}, {"type", "u16"}, {"comment", "数量"}, {"explain", new List()} },
                         new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} }
                     }}}

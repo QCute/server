@@ -58,7 +58,6 @@ return {
         ["write"] = {
             {name = "data", type = "tuple", comment = "", explain = {
                 {name = "itemNo", type = "u64", comment = "物品编号", explain = {}},
-                {name = "itemId", type = "u32", comment = "物品ID", explain = {}},
                 {name = "number", type = "u16", comment = "数量", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}}
             }}

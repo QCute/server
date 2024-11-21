@@ -97,7 +97,6 @@ protocol() ->
                 handler = #handler{module = item_use, function = use},
                 decode = {
                     item_no = u64(),                       %% 物品编号
-                    item_id = u32(),                       %% 物品ID
                     number = u16(),                        %% 数量
                     type = u8()                            %% 类型
                 },
