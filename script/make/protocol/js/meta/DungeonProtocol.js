@@ -7,13 +7,13 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "dungeon", "type": "record", "comment": "", "explain": [
                     {"name": "dungeonId", "type": "u32", "comment": "副本Id", "explain": []},
                     {"name": "todayNumber", "type": "u16", "comment": "今天次数", "explain": []},
                     {"name": "totalNumber", "type": "u16", "comment": "总次数", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "17002" : {

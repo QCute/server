@@ -7,12 +7,12 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "命令列表", "explain": 
+            {"name": "data", "type": "list", "comment": "命令列表", "explain": [
                 {"name": "item", "type": "tuple", "comment": "", "explain": [
                     {"name": "description", "type": "bst", "comment": "描述", "explain": []},
                     {"name": "command", "type": "bst", "comment": "命令", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "60002" : {

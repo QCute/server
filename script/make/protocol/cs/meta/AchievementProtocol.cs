@@ -15,12 +15,12 @@ public static class AchievementProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "统计列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "统计列表"}, {"explain", new List() {
                         new Map() { {"name", "count"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "统计类型"}, {"explain", new List()} },
                             new Map() { {"name", "totalNumber"}, {"type", "u32"}, {"comment", "总数"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"12202", new Map() {
@@ -31,12 +31,12 @@ public static class AchievementProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "成就列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "成就列表"}, {"explain", new List() {
                         new Map() { {"name", "achievement"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "achievementId"}, {"type", "u32"}, {"comment", "成就ID"}, {"explain", new List()} },
                             new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "成就类型"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"12203", new Map() {

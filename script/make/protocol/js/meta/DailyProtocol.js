@@ -7,12 +7,12 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "count", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u32", "comment": "统计类型", "explain": []},
                     {"name": "todayNumber", "type": "u32", "comment": "今日数量", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "12302" : {

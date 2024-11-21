@@ -30,7 +30,7 @@ return {
                 {name = "totalGold", type = "u64", comment = "总金币", explain = {}},
                 {name = "totalNumber", type = "u32", comment = "总数量", explain = {}},
                 {name = "receiveNumber", type = "u16", comment = "已经领取人数", explain = {}},
-                {name = "receiveList", type = "list", comment = "领取列表", explain = 
+                {name = "receiveList", type = "list", comment = "领取列表", explain = {
                     {name = "luckyMoneyRole", type = "record", comment = "", explain = {
                         {name = "serverId", type = "u16", comment = "服务器Id", explain = {}},
                         {name = "roleId", type = "u64", comment = "角色Id", explain = {}},
@@ -38,7 +38,7 @@ return {
                         {name = "gold", type = "u64", comment = "金币", explain = {}},
                         {name = "time", type = "u32", comment = "领取时间", explain = {}}
                     }}
-                },
+                }},
                 {name = "time", type = "u32", comment = "发送时间", explain = {}}
             }}
         }

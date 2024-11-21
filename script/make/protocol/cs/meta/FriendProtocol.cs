@@ -15,14 +15,14 @@ public static class FriendProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "friend"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "friendRoleId"}, {"type", "u64"}, {"comment", "好友角色ID"}, {"explain", new List()} },
                             new Map() { {"name", "friendName"}, {"type", "bst"}, {"comment", "好友名字"}, {"explain", new List()} },
                             new Map() { {"name", "relation"}, {"type", "u8"}, {"comment", "关系状态(申请:1/好友:2/黑名单:3)"}, {"explain", new List()} },
                             new Map() { {"name", "time"}, {"type", "u32"}, {"comment", "添加/修改状态时间"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11502", new Map() {

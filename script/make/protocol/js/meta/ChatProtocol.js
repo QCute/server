@@ -5,7 +5,7 @@ export default {
             {"name": "data", "type": "u16", "comment": "页", "explain": []}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "systemChat", "type": "record", "comment": "", "explain": [
                     {"name": "id", "type": "u64", "comment": "ID", "explain": []},
                     {"name": "roleId", "type": "u64", "comment": "角色ID", "explain": []},
@@ -13,7 +13,7 @@ export default {
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "message", "type": "bst", "comment": "消息内容", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11603" : {
@@ -43,7 +43,7 @@ export default {
             {"name": "data", "type": "u16", "comment": "页", "explain": []}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "worldChat", "type": "record", "comment": "", "explain": [
                     {"name": "id", "type": "u64", "comment": "ID", "explain": []},
                     {"name": "roleId", "type": "u64", "comment": "角色ID", "explain": []},
@@ -51,7 +51,7 @@ export default {
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "message", "type": "bst", "comment": "消息内容", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11605" : {
@@ -81,7 +81,7 @@ export default {
             {"name": "data", "type": "u16", "comment": "页", "explain": []}
         ],
         "read" : [
-            {"name": "data", "type": "map", "comment": "", "key": "guildChat", "explain": 
+            {"name": "data", "type": "map", "comment": "", "key": "guildChat", "explain": [
                 {"name": "guildChat", "type": "record", "comment": "", "explain": [
                     {"name": "id", "type": "u64", "comment": "ID", "explain": []},
                     {"name": "roleId", "type": "u64", "comment": "角色ID", "explain": []},
@@ -89,7 +89,7 @@ export default {
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "message", "type": "bst", "comment": "消息内容", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11607" : {
@@ -122,14 +122,14 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "privateChat", "type": "record", "comment": "", "explain": [
                     {"name": "senderId", "type": "u64", "comment": "发送者角色ID", "explain": []},
                     {"name": "receiverId", "type": "u64", "comment": "接收者角色ID", "explain": []},
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "message", "type": "bst", "comment": "消息内容", "explain": []}
                 ]}
-            }
+            ]}
         ]
     }
 };

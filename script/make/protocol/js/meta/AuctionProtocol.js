@@ -7,7 +7,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "map", "comment": "拍品列表", "key": "", "explain": 
+            {"name": "data", "type": "map", "comment": "拍品列表", "key": "", "explain": [
                 {"name": "auction", "type": "record", "comment": "拍品", "explain": [
                     {"name": "auctionNo", "type": "u64", "comment": "拍品编号", "explain": []},
                     {"name": "auctionId", "type": "u32", "comment": "拍品ID", "explain": []},
@@ -17,7 +17,7 @@ export default {
                     {"name": "nowPrice", "type": "u32", "comment": "当前价格", "explain": []},
                     {"name": "nextPrice", "type": "u32", "comment": "下次出价的价格", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "16102" : {

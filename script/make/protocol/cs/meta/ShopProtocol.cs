@@ -15,12 +15,12 @@ public static class ShopProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "已购买列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "已购买列表"}, {"explain", new List() {
                         new Map() { {"name", "shop"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "shopId"}, {"type", "u32"}, {"comment", "商店ID"}, {"explain", new List()} },
                             new Map() { {"name", "number"}, {"type", "u16"}, {"comment", "数量"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11302", new Map() {

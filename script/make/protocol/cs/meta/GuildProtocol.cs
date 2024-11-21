@@ -15,7 +15,7 @@ public static class GuildProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", ""}, {"explain", new List() {
                         new Map() { {"name", "guild"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "guildId"}, {"type", "u64"}, {"comment", "公会ID"}, {"explain", new List()} },
                             new Map() { {"name", "guildName"}, {"type", "bst"}, {"comment", "公会名字"}, {"explain", new List()} },
@@ -23,7 +23,7 @@ public static class GuildProtocol
                             new Map() { {"name", "leaderRoleId"}, {"type", "u64"}, {"comment", "会长角色ID"}, {"explain", new List()} },
                             new Map() { {"name", "leaderName"}, {"type", "bst"}, {"comment", "会长名字"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"30102", new Map() {
@@ -34,7 +34,7 @@ public static class GuildProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", ""}, {"explain", new List() {
                         new Map() { {"name", "guildRole"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "成员ID"}, {"explain", new List()} },
                             new Map() { {"name", "job"}, {"type", "u8"}, {"comment", "职位"}, {"explain", new List()} },
@@ -44,7 +44,7 @@ public static class GuildProtocol
                             new Map() { {"name", "classes"}, {"type", "u8"}, {"comment", "职业"}, {"explain", new List()} },
                             new Map() { {"name", "vipLevel"}, {"type", "u8"}, {"comment", "Vip等级"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"30103", new Map() {
@@ -55,7 +55,7 @@ public static class GuildProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", ""}, {"explain", new List() {
                         new Map() { {"name", "guildApply"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "申请ID"}, {"explain", new List()} },
                             new Map() { {"name", "applyTime"}, {"type", "u32"}, {"comment", "申请时间"}, {"explain", new List()} },
@@ -64,7 +64,7 @@ public static class GuildProtocol
                             new Map() { {"name", "classes"}, {"type", "u8"}, {"comment", "职业"}, {"explain", new List()} },
                             new Map() { {"name", "vipLevel"}, {"type", "u8"}, {"comment", "Vip等级"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"30104", new Map() {
@@ -115,13 +115,13 @@ public static class GuildProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "guildApply"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "guildId"}, {"type", "u64"}, {"comment", "公会ID"}, {"explain", new List()} },
                             new Map() { {"name", "applyTime"}, {"type", "u32"}, {"comment", "申请时间"}, {"explain", new List()} },
                             new Map() { {"name", "guildName"}, {"type", "bst"}, {"comment", "公会名字"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"30107", new Map() {

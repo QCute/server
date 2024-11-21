@@ -15,12 +15,12 @@ public static class TitleProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "称号列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "称号列表"}, {"explain", new List() {
                         new Map() { {"name", "title"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "titleId"}, {"type", "u32"}, {"comment", "称号ID"}, {"explain", new List()} },
                             new Map() { {"name", "expireTime"}, {"type", "u32"}, {"comment", "过期时间"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }}
         };

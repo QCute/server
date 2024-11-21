@@ -13,7 +13,7 @@ public static class ChatProtocol
                     new Map() { {"name", "data"}, {"type", "u16"}, {"comment", "页"}, {"explain", new List()} }
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "systemChat"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "id"}, {"type", "u64"}, {"comment", "ID"}, {"explain", new List()} },
                             new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色ID"}, {"explain", new List()} },
@@ -21,7 +21,7 @@ public static class ChatProtocol
                             new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "message"}, {"type", "bst"}, {"comment", "消息内容"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11603", new Map() {
@@ -51,7 +51,7 @@ public static class ChatProtocol
                     new Map() { {"name", "data"}, {"type", "u16"}, {"comment", "页"}, {"explain", new List()} }
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "worldChat"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "id"}, {"type", "u64"}, {"comment", "ID"}, {"explain", new List()} },
                             new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色ID"}, {"explain", new List()} },
@@ -59,7 +59,7 @@ public static class ChatProtocol
                             new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "message"}, {"type", "bst"}, {"comment", "消息内容"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11605", new Map() {
@@ -89,7 +89,7 @@ public static class ChatProtocol
                     new Map() { {"name", "data"}, {"type", "u16"}, {"comment", "页"}, {"explain", new List()} }
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", "guildChat"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"key", "guildChat"}, {"explain", new List() {
                         new Map() { {"name", "guildChat"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "id"}, {"type", "u64"}, {"comment", "ID"}, {"explain", new List()} },
                             new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色ID"}, {"explain", new List()} },
@@ -97,7 +97,7 @@ public static class ChatProtocol
                             new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "message"}, {"type", "bst"}, {"comment", "消息内容"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11607", new Map() {
@@ -130,14 +130,14 @@ public static class ChatProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "privateChat"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "senderId"}, {"type", "u64"}, {"comment", "发送者角色ID"}, {"explain", new List()} },
                             new Map() { {"name", "receiverId"}, {"type", "u64"}, {"comment", "接收者角色ID"}, {"explain", new List()} },
                             new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "message"}, {"type", "bst"}, {"comment", "消息内容"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }}
         };

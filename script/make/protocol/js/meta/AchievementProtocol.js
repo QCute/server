@@ -7,12 +7,12 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "统计列表", "explain": 
+            {"name": "data", "type": "list", "comment": "统计列表", "explain": [
                 {"name": "count", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u32", "comment": "统计类型", "explain": []},
                     {"name": "totalNumber", "type": "u32", "comment": "总数", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "12202" : {
@@ -23,12 +23,12 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "成就列表", "explain": 
+            {"name": "data", "type": "list", "comment": "成就列表", "explain": [
                 {"name": "achievement", "type": "record", "comment": "", "explain": [
                     {"name": "achievementId", "type": "u32", "comment": "成就ID", "explain": []},
                     {"name": "type", "type": "u32", "comment": "成就类型", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "12203" : {

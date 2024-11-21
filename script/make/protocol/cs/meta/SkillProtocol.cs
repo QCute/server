@@ -15,12 +15,12 @@ public static class SkillProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "技能列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "技能列表"}, {"explain", new List() {
                         new Map() { {"name", "skill"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "skillId"}, {"type", "u32"}, {"comment", "技能ID"}, {"explain", new List()} },
                             new Map() { {"name", "level"}, {"type", "u16"}, {"comment", "技能等级"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11702", new Map() {

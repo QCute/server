@@ -7,14 +7,14 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "item", "type": "record", "comment": "", "explain": [
                     {"name": "itemNo", "type": "u64", "comment": "物品编号", "explain": []},
                     {"name": "itemId", "type": "u64", "comment": "物品ID", "explain": []},
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "number", "type": "u16", "comment": "数量", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11102" : {
@@ -25,14 +25,14 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "item", "type": "record", "comment": "", "explain": [
                     {"name": "itemNo", "type": "u64", "comment": "物品编号", "explain": []},
                     {"name": "itemId", "type": "u64", "comment": "物品ID", "explain": []},
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "number", "type": "u16", "comment": "数量", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11103" : {
@@ -43,14 +43,14 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "item", "type": "record", "comment": "", "explain": [
                     {"name": "itemNo", "type": "u64", "comment": "物品编号", "explain": []},
                     {"name": "itemId", "type": "u64", "comment": "物品ID", "explain": []},
                     {"name": "type", "type": "u8", "comment": "类型", "explain": []},
                     {"name": "number", "type": "u16", "comment": "数量", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11106" : {

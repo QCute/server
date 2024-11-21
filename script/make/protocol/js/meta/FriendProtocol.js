@@ -7,14 +7,14 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "friend", "type": "record", "comment": "", "explain": [
                     {"name": "friendRoleId", "type": "u64", "comment": "好友角色ID", "explain": []},
                     {"name": "friendName", "type": "bst", "comment": "好友名字", "explain": []},
                     {"name": "relation", "type": "u8", "comment": "关系状态(申请:1/好友:2/黑名单:3)", "explain": []},
                     {"name": "time", "type": "u32", "comment": "添加/修改状态时间", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11502" : {

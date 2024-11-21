@@ -15,12 +15,12 @@ public static class CheatProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "命令列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "命令列表"}, {"explain", new List() {
                         new Map() { {"name", "item"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "description"}, {"type", "bst"}, {"comment", "描述"}, {"explain", new List()} },
                             new Map() { {"name", "command"}, {"type", "bst"}, {"comment", "命令"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"60002", new Map() {

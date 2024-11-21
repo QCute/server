@@ -15,7 +15,7 @@ public static class MailProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "mail"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "mailId"}, {"type", "u64"}, {"comment", "邮件ID"}, {"explain", new List()} },
                             new Map() { {"name", "receiveTime"}, {"type", "u32"}, {"comment", "接收时间"}, {"explain", new List()} },
@@ -24,14 +24,14 @@ public static class MailProtocol
                             new Map() { {"name", "receiveAttachmentTime"}, {"type", "u32"}, {"comment", "领取附件时间"}, {"explain", new List()} },
                             new Map() { {"name", "title"}, {"type", "bst"}, {"comment", "标题"}, {"explain", new List()} },
                             new Map() { {"name", "content"}, {"type", "bst"}, {"comment", "内容"}, {"explain", new List()} },
-                            new Map() { {"name", "attachment"}, {"type", "list"}, {"comment", "附件列表"}, {"explain", 
+                            new Map() { {"name", "attachment"}, {"type", "list"}, {"comment", "附件列表"}, {"explain", new List() {
                                 new Map() { {"name", "item"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
                                     new Map() { {"name", "itemId"}, {"type", "u32"}, {"comment", "物品ID"}, {"explain", new List()} },
                                     new Map() { {"name", "number"}, {"type", "u16"}, {"comment", "数量"}, {"explain", new List()} }
                                 }}}
-                            }}
+                            }}}
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11402", new Map() {

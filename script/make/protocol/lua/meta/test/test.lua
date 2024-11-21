@@ -33,53 +33,53 @@ local packet = {
         bst = "1二三",
 
         tuple = {
-            tupleBinary = "\97\98\99\100\101\102",
-            tupleSubTuple = {
-                tupleSubTupleU8 = 95,
-                tupleSubTupleStr = "xyz",
+            binary = "\97\98\99\100\101\102",
+            sub = {
+                u8 = 95,
+                str = "xyz",
             },
-            tupleSubList = {
-                {tupleSubListI16 = 456, tupleSubListBst = "wow"},
-                {tupleSubListI16 = 369, tupleSubListBst = "oops"},
+            list = {
+                {i16 = 456, bst = "wow"},
+                {i16 = 369, bst = "oops"},
             },
-            tupleSubListSingle = {true, false, false, true, false},
+            single = {true, false, false, true, false},
         },
 
         indexList = {
             {
-                listBinary = "\97\98\99\100\101\102",
-                listSubTuple = {
-                    listSubTupleU8 = 108,
-                    listSubTupleStr = "qwe",
+                binary = "\97\98\99\100\101\102",
+                sub = {
+                    u8 = 108,
+                    str = "qwe",
                 },
-                listSubList = {
-                    {listSubListI16 = 456, listSubListBst = "wow"},
-                    {listSubListI16 = 369, listSubListBst = "oops"},
+                list = {
+                    {i16 = 456, bst = "wow"},
+                    {i16 = 369, bst = "oops"},
                 },
-                listSubListSingle = {true, false, false, true, false},
+                single = {true, false, false, true, false},
             }
         },
 
         keyList = {
             [1] = {
-                listBinary = "\97\98\99\100\101\102",
-                listBoolean = false,
-            
-                listU8 = 1,
-                listU16 = 2,
-                listU32 = 3,
-                listU64 = 4,
-            
-                listI8 = 4,
-                listI16 = 3,
-                listI32 = 2,
-                listI64 = 1,
-            
-                listF32 = 1.23,
-                listF64 = 4.56,
-            
-                listStr = "一23",
-                listBst = "1二三",
+                binary = "\97\98\99\100\101\102",
+                boolean = true,
+        
+                u8 = 1,
+                u16 = 2,
+                u32 = 3,
+                u64 = 4,
+        
+                i8 = 4,
+                i16 = 3,
+                i32 = 2,
+                i64 = 1,
+        
+                f32 = 1.23,
+                f64 = 4.56,
+        
+                str = "一23",
+                bst = "1二三",
             }
         }
     }

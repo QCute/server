@@ -7,7 +7,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "mail", "type": "record", "comment": "", "explain": [
                     {"name": "mailId", "type": "u64", "comment": "邮件ID", "explain": []},
                     {"name": "receiveTime", "type": "u32", "comment": "接收时间", "explain": []},
@@ -16,14 +16,14 @@ export default {
                     {"name": "receiveAttachmentTime", "type": "u32", "comment": "领取附件时间", "explain": []},
                     {"name": "title", "type": "bst", "comment": "标题", "explain": []},
                     {"name": "content", "type": "bst", "comment": "内容", "explain": []},
-                    {"name": "attachment", "type": "list", "comment": "附件列表", "explain": 
+                    {"name": "attachment", "type": "list", "comment": "附件列表", "explain": [
                         {"name": "item", "type": "tuple", "comment": "", "explain": [
                             {"name": "itemId", "type": "u32", "comment": "物品ID", "explain": []},
                             {"name": "number", "type": "u16", "comment": "数量", "explain": []}
                         ]}
-                    }
+                    ]}
                 ]}
-            }
+            ]}
         ]
     },
     "11402" : {

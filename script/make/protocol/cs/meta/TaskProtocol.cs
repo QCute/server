@@ -15,13 +15,13 @@ public static class TaskProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "任务列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "任务列表"}, {"explain", new List() {
                         new Map() { {"name", "task"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "taskId"}, {"type", "u32"}, {"comment", "任务ID"}, {"explain", new List()} },
                             new Map() { {"name", "number"}, {"type", "u16"}, {"comment", "当前数量"}, {"explain", new List()} },
                             new Map() { {"name", "isAward"}, {"type", "u8"}, {"comment", "是否领取奖励"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"11202", new Map() {

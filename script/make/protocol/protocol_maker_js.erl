@@ -44,10 +44,10 @@ format_code(JsName, EncodeList, DecodeList) ->
 
 format_meta(_JsName, List) ->
     JsMetaInner = string:join([lists:concat([
-        "    ", "\"", Protocol, "\" : {", "\n",
-        "    ", "    ", "\"comment\" : \"", Comment, "\",", "\n",
-        "    ", "    ", "\"write\" : ", Read, ",", "\n",
-        "    ", "    ", "\"read\" : ", Write, "\n",
+        "    ", "\"", Protocol, "\": {", "\n",
+        "    ", "    ", "\"comment\": \"", Comment, "\",", "\n",
+        "    ", "    ", "\"write\": ", Read, ",", "\n",
+        "    ", "    ", "\"read\": ", Write, "\n",
         "    ", "}"
     ]) || {Protocol, Comment, #data{js = #set{meta = #file{extra = Read}}}, #data{js = #set{meta = #file{extra = Write}}}} <- List, Protocol =/= 0], ",\n"),
     lists:concat([
@@ -61,18 +61,13 @@ format_meta(_JsName, List) ->
 %%%===================================================================
 %% js meta
 parse_meta_js(_, Meta) ->
-    %% start with 3 tabs(4 space) padding
-    Padding = lists:duplicate(2, "    "),
-    MetaData = parse_meta_js_loop([Meta], 3, []),
+    %% start with 1 tabs(4 space) padding
+    %% Padding = lists:duplicate(1, "    "),
+    Code = parse_meta_js_loop([Meta], 2, []),
     %% format one protocol define
     %% lists:concat(["        \"", Protocol, "\" : [\n", MetaData, "\n        ]"]).
-    Code = lists:concat([
-        "[", "\n",
-        MetaData, "\n",
-        Padding, "]"
-    ]),
 
-    #file{extra = Code}.
+    #file{extra = string:trim(Code)}.
 
 parse_meta_js_loop([], _, List) ->
     %% construct as a list
@@ -95,7 +90,7 @@ parse_meta_js_loop([#meta{name = Name, type = Type, explain = undefined, comment
     Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": ~w}", [Padding, word:to_lower_hump(Name), Type, Comment, []])),
     parse_meta_js_loop(T, Depth, [Code | List]);
 
-parse_meta_js_loop([#meta{name = Name, type = Type = tuple, explain = Explain, comment = Comment} | T], Depth, List) ->
+parse_meta_js_loop([#meta{name = Name, type = tuple, explain = Explain, comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
 
@@ -103,11 +98,11 @@ parse_meta_js_loop([#meta{name = Name, type = Type = tuple, explain = Explain, c
     SubCodes = parse_meta_js_loop(tuple_to_list(Explain), Depth + 1, []),
 
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
 
     parse_meta_js_loop(T, Depth, [Code | List]);
 
-parse_meta_js_loop([#meta{name = Name, type = Type = record, explain = Explain, comment = Comment} | T], Depth, List) ->
+parse_meta_js_loop([#meta{name = Name, type = record, explain = Explain, comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
 
@@ -117,11 +112,11 @@ parse_meta_js_loop([#meta{name = Name, type = Type = record, explain = Explain, 
     SubCodes = parse_meta_js_loop(SubExplain, Depth + 1, []),
 
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
 
     parse_meta_js_loop(T, Depth, [Code | List]);
 
-parse_meta_js_loop([#meta{name = Name, type = Type = maps, explain = Explain, comment = Comment} | T], Depth, List) ->
+parse_meta_js_loop([#meta{name = Name, type = maps, explain = Explain, comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
 
@@ -129,7 +124,7 @@ parse_meta_js_loop([#meta{name = Name, type = Type = maps, explain = Explain, co
     SubCodes = parse_meta_js_loop(maps:values(Explain), Depth + 1, []),
 
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), Type, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
 
     parse_meta_js_loop(T, Depth, [Code | List]);
 
@@ -139,7 +134,7 @@ parse_meta_js_loop([#meta{name = Name, type = list, explain = Explain, comment =
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": \n~ts\n~s}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
     parse_meta_js_loop(T, Depth, [Code | List]);
 
 parse_meta_js_loop([#meta{name = Name, type = list, explain = Explain, comment = Comment, key = Key} | T], Depth, List) ->
@@ -148,7 +143,7 @@ parse_meta_js_loop([#meta{name = Name, type = list, explain = Explain, comment =
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"key\": \"~ts\", \"explain\": \n~ts\n~s}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"key\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), list, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
     parse_meta_js_loop(T, Depth, [Code | List]);
 
 parse_meta_js_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = undefined} | T], Depth, List) ->
@@ -157,7 +152,7 @@ parse_meta_js_loop([#meta{name = Name, type = ets, explain = Explain, comment = 
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": \n~ts\n~s}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), list, Comment, SubCodes, Padding])),
     parse_meta_js_loop(T, Depth, [Code | List]);
 
 parse_meta_js_loop([#meta{name = Name, type = ets, explain = Explain, comment = Comment, key = Key} | T], Depth, List) ->
@@ -166,7 +161,7 @@ parse_meta_js_loop([#meta{name = Name, type = ets, explain = Explain, comment = 
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"key\": \"~ts\", \"explain\": \n~ts\n~s}", [Padding, word:to_lower_hump(Name), map, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~s{\"name\": \"~s\", \"type\": \"~s\", \"comment\": \"~ts\", \"key\": \"~ts\", \"explain\": [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), list, Comment, word:to_lower_hump(Key), SubCodes, Padding])),
     parse_meta_js_loop(T, Depth, [Code | List]).
 
 %%%===================================================================

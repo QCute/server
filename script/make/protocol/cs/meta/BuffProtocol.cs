@@ -15,13 +15,13 @@ public static class BuffProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "Buff列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "Buff列表"}, {"explain", new List() {
                         new Map() { {"name", "buff"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "buffId"}, {"type", "u32"}, {"comment", "BuffID"}, {"explain", new List()} },
                             new Map() { {"name", "expireTime"}, {"type", "u32"}, {"comment", "结束时间"}, {"explain", new List()} },
                             new Map() { {"name", "overlap"}, {"type", "u16"}, {"comment", "叠加数量"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }}
         };

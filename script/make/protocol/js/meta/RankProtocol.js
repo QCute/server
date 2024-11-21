@@ -7,7 +7,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "rank", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u16", "comment": "类型", "explain": []},
                     {"name": "order", "type": "u64", "comment": "排名", "explain": []},
@@ -17,7 +17,7 @@ export default {
                     {"name": "name", "type": "bst", "comment": "名字", "explain": []},
                     {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "19002" : {
@@ -28,7 +28,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "rank", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u16", "comment": "类型", "explain": []},
                     {"name": "order", "type": "u64", "comment": "排名", "explain": []},
@@ -42,7 +42,7 @@ export default {
                         {"name": "classes", "type": "u8", "comment": "职业", "explain": []}
                     ]}
                 ]}
-            }
+            ]}
         ]
     },
     "19003" : {
@@ -53,7 +53,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "rank", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u16", "comment": "类型", "explain": []},
                     {"name": "order", "type": "u64", "comment": "排名", "explain": []},
@@ -68,7 +68,7 @@ export default {
                         {"name": "sex", "type": "u8", "comment": "性别", "explain": []}
                     ]}
                 ]}
-            }
+            ]}
         ]
     },
     "19004" : {
@@ -79,7 +79,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "rank", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u16", "comment": "类型", "explain": []},
                     {"name": "order", "type": "u64", "comment": "排名", "explain": []},
@@ -95,7 +95,7 @@ export default {
                         {"name": "vipLevel", "type": "u8", "comment": "VIP等级", "explain": []}
                     ]}
                 ]}
-            }
+            ]}
         ]
     },
     "19005" : {
@@ -106,7 +106,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "rank", "type": "record", "comment": "", "explain": [
                     {"name": "type", "type": "u16", "comment": "类型", "explain": []},
                     {"name": "order", "type": "u64", "comment": "排名", "explain": []},
@@ -123,7 +123,7 @@ export default {
                         {"name": "avatar", "type": "u8", "comment": "头像", "explain": []}
                     ]}
                 ]}
-            }
+            ]}
         ]
     }
 };

@@ -15,7 +15,7 @@ public static class AuctionProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", "拍品列表"}, {"key", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "map"}, {"comment", "拍品列表"}, {"key", ""}, {"explain", new List() {
                         new Map() { {"name", "auction"}, {"type", "record"}, {"comment": "拍品"}, {"explain": new List() {
                             new Map() { {"name", "auctionNo"}, {"type", "u64"}, {"comment", "拍品编号"}, {"explain", new List()} },
                             new Map() { {"name", "auctionId"}, {"type", "u32"}, {"comment", "拍品ID"}, {"explain", new List()} },
@@ -25,7 +25,7 @@ public static class AuctionProtocol
                             new Map() { {"name", "nowPrice"}, {"type", "u32"}, {"comment", "当前价格"}, {"explain", new List()} },
                             new Map() { {"name", "nextPrice"}, {"type", "u32"}, {"comment", "下次出价的价格"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"16102", new Map() {

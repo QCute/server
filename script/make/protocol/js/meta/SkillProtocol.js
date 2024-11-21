@@ -7,12 +7,12 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "技能列表", "explain": 
+            {"name": "data", "type": "list", "comment": "技能列表", "explain": [
                 {"name": "skill", "type": "record", "comment": "", "explain": [
                     {"name": "skillId", "type": "u32", "comment": "技能ID", "explain": []},
                     {"name": "level", "type": "u16", "comment": "技能等级", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "11702" : {

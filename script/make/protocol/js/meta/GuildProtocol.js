@@ -7,7 +7,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "map", "comment": "", "key": "", "explain": 
+            {"name": "data", "type": "map", "comment": "", "key": "", "explain": [
                 {"name": "guild", "type": "record", "comment": "", "explain": [
                     {"name": "guildId", "type": "u64", "comment": "公会ID", "explain": []},
                     {"name": "guildName", "type": "bst", "comment": "公会名字", "explain": []},
@@ -15,7 +15,7 @@ export default {
                     {"name": "leaderRoleId", "type": "u64", "comment": "会长角色ID", "explain": []},
                     {"name": "leaderName", "type": "bst", "comment": "会长名字", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "30102" : {
@@ -26,7 +26,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "map", "comment": "", "key": "", "explain": 
+            {"name": "data", "type": "map", "comment": "", "key": "", "explain": [
                 {"name": "guildRole", "type": "record", "comment": "", "explain": [
                     {"name": "roleId", "type": "u64", "comment": "成员ID", "explain": []},
                     {"name": "job", "type": "u8", "comment": "职位", "explain": []},
@@ -36,7 +36,7 @@ export default {
                     {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
                     {"name": "vipLevel", "type": "u8", "comment": "Vip等级", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "30103" : {
@@ -47,7 +47,7 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "map", "comment": "", "key": "", "explain": 
+            {"name": "data", "type": "map", "comment": "", "key": "", "explain": [
                 {"name": "guildApply", "type": "record", "comment": "", "explain": [
                     {"name": "roleId", "type": "u64", "comment": "申请ID", "explain": []},
                     {"name": "applyTime", "type": "u32", "comment": "申请时间", "explain": []},
@@ -56,7 +56,7 @@ export default {
                     {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
                     {"name": "vipLevel", "type": "u8", "comment": "Vip等级", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "30104" : {
@@ -107,13 +107,13 @@ export default {
             ]}
         ],
         "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": 
+            {"name": "data", "type": "list", "comment": "", "explain": [
                 {"name": "guildApply", "type": "record", "comment": "", "explain": [
                     {"name": "guildId", "type": "u64", "comment": "公会ID", "explain": []},
                     {"name": "applyTime", "type": "u32", "comment": "申请时间", "explain": []},
                     {"name": "guildName", "type": "bst", "comment": "公会名字", "explain": []}
                 ]}
-            }
+            ]}
         ]
     },
     "30107" : {

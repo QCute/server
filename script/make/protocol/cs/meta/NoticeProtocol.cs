@@ -15,7 +15,7 @@ public static class NoticeProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "公告列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "公告列表"}, {"explain", new List() {
                         new Map() { {"name", "noticeRole"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "noticeId"}, {"type", "u64"}, {"comment", "公告ID"}, {"explain", new List()} },
                             new Map() { {"name", "receiveTime"}, {"type", "u32"}, {"comment", "收到时间"}, {"explain", new List()} },
@@ -23,7 +23,7 @@ public static class NoticeProtocol
                             new Map() { {"name", "title"}, {"type", "bst"}, {"comment", "标题"}, {"explain", new List()} },
                             new Map() { {"name", "content"}, {"type", "bst"}, {"comment", "内容"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }}
         };

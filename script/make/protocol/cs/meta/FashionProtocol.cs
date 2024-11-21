@@ -15,12 +15,12 @@ public static class FashionProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "时装列表"}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "时装列表"}, {"explain", new List() {
                         new Map() { {"name", "fashion"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "fashionId"}, {"type", "u32"}, {"comment", "时装ID"}, {"explain", new List()} },
                             new Map() { {"name", "expireTime"}, {"type", "u32"}, {"comment", "过期时间"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }}
         };

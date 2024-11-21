@@ -33,16 +33,16 @@ export default {
         "write" : [
             {"name": "data", "type": "tuple", "comment": "", "explain": [
                 {"name": "skillId", "type": "u32", "comment": "技能Id", "explain": []},
-                {"name": "targetList", "type": "list", "comment": "战斗对象ID列表", "explain": 
+                {"name": "targetList", "type": "list", "comment": "战斗对象ID列表", "explain": [
                     {"name": "item", "type": "u64", "comment": "战斗对象ID", "explain": []}
-                }
+                ]}
             ]}
         ],
         "read" : [
             {"name": "data", "type": "tuple", "comment": "", "explain": [
                 {"name": "fighterId", "type": "u64", "comment": "战斗对象Id", "explain": []},
                 {"name": "performSkillId", "type": "u32", "comment": "技能Id", "explain": []},
-                {"name": "fighterList", "type": "list", "comment": "", "explain": 
+                {"name": "fighterList", "type": "list", "comment": "", "explain": [
                     {"name": "fighter", "type": "record", "comment": "", "explain": [
                         {"name": "id", "type": "u64", "comment": "ID", "explain": []},
                         {"name": "type", "type": "u8", "comment": "类型", "explain": []},
@@ -51,24 +51,24 @@ export default {
                             {"name": "hp", "type": "u64", "comment": "血量", "explain": []},
                             {"name": "health", "type": "u64", "comment": "健康", "explain": []}
                         ]},
-                        {"name": "skill", "type": "list", "comment": "技能列表", "explain": 
+                        {"name": "skill", "type": "list", "comment": "技能列表", "explain": [
                             {"name": "battleSkill", "type": "record", "comment": "", "explain": [
                                 {"name": "skillId", "type": "u32", "comment": "技能ID", "explain": []},
                                 {"name": "time", "type": "u32", "comment": "时间", "explain": []},
                                 {"name": "number", "type": "u32", "comment": "数量", "explain": []}
                             ]}
-                        },
-                        {"name": "buff", "type": "list", "comment": "Buff列表", "explain": 
+                        ]},
+                        {"name": "buff", "type": "list", "comment": "Buff列表", "explain": [
                             {"name": "battleBuff", "type": "record", "comment": "", "explain": [
                                 {"name": "buffId", "type": "u32", "comment": "BuffID", "explain": []},
                                 {"name": "expireTime", "type": "u32", "comment": "过期时间", "explain": []},
                                 {"name": "overlap", "type": "u32", "comment": "数量", "explain": []}
                             ]}
-                        },
+                        ]},
                         {"name": "x", "type": "u16", "comment": "X坐标", "explain": []},
                         {"name": "y", "type": "u16", "comment": "Y坐标", "explain": []}
                     ]}
-                }
+                ]}
             ]}
         ]
     }

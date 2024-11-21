@@ -15,12 +15,12 @@ public static class DailyProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "count"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "统计类型"}, {"explain", new List()} },
                             new Map() { {"name", "todayNumber"}, {"type", "u32"}, {"comment", "今日数量"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"12302", new Map() {

@@ -38,7 +38,7 @@ public static class WelfareProtocol
                         new Map() { {"name", "totalGold"}, {"type", "u64"}, {"comment", "总金币"}, {"explain", new List()} },
                         new Map() { {"name", "totalNumber"}, {"type", "u32"}, {"comment", "总数量"}, {"explain", new List()} },
                         new Map() { {"name", "receiveNumber"}, {"type", "u16"}, {"comment", "已经领取人数"}, {"explain", new List()} },
-                        new Map() { {"name", "receiveList"}, {"type", "list"}, {"comment", "领取列表"}, {"explain", 
+                        new Map() { {"name", "receiveList"}, {"type", "list"}, {"comment", "领取列表"}, {"explain", new List() {
                             new Map() { {"name", "luckyMoneyRole"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                                 new Map() { {"name", "serverId"}, {"type", "u16"}, {"comment", "服务器Id"}, {"explain", new List()} },
                                 new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色Id"}, {"explain", new List()} },
@@ -46,7 +46,7 @@ public static class WelfareProtocol
                                 new Map() { {"name", "gold"}, {"type", "u64"}, {"comment", "金币"}, {"explain", new List()} },
                                 new Map() { {"name", "time"}, {"type", "u32"}, {"comment", "领取时间"}, {"explain", new List()} }
                             }}}
-                        }},
+                        }}},
                         new Map() { {"name", "time"}, {"type", "u32"}, {"comment", "发送时间"}, {"explain", new List()} }
                     }}}
                 }}

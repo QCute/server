@@ -15,7 +15,7 @@ public static class RankCenterProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "rank"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "order"}, {"type", "u64"}, {"comment", "排名"}, {"explain", new List()} },
@@ -25,7 +25,7 @@ public static class RankCenterProtocol
                             new Map() { {"name", "name"}, {"type", "bst"}, {"comment", "名字"}, {"explain", new List()} },
                             new Map() { {"name", "serverId"}, {"type", "u16"}, {"comment", "服务器ID"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"19102", new Map() {
@@ -36,7 +36,7 @@ public static class RankCenterProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "rank"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "order"}, {"type", "u64"}, {"comment", "排名"}, {"explain", new List()} },
@@ -50,7 +50,7 @@ public static class RankCenterProtocol
                                 new Map() { {"name", "classes"}, {"type", "u8"}, {"comment", "职业"}, {"explain", new List()} }
                             }}}
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"19103", new Map() {
@@ -61,7 +61,7 @@ public static class RankCenterProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "rank"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "order"}, {"type", "u64"}, {"comment", "排名"}, {"explain", new List()} },
@@ -76,7 +76,7 @@ public static class RankCenterProtocol
                                 new Map() { {"name", "sex"}, {"type", "u8"}, {"comment", "性别"}, {"explain", new List()} }
                             }}}
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"19104", new Map() {
@@ -87,7 +87,7 @@ public static class RankCenterProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "rank"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "order"}, {"type", "u64"}, {"comment", "排名"}, {"explain", new List()} },
@@ -103,7 +103,7 @@ public static class RankCenterProtocol
                                 new Map() { {"name", "vipLevel"}, {"type", "u8"}, {"comment", "VIP等级"}, {"explain", new List()} }
                             }}}
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"19105", new Map() {
@@ -114,7 +114,7 @@ public static class RankCenterProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "rank"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
                             new Map() { {"name", "order"}, {"type", "u64"}, {"comment", "排名"}, {"explain", new List()} },
@@ -131,7 +131,7 @@ public static class RankCenterProtocol
                                 new Map() { {"name", "avatar"}, {"type", "u8"}, {"comment", "头像"}, {"explain", new List()} }
                             }}}
                         }}}
-                    }}
+                    }}}
                 }}
             }}
         };

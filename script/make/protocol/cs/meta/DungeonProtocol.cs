@@ -15,13 +15,13 @@ public static class DungeonProtocol
                     }}}
                 }},
                 {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", 
+                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "dungeon"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
                             new Map() { {"name", "dungeonId"}, {"type", "u32"}, {"comment", "副本Id"}, {"explain", new List()} },
                             new Map() { {"name", "todayNumber"}, {"type", "u16"}, {"comment", "今天次数"}, {"explain", new List()} },
                             new Map() { {"name", "totalNumber"}, {"type", "u16"}, {"comment", "总次数"}, {"explain", new List()} }
                         }}}
-                    }}
+                    }}}
                 }}
             }},
             {"17002", new Map() {

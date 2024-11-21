@@ -21,12 +21,12 @@ export default {
         "read" : [
             {"name": "data", "type": "tuple", "comment": "", "explain": [
                 {"name": "result", "type": "rst", "comment": "结果", "explain": []},
-                {"name": "list", "type": "list", "comment": "角色名列表", "explain": 
+                {"name": "list", "type": "list", "comment": "角色名列表", "explain": [
                     {"name": "item", "type": "tuple", "comment": "", "explain": [
                         {"name": "roleId", "type": "u64", "comment": "角色ID", "explain": []},
                         {"name": "roleName", "type": "bst", "comment": "角色名", "explain": []}
                     ]}
-                }
+                ]}
             ]}
         ]
     },
