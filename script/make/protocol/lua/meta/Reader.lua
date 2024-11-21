@@ -26,18 +26,17 @@ function Reader:read()
             -- save
             self.buffer[1] = string.sub(self.buffer[1], 5 + packetLength)
             local meta = ProtocolDefine.getRead(protocol)
-            local result = read(meta, 1, packetData)
-            return { protocol = protocol, data = result.data }
+            local data = read(meta, 1, packetData)
+            return { protocol = protocol, data = data }
         end
     end
 end
 
 function read(meta, offset, buffer)
-    local name = meta["name"]
     local type = meta["type"]
     local explain = meta["explain"]
     if type == "binary" then
-        return string.sub(buffer, offset, explain), offset + explain
+        return string.unpack("c" .. explain, buffer, offset), offset + explain
     elseif type == "bool" then
         return string.unpack(">I1", buffer, offset) ~= 0, offset + 1
     elseif type == "u8" then
@@ -61,55 +60,45 @@ function read(meta, offset, buffer)
     elseif type == "f64" then
         return string.unpack(">d", buffer, offset), offset + 8
     elseif type == "str" then
-        return string.unpack(">s2", buffer, offset), offset + 2 + string.len(data[name])
+        local data = string.unpack(">s2", buffer, offset)
+        return data, offset + 2 + string.len(data)
     elseif type == "bst" then
-        return string.unpack(">s2", buffer, offset), offset + 2 + string.len(data[name])
+        local data = string.unpack(">s2", buffer, offset)
+        return data, offset + 2 + string.len(data)
     elseif type == "rst" then
-        return string.unpack(">s2", buffer, offset), offset + 2 + string.len(data[name])
+        local data = string.unpack(">s2", buffer, offset)
+        return data, offset + 2 + string.len(data)
     elseif type == "list" and key == nil then
         local listTable = {}
         local listLength = string.unpack(">I2", buffer, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
-            local result, bytes = read(explain[1], offset, buffer)
-            listTable[listIndex] = result;
-            offset = offset + bytes
+            -- list only one explain
+            local data, bytes = read(explain[1], offset, buffer)
+            listTable[listIndex] = data
+            offset = bytes
         end
-        return listTable
+        return listTable, offset
     elseif type == "list" then
-        local mapTable = {}
-        local key = meta["key"]
+        local listTable = {}
         local mapLength = string.unpack(">I2", buffer, offset)
         offset = offset + 2
-        for mapIndex = 1, mapLength do
-            local result, bytes = read(explain[1], offset, buffer)
-            mapTable[data[key]] = result
-            offset = offset + bytes
+        for _ = 1, mapLength do
+            -- key list only one explain
+            local data, bytes = read(explain[1], offset, buffer)
+            listTable[data[key]] = data
+            offset = bytes
         end
-        return mapTable
+        return listTable, offset
     elseif type == "map" then
         local mapTable = {}
-        local mapIndex = 1
-        mapTable[1] = string.pack(">I2", #data)
-        for key, sub in pairs(explain) do
-            mapTable[mapIndex] = read(sub, 1, data[sub["name"]]);
-            mapIndex = mapIndex + 1;
+        for _, sub in pairs(explain) do
+            local data, bytes = read(sub, offset, buffer)
+            mapTable[sub["name"]] = data
+            offset = bytes
         end
-        return table.concat(mapTable)
-
-        local mapTable = {}
-        local key = meta["key"]
-        local mapLength = string.unpack(">I2", buffer, offset), offset + 2
-        for mapIndex = 1, mapLength do
-            local result = read(explain, offset, buffer)
-            local data = result["data"]
-            mapTable[data[key]] = result["data"]
-            offset = result["offset"]
-        end
-        return mapTable
+        return mapTable, offset
     else
         error(string.format("unknown type: ", meta["type"]))
     end
-end
-
 end

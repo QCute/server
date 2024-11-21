@@ -12,11 +12,10 @@ function Writer:write(protocol, data)
     local length = string.len(capacity)
     local lengthString = string.pack(">I2", length)
     local protocolString = string.pack(">I2", protocol)
-    return table.concat({capacity, lengthString, protocolString})
+    return table.concat({lengthString, protocolString, capacity})
 end
 
 function write(meta, offset, data)
-    local name = meta["name"]
     local type = meta["type"]
     local explain = meta["explain"]
     local key = meta["key"]
@@ -55,7 +54,7 @@ function write(meta, offset, data)
         listTable[1] = string.pack(">I2", #data)
         for listIndex = 1, #data do
             -- list only one explain
-            listTable[listIndex] = write(explain[1], 1, data[listIndex])
+            listTable[listIndex + 1] = write(explain[1], 1, data[listIndex])
         end
         return table.concat(listTable)
     elseif type == "list" then
@@ -72,9 +71,9 @@ function write(meta, offset, data)
         local mapTable = {}
         local mapIndex = 1
         mapTable[1] = string.pack(">I2", #data)
-        for key, sub in pairs(explain) do
-            mapTable[mapIndex] = write(sub, 1, data[sub["name"]]);
-            mapIndex = mapIndex + 1;
+        for _, sub in pairs(explain) do
+            mapTable[mapIndex] = write(sub, 1, data[sub["name"]])
+            mapIndex = mapIndex + 1
         end
         return table.concat(mapTable)
     else

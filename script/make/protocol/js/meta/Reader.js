@@ -53,97 +53,103 @@ export default class Reader {
         return undefined;
     }
 
-    __read__(metadata, offset, view) {
-        let data = {};
-        for (const meta of metadata) {
-            switch (meta["type"]) {
-                case "u8": {
-                    data[meta["name"]] = view.getUint8(offset, false);
-                    offset = offset + 1;
-                } break;
-                case "u16": {
-                    data[meta["name"]] = view.getUint16(offset, false);
-                    offset = offset + 2;
-                } break;
-                case "u32": {
-                    data[meta["name"]] = view.getUint32(offset, false);
-                    offset = offset + 4;
-                } break;
-                case "u64": {
-                    data[meta["name"]] = view.getBigUint64(offset, false);
-                    offset = offset + 8;
-                } break;
-                case "i8": {
-                    data[meta["name"]] = view.getInt8(offset, false);
-                    offset = offset + 1;
-                } break;
-                case "i16": {
-                    data[meta["name"]] = view.getInt16(offset, false);
-                    offset = offset + 2;
-                } break;
-                case "i32": {
-                    data[meta["name"]] = view.getInt32(offset, false);
-                    offset = offset + 4;
-                } break;
-                case "i64": {
-                    data[meta["name"]] = view.getBigInt64(offset, false);
-                    offset = offset + 8;
-                } break;
-                case "f32": {
-                    data[meta["name"]] = view.getFloat32(offset, false);
-                    offset = offset + 4;
-                } break;
-                case "f64": {
-                    data[meta["name"]] = view.getFloat64(offset, false);
-                    offset = offset + 8;
-                } break;
-                case "bool": {
-                    data[meta["name"]] = view.getUint8(offset, false) !== 0;
-                    offset = offset + 1;
-                } break;
-                case "binary": {
-                    const length = meta["explain"];
-                    data[meta["name"]] = view.buffer.slice(offset, offset + length);
-                    offset = offset + length;
-                } break;
-                case "str":
-                case "bst":
-                case "rst": {
+    __read__(meta, offset, view) {
+        let data = null;
+        const type = meta["type"];
+        const explain = meta["explain"];
+        const key = meta["key"];
+        switch (type) {
+            case "binary": {
+                data = view.buffer.slice(offset, offset + explain);
+                offset = offset + explain;
+            } break;
+            case "bool": {
+                data = view.getUint8(offset, false) !== 0;
+                offset = offset + 1;
+            } break;
+            case "u8": {
+                data = view.getUint8(offset, false);
+                offset = offset + 1;
+            } break;
+            case "u16": {
+                data = view.getUint16(offset, false);
+                offset = offset + 2;
+            } break;
+            case "u32": {
+                data = view.getUint32(offset, false);
+                offset = offset + 4;
+            } break;
+            case "u64": {
+                data = view.getBigUint64(offset, false);
+                offset = offset + 8;
+            } break;
+            case "i8": {
+                data = view.getInt8(offset, false);
+                offset = offset + 1;
+            } break;
+            case "i16": {
+                data = view.getInt16(offset, false);
+                offset = offset + 2;
+            } break;
+            case "i32": {
+                data = view.getInt32(offset, false);
+                offset = offset + 4;
+            } break;
+            case "i64": {
+                data = view.getBigInt64(offset, false);
+                offset = offset + 8;
+            } break;
+            case "f32": {
+                data = view.getFloat32(offset, false);
+                offset = offset + 4;
+            } break;
+            case "f64": {
+                data = view.getFloat64(offset, false);
+                offset = offset + 8;
+            } break;
+            case "str":
+            case "bst":
+            case "rst": {
+                let length = view.getUint16(offset, false);
+                offset = offset + 2;
+                let array = new Uint8Array(view.buffer.slice(offset, offset + length));
+                data = this.textDecoder.decode(array);
+                offset = offset + length;
+            } break;
+            case "list": {
+                if(typeof key == 'undefined') {
+                    data = [];
                     let length = view.getUint16(offset, false);
                     offset = offset + 2;
-                    let array = new Uint8Array(view.buffer.slice(offset, offset + length));
-                    data[meta["name"]] = this.textDecoder.decode(array);
-                    offset = offset + length;
-                } break;
-                case "list": {
-                    let list = [];
-                    let length = view.getUint16(offset, false);
-                    offset = offset + 2;
-                    const explain = meta["explain"];
                     while (--length >= 0) {
-                        const result = this.__read__(explain, offset, view);
-                        list.push(result["data"]);
-                        offset = result["offset"];
+                        // list only one explain
+                        const result = this.__read__(explain[0], offset, view);
+                        data.push(result.data);
+                        offset = result.offset;
                     }
-                    data[meta["name"]] = list;
-                } break;
-                case "map": {
-                    let map = {};
-                    const key = meta["key"];
+                } else {
+                    data = {};
                     let length = view.getUint16(offset, false);
                     offset = offset + 2;
-                    const explain = meta["explain"];
                     while (--length >= 0) {
-                        const result = this.__read__(explain, offset, view);
-                        const sub = result["data"];
-                        map[sub[key]] = sub;
-                        offset = result["offset"];
+                        // key list only one explain
+                        const result = this.__read__(explain[0], offset, view);
+                        data[result.data[key]] = result.data;
+                        offset = result.offset;
                     }
-                    data[meta["name"]] = map;
-                } break;
-                default: throw ("unknown meta type: " + meta["type"])
-            }
+                }
+            } break;
+            case "map": {
+                data = {};
+                for(const sub of explain) {
+                    const result = this.__read__(sub, offset, view);
+                    data[sub["name"]] = result.data;
+                    offset = result.offset;
+                }
+            } break;
+            default: throw ("unknown meta type: " + meta["type"])
         }
+
         return { data, offset };
     }
 }
