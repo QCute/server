@@ -1,14 +1,14 @@
 TestProtocol = {}
 
 function TestProtocol.encode(offset, protocol, data)
-    if protocol == 65533 then
+    if protocol == 65532 then
         local offset = offset
         local table = {}
         -- single i16
         table[offset] = string.pack(">i2", data)
         offset = offset + 1
         return table
-    elseif protocol == 65534 then
+    elseif protocol == 65533 then
         local offset = offset
         local table = {}
         -- single list
@@ -17,6 +17,18 @@ function TestProtocol.encode(offset, protocol, data)
         for dataIndex = 1, #data do
             local dataItem = data[dataIndex]
             -- single u32
+            table[offset] = string.pack(">I4", dataItem)
+            offset = offset + 1
+        end
+        return table
+    elseif protocol == 65534 then
+        local offset = offset
+        local table = {}
+        -- key single list
+        table[offset] = string.pack(">I2", #data)
+        offset = offset + 1
+        for _, dataItem in pairs(data) do
+            -- key single u32
             table[offset] = string.pack(">I4", dataItem)
             offset = offset + 1
         end
@@ -198,13 +210,13 @@ function TestProtocol.encode(offset, protocol, data)
 end
 
 function TestProtocol.decode(offset, protocol, data)
-    if protocol == 65533 then
+    if protocol == 65532 then
         local offset = offset
         -- single i16
         local data = string.unpack(">i2", data, offset)
         offset = offset + 2
         return data
-    elseif protocol == 65534 then
+    elseif protocol == 65533 then
         local offset = offset
         -- single list
         local data = {}
@@ -215,6 +227,19 @@ function TestProtocol.decode(offset, protocol, data)
             local item = string.unpack(">I4", data, offset)
             offset = offset + 4
             data[dataIndex] = item
+        end
+        return data
+    elseif protocol == 65534 then
+        local offset = offset
+        -- key single list
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- key single u32
+            local item = string.unpack(">I4", data, offset)
+            offset = offset + 4
+            data[u32] = item
         end
         return data
     elseif protocol == 65535 then

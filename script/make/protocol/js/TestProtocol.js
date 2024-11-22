@@ -1,7 +1,7 @@
 export default class TestProtocol {
     static encode(textEncoder, view, offset, protocol, data) {
         switch (protocol) {
-            case 65533: {
+            case 65532: {
                 // extend
                 while (view.byteLength < offset + 2) {
                     const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
@@ -13,7 +13,7 @@ export default class TestProtocol {
                 offset = offset + 2;
                 return new DataView(view.buffer.slice(0, offset));
             }
-            case 65534: {
+            case 65533: {
                 // extend
                 while (view.byteLength < offset + 2) {
                     const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
@@ -31,6 +31,30 @@ export default class TestProtocol {
                         view = extendView;
                     }
                     // single u32
+                    view.setUint32(offset, dataItem, false);
+                    offset = offset + 4;
+                }
+                return new DataView(view.buffer.slice(0, offset));
+            }
+            case 65534: {
+                // extend
+                while (view.byteLength < offset + 2) {
+                    const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                    (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                    view = extendView;
+                }
+                // key single list
+                view.setUint16(offset, Object.keys(data).length, false);
+                offset = offset + 2;
+                for (const dataKey in data) {
+                    const dataItem = data[dataKey];
+                    // extend
+                    while (view.byteLength < offset + 4) {
+                        const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                        (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                        view = extendView;
+                    }
+                    // key single u32
                     view.setUint32(offset, dataItem, false);
                     offset = offset + 4;
                 }
@@ -560,13 +584,13 @@ export default class TestProtocol {
 
     static decode(textDecoder, view, offset, protocol) {
         switch (protocol) {
-            case 65533: {
+            case 65532: {
                 // single i16
                 const data = view.getInt16(offset, false);
                 offset = offset + 2;
                 return data;
             }
-            case 65534: {
+            case 65533: {
                 // single list
                 const data = [];
                 let dataLength = view.getUint16(offset, false);
@@ -577,6 +601,20 @@ export default class TestProtocol {
                     offset = offset + 4;
                     // add
                     data.push(item);
+                }
+                return data;
+            }
+            case 65534: {
+                // key single list
+                const data = {};
+                let dataLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                while (--dataLength >= 0) {
+                    // key single u32
+                    const item = view.getUint32(offset, false);
+                    offset = offset + 4;
+                    // add
+                    data[u32] = item;
                 }
                 return data;
             }

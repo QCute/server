@@ -37,14 +37,14 @@ protocol() ->
         cs = "script/make/protocol/cs/TestProtocol.cs",
         io = [
             #io{
-                number = 65533,
+                number = 65532,
                 handler = #handler{module = test, function = test_single_protocol, protocol = true},
                 comment = "协议测试单个",
                 decode = i16(),                            %% single i16
                 encode = i16()                             %% single i16
             },
             #io{
-                number = 65534,
+                number = 65533,
                 handler = #handler{module = test, function = test_list_protocol, protocol = true},
                 comment = "协议测试单个列表",
                 decode = [                                 %% single list
@@ -52,6 +52,17 @@ protocol() ->
                 ],
                 encode = [                                 %% single list
                     u32()                                  %% single u32
+                ]
+            },
+            #io{
+                number = 65534,
+                handler = #handler{module = test, function = test_list_protocol, protocol = true},
+                comment = "协议测试单个键值列表",
+                decode = [                                 %% key single list
+                    u32 = u32()                            %% key single u32
+                ],
+                encode = [                                 %% key single list
+                    u32 = u32()                            %% key single u32
                 ]
             },
             #io{

@@ -1,16 +1,25 @@
 return {
-    [65533] = {
+    [65532] = {
         ["comment"] = "协议测试单个",
         ["write"] = {name = "data", type = "i16", comment = "single i16", explain = {}},
         ["read"] = {name = "data", type = "i16", comment = "single i16", explain = {}}
     },
-    [65534] = {
+    [65533] = {
         ["comment"] = "协议测试单个列表",
         ["write"] = {name = "data", type = "list", comment = "single list", explain = {
             {name = "item", type = "u32", comment = "single u32", explain = {}}
         }},
         ["read"] = {name = "data", type = "list", comment = "single list", explain = {
             {name = "item", type = "u32", comment = "single u32", explain = {}}
+        }}
+    },
+    [65534] = {
+        ["comment"] = "协议测试单个键值列表",
+        ["write"] = {name = "data", type = "list", comment = "key single list", key = "u32", explain = {
+            {name = "item", type = "u32", comment = "key single u32", explain = {}}
+        }},
+        ["read"] = {name = "data", type = "list", comment = "key single list", key = "u32", explain = {
+            {name = "item", type = "u32", comment = "key single u32", explain = {}}
         }}
     },
     [65535] = {

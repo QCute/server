@@ -7,18 +7,27 @@ public static class TestProtocol
     {
         return new Map()
         {
-            {"65533", new Map() {
+            {"65532", new Map() {
                 {"comment", "协议测试单个"},
                 {"write", new Map() { {"name", "data"}, {"type", "i16"}, {"comment", "single i16"}, {"explain", new List()} }},
                 {"read", new Map() { {"name", "data"}, {"type", "i16"}, {"comment", "single i16"}, {"explain", new List()} }}
             }},
-            {"65534", new Map() {
+            {"65533", new Map() {
                 {"comment", "协议测试单个列表"},
                 {"write", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "single list"}, {"explain", new List() {
                     new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "single u32"}, {"explain", new List()} }
                 }}}},
                 {"read", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "single list"}, {"explain", new List() {
                     new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "single u32"}, {"explain", new List()} }
+                }}}}
+            }},
+            {"65534", new Map() {
+                {"comment", "协议测试单个键值列表"},
+                {"write", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "key single list"}, {"key", "u32"}, {"explain", new List() {
+                    new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "key single u32"}, {"explain", new List()} }
+                }}}},
+                {"read", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "key single list"}, {"key", "u32"}, {"explain", new List() {
+                    new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "key single u32"}, {"explain", new List()} }
                 }}}}
             }},
             {"65535", new Map() {

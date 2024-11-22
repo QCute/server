@@ -4,13 +4,13 @@ public static class TestProtocol
     {
         switch (protocol) 
         {
-            case 65533:
+            case 65532:
             {
                 // single i16
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)data));
                 return;
             }
-            case 65534:
+            case 65533:
             {
                 // single list
                 var dataCast = (System.Collections.Generic.List<System.Object>)data;
@@ -19,6 +19,18 @@ public static class TestProtocol
                 {
                     // single u32
                     writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)dataCastItemRaw));
+                }
+                return;
+            }
+            case 65534:
+            {
+                // key single list
+                var dataCast = (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)data;
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)dataCast.Count));
+                foreach(var dataCastItemRaw in dataCast)
+                {
+                    // key single u32
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)dataCastItemRaw.Value));
                 }
                 return;
             }
@@ -190,13 +202,13 @@ public static class TestProtocol
     {
         switch (protocol) 
         {
-            case 65533:
+            case 65532:
             {
                 // single i16
                 var data = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 return data;
             }
-            case 65534:
+            case 65533:
             {
                 // single list
                 var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
@@ -207,6 +219,20 @@ public static class TestProtocol
                     var item = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // add
                     data.Add(item);
+                }
+                return data;
+            }
+            case 65534:
+            {
+                // key single list
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>(dataLength);
+                while (dataLength-- > 0)
+                {
+                    // key single u32
+                    var item = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // add
+                    data[u32] = item;
                 }
                 return data;
             }

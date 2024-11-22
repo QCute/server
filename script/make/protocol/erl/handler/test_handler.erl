@@ -5,8 +5,11 @@
 -export([send_test_protocol/19]).
 -include("user.hrl").
 
+handle(User, 65532, Data) ->
+    test:test_single_protocol(User, 65532, Data);
+
 handle(User, 65533, Data) ->
-    test:test_single_protocol(User, 65533, Data);
+    test:test_list_protocol(User, 65533, Data);
 
 handle(User, 65534, Data) ->
     test:test_list_protocol(User, 65534, Data);
@@ -17,7 +20,11 @@ handle(User, 65535, {Binary, Boolean, U8, U16, U32, U64, I8, I16, I32, I64, F32,
 handle(_, Protocol, Data) ->
     {error, Protocol, Data}.
 
-send_test_single_protocol(User, 65533, Data) ->
+send_test_single_protocol(User, 65532, Data) ->
+    {ok, Binary} = test_protocol:encode(65532, Data),
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
+
+send_test_list_protocol(User, 65533, Data) ->
     {ok, Binary} = test_protocol:encode(65533, Data),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
