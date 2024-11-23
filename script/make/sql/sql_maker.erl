@@ -662,57 +662,20 @@ parse_where_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     Condition = [parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
     string:join(Condition, " AND ");
 
+parse_where_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Comparable)), " (", type:to_list(Format), ")"]).
+
+
 %% raw
-parse_where_compare(File, SQL, Table, Operation, Name, {'$raw$', Raw}, Fields) ->
+parse_where_compare_literal(File, SQL, Table, Operation, Compare, {'$raw$', Raw}, Fields) ->
     #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", Raw, ""]);
-
-%% in => binding param
-parse_where_compare(File, SQL, Table, Operation, Name, {Comparable = '$in$', []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-%% in => literal value
-parse_where_compare(File, SQL, Table, Operation, Name, {Comparable = '$in$', [Literal]}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]);
-
-%% between => binding param
-parse_where_compare(File, SQL, Table, Operation, Name, {Comparable = '$between$', []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
-
-%% between => literal value
-parse_where_compare(File, SQL, Table, Operation, Name, {Comparable = '$between$', [{Left, Right}]}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
-    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
-
-parse_where_compare(File, SQL, Table, Operation, Name, {Comparable, []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-parse_where_compare(File, SQL, Table, Operation, Name, {Comparable, [Literal]}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]).
-
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
 
 %% in => binding param
 parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-%% in => literal value
-parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$value$', [Literal]}, Fields) ->
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format(string:join(lists:duplicate(length(Literal), "?"), ", "), Literal)), ")"]);
 
 %% in => literal value
 parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = in, Literal, Fields) ->
@@ -725,13 +688,6 @@ parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = between
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
 
 %% between => literal value
-parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$value$', [{Left, Right}]}, Fields) ->
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
-    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
-
-%% between => literal value
 parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {Left, Right}, Fields) ->
     #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
@@ -742,11 +698,6 @@ parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = between
 parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-%% literal value
-parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$value$', [Literal]}, Fields) ->
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]);
 
 %% literal value
 parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
@@ -800,57 +751,20 @@ parse_having_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     Condition = [parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
     string:join(Condition, " AND ");
 
+parse_having_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Comparable)), " (", type:to_list(Format), ")"]).
+
+
 %% raw
-parse_having_compare(File, SQL, Table, Operation, Name, {'$raw$', Raw}, Fields) ->
+parse_having_compare(File, SQL, Table, Operation, Compare, {'$raw$', Raw}, Fields) ->
     #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", Raw, ""]);
-
-%% in => binding param
-parse_having_compare(File, SQL, Table, Operation, Name, {Comparable = '$in$', []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-%% in => literal value
-parse_having_compare(File, SQL, Table, Operation, Name, {Comparable = '$in$', [Literal]}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]);
-
-%% between => binding param
-parse_having_compare(File, SQL, Table, Operation, Name, {Comparable = '$between$', []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
-
-%% between => literal value
-parse_having_compare(File, SQL, Table, Operation, Name, {Comparable = '$between$', [{Left, Right}]}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
-    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
-
-parse_having_compare(File, SQL, Table, Operation, Name, {Comparable, []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-parse_having_compare(File, SQL, Table, Operation, Name, {Comparable, [Literal]}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]).
-
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
 
 %% in => binding param
 parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-%% in => literal value
-parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$value$', [Literal]}, Fields) ->
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format(string:join(lists:duplicate(length(Literal), "?"), ", "), Literal)), ")"]);
 
 %% in => literal value
 parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = in, Literal, Fields) ->
@@ -863,13 +777,6 @@ parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = betwee
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
 
 %% between => literal value
-parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$value$', [{Left, Right}]}, Fields) ->
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
-    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
-
-%% between => literal value
 parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {Left, Right}, Fields) ->
     #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
@@ -880,11 +787,6 @@ parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = betwee
 parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
-
-%% literal value
-parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$value$', [Literal]}, Fields) ->
-    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]);
 
 %% literal value
 parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
@@ -943,66 +845,30 @@ parse_offset(_, #{}, _, _) ->
 %%%===================================================================
 
 parse_key(File, SQL, Table, Operation, Fields, WhereMapMeta, HavingMapMeta) ->
-    lists:append([parse_key_where(File, SQL, Table, Operation, Fields, WhereMapMeta), parse_key_having(File, SQL, Table, Operation, Fields, HavingMapMeta)]).
+    lists:append([parse_key_where_having(File, SQL, Table, Operation, Fields, WhereMapMeta), parse_key_where_having(File, SQL, Table, Operation, Fields, HavingMapMeta)]).
 
 %% spec key
-parse_key_where(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
+parse_key_where_having(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
     %% lists:append([parse_key_compare(File, Table, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)]);
     lists:append([parse_key_compare(File, SQL, Table, Operation, Name, maps:get(Name, Preset), Fields) || Name <- MapMeta]);
 
 %% multi column
-parse_key_where(File, SQL = #{by := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
+parse_key_where_having(File, SQL = #{by := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
     [(parse_field_type(File, SQL, Table, Operation, Fields, Name))#field{alias = word:to_hump(Name), transform = word:to_hump(Name)} || Name <- Preset];
 
 %% single column
-parse_key_where(File, SQL = #{by := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
+parse_key_where_having(File, SQL = #{by := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
     Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Preset),
     [Field#field{transform = Alias}];
 
 %% without key
-parse_key_where(_, #{}, _, _, _, _) ->
-    [].
-
-%% spec key
-parse_key_having(File, SQL = #{having := Preset = #{}}, Table, Operation, Fields, _) ->
-    lists:append([parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)]);
-
-%% multi column
-parse_key_having(File, SQL = #{having := Preset = [_ | _]}, Table, Operation, Fields, _) ->
-    [(parse_field_type(File, SQL, Table, Operation, Fields, Name))#field{alias = word:to_hump(Name), transform = word:to_hump(Name)} || Name <- Preset];
-
-%% single column
-parse_key_having(File, SQL = #{having := Name}, Table, Operation, Fields, _) ->
-    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    [Field#field{transform = Alias}];
-
-%% without key
-parse_key_having(_, #{}, _, _, _, _) ->
+parse_key_where_having(_, #{}, _, _, _, _) ->
     [].
 
 
 %% spec compare or literal value
 parse_key_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     lists:append([parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)]);
-
-%% literal value
-parse_key_compare(_, _, _, _, _, {_, [_ | _]}, _) ->
-    [];
-
-%% compare
-parse_key_compare(File, SQL, Table, Operation, Name, {Comparable = '$in$', []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    Field = #field{alias = Alias, value = Value} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    NewValue = lists:concat(["[", Value, "]"]),
-    Transform = lists:concat(["db:in(", type:to_list(Alias), ")"]),
-    [Field#field{value = NewValue, transform = Transform, preset = string:to_upper(type:to_list(Compare))}];
-
-parse_key_compare(File, SQL, Table, Operation, Name, {Comparable = '$between$', []}, Fields) ->
-    Compare = string:trim(atom_to_list(Comparable), both, "$"),
-    Field = #field{alias = Alias, value = Value} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    NewValue = lists:concat(["{", Value, ", ", Value, "}"]),
-    Transform = lists:concat(["element(1, ", type:to_list(Alias), "), element(2, ", type:to_list(Alias), ")"]),
-    [Field#field{value = NewValue, transform = Transform, preset = string:to_upper(type:to_list(Compare))}];
 
 parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) ->
     Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),

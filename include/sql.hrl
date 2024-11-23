@@ -42,53 +42,8 @@
 %% raw sql
 raw(Raw) -> {'$raw$', Raw}.
 
-%% general compare
-equal() -> {'$=$', []}.
-equal(Literal) -> {'$=$', [Literal]}.
-
-great_then() -> {'$>$', []}.
-great_then(Literal) -> {'$>$', [Literal]}.
-
-great_then_equal() -> {'$>=$', []}.
-great_then_equal(Literal) -> {'$>$', [Literal]}.
-
-less_then() -> {'$<$', []}.
-less_then(Literal) -> {'$<$', [Literal]}.
-
-less_then_equal() -> {'$<=$', []}.
-less_then_equal(Literal) -> {'$<=$', [Literal]}.
-
-not_equal() -> {'$<>$', []}.
-not_equal(Literal) -> {'$<>$', [Literal]}.
-
-%% general range match
-in() -> {'$in$', []}.
-in(Literal) -> {'$in$', [Literal]}.
-
-not_in() -> {'$not in$', []}.
-not_in(Literal) -> {'$not_in$', [Literal]}.
-
-between() -> {'$between$', []}.
-between(Left, Right) -> {'$between$', [{Left, Right}]}.
-
-not_between() -> {'$not between$', []}.
-not_between(Left, Right) -> {'$not between$', [Left, Right]}.
-
-%% general fuzzy match
-like() -> {'$like$', []}.
-like(Literal) -> {'$like$', [Literal]}.
-
-not_like() -> {'$not like$', []}.
-not_like(Literal) -> {'$not like$', [Literal]}.
-
-%% null and not null
-null() -> {'$is null$', []}.
-not_null() -> {'$is not null$', []}.
-
 %% binding param
 param() -> {'$param$', []}.
-%% literal value
-value(Literal) -> {'$value$', [Literal]}.
 
 %% https://mariadb.com/kb/en/window-functions-overview/
 %% https://mariadb.com/kb/en/window-functions/

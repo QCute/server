@@ -170,8 +170,8 @@ sql() ->
     select => [],
     from => table,
     by => #{
-        key => great_then(),
-        value => in()
+        key => '>',
+        value => in
     },
     as => get
 }
@@ -184,8 +184,8 @@ sql() ->
     select => [],
     from => table,
     by => #{
-        key => value(),
-        value => value(6)
+        key => param(),
+        value => 6
     },
     as => get
 }
@@ -198,8 +198,8 @@ sql() ->
         key => '>',
         value => #{
             between => {1, b},
-            '<' => value(),
-            '=' => value(7),
+            '<' => param(),
+            '=' => 7,
             '>' => 8
         }
     },
@@ -227,8 +227,8 @@ sql() ->
     group_by => key,
     having => #{
         key => #{
-            '<' => value(),
-            '=' => value(7),
+            '<' => param(),
+            '=' => 7,
             '>' => 8
         }
     },
@@ -238,7 +238,7 @@ sql() ->
 
 12. 使用 [order_by]()
 ```erl
-%% SELECT `key`, `value` FROM `table` GROUP BY `key` ORDER BY `value`
+%% SELECT `key`, ` FROM `table` GROUP BY `key` ORDER BY `valu`
 #{
     select => [],
     from => table,
@@ -395,8 +395,8 @@ sql() ->
     update => [],
     into => table,
     by => #{
-        key => great_then(),
-        value => in()
+        key => '>',
+        value => in
     },
     as => save
 }
@@ -411,8 +411,8 @@ sql() ->
     by => #{
         key => '>',
         value => #{
-            '<' => value(),
-            '=' => value(7),
+            '<' => param(),
+            '=' => 7,
             '>' => 8
         }
     },
@@ -440,8 +440,8 @@ sql() ->
     group_by => key,
     having => #{
         key => #{
-            '<' => value(),
-            '=' => value(7),
+            '<' => param(),
+            '=' => 7,
             '>' => 8
         }
     },
@@ -612,8 +612,8 @@ sql() ->
     delete => [],
     from => table,
     by => #{
-        key => great_then(),
-        value => in()
+        key => '>',
+        value => in
     },
     as => del
 }
@@ -628,8 +628,8 @@ sql() ->
     by => #{
         key => '>',
         value => #{
-            '<' => value(),
-            '=' => value(7),
+            '<' => param(),
+            '=' => 7,
             '>' => 8
         }
     },
@@ -657,8 +657,8 @@ sql() ->
     group_by => key,
     having => #{
         key => #{
-            '<' => value(),
-            '=' => value(7),
+            '<' => param(),
+            '=' => 7,
             '>' => 8
         }
     },
@@ -826,10 +826,10 @@ maker sql 文件名(不含扩展名)
 
 | Value                         | SQL                           | Description                 
 | ----------------------------- | ----------------------------- | -----------------------------
-| k1 => equal()                 | \`k1\` = ?                    | 完全匹配
-| k2 => great_then()                    | \`k2\` > ?                    | 区间
-| k3 => in()                    | \`k3\` IN (?, ?, ?...)        | 查找多个
-| k4 => #{like => value()}      | \`k4\` LIKE ?                 | 使用多个查找方式, 例如LIKE
+| k1 => '='                     | \`k1\` = ?                    | 完全匹配
+| k2 => '>'                     | \`k2\` > ?                    | 区间
+| k3 => in                      | \`k3\` IN (?, ?, ?...)        | 查找多个
+| k4 => #{like => param()}      | \`k4\` LIKE ?                 | 使用多个查找方式, 例如LIKE
 | k5 => #{between => {3, 4}}    | \`k5\` BETWEEN ? AND ?        | 使用多个查找方式, 例如BETWEEN
 | k6 => #{not_in => [5, "6"]}   | \`k6\` NOT IN (5, '6')        | 使用预设值, 例如NOT IN
 
@@ -851,10 +851,10 @@ maker sql 文件名(不含扩展名)
 
 | Value                         | SQL                           | Description                 
 | ----------------------------- | ----------------------------- | -----------------------------
-| k1 => equal()                 | \`k1\` = ?                    | 完全匹配
-| k2 => great_then()                    | \`k2\` > ?                    | 区间
-| k3 => in()                    | \`k3\` IN (?, ?, ?...)        | 查找多个
-| k4 => #{like => value()}      | \`k4\` LIKE ?                 | 使用多个查找方式, 例如LIKE
+| k1 => '='                     | \`k1\` = ?                    | 完全匹配
+| k2 => '>'                     | \`k2\` > ?                    | 区间
+| k3 => in                      | \`k3\` IN (?, ?, ?...)        | 查找多个
+| k4 => #{like => param()}      | \`k4\` LIKE ?                 | 使用多个查找方式, 例如LIKE
 | k5 => #{between => {3, 4}}    | \`k5\` BETWEEN ? AND ?        | 使用多个查找方式, 例如BETWEEN
 | k6 => #{not_in => [5, "6"]}   | \`k6\` NOT IN (5, '6')        | 使用预设值, 例如NOT IN
 

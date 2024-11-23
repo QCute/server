@@ -98,8 +98,10 @@ sql() ->
                     select => [],
                     from => permission,
                     by => #{
-                        role_id => equal(),
-                        type => equal(login)
+                        role_id => '=',
+                        type => #{
+                            '=' => login
+                        }
                     },
                     order_by => #{
                         permission_no => desc
@@ -111,8 +113,10 @@ sql() ->
                     select => [],
                     from => permission,
                     by => #{
-                        role_id => equal(),
-                        type => equal(chat)
+                        role_id => '=',
+                        type => #{
+                            '=' => chat
+                        }
                     },
                     order_by => #{
                         permission_no => desc
@@ -229,7 +233,7 @@ sql() ->
                     delete => [],
                     from => item,
                     by => #{
-                        item_no => in()
+                        item_no => in
                     },
                     as => delete_in_item_no
                 }
@@ -321,7 +325,7 @@ sql() ->
                     delete => [],
                     from => mail,
                     by => #{
-                        mail_id => in()
+                        mail_id => in
                     },
                     as => delete_in_mail_id
                 }
@@ -615,7 +619,7 @@ sql() ->
                     delete => [],
                     from => notice,
                     by => #{
-                        notice_id => in()
+                        notice_id => in
                     },
                     as => delete_in_notice_id
                 }
@@ -993,7 +997,7 @@ sql() ->
                     delete => [],
                     from => lucky_money,
                     by => #{
-                        lucky_money_no => in()
+                        lucky_money_no => in
                     },
                     as => delete_in_lucky_money_no
                 }
