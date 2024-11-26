@@ -668,7 +668,7 @@ parse_where_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
 
 
 %% raw
-parse_where_compare_literal(File, SQL, Table, Operation, Compare, {'$raw$', Raw}, Fields) ->
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
     #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
 
@@ -757,7 +757,7 @@ parse_having_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
 
 
 %% raw
-parse_having_compare(File, SQL, Table, Operation, Compare, {'$raw$', Raw}, Fields) ->
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
     #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
 

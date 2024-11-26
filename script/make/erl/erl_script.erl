@@ -36,98 +36,13 @@ erl() ->
             file => "script/make/erl/data/test_data.erl",
             comment => "测试配置",
             sql => [
-                %% key -> value
-                #{
-                    select => zhCN,
-                    from => text_data,
-                    by => key,
-                    as => zhCN
-                },
-                %% key -> column value
-                #{
-                    select => {},
-                    from => text_data,
-                    by => key,
-                    as => text
-                },
-                %% key -> [value]
-                #{
-                    select => all(monster_id),
-                    from => monster_data,
-                    by => type,
-                    as => type
-                },
-                %% -> [value] (not unique)
-                #{
-                    select => all(level),
-                    from => level_data,
-                    order_by => level,
-                    as => level
-                },
-                %% -> [value] (unique)
-                #{
-                    select => all(type),
-                    from => monster_data,
-                    group_by => type,
-                    as => type_list
-                },
-                %% -> value
-                #{
-                    select => {min(exp), max(level)},
-                    from => level_data,
-                    as => min_exp_max_level
-                },
-                %% -> value
-                #{
-                    select => count(zhCN),
-                    from => text_data,
-                    as => text_count
-                },
-                %% -> value
-                #{
-                    select => {max(key), max(zhCN)},
-                    from => text_data,
-                    as => max_text
-                },
-                %% key, key, ... -> value
-                #{
-                    select => description,
-                    from => reference_data,
-                    by => [key, value],
-                    as => ref
-                },
-                %% key, key, ... -> value in if else range
-                #{
-                    select => all(description),
-                    from => reference_data,
-                    by => #{
-                        key => '=',
-                        value => '<'
-                    },
-                    as => ref_range
-                },
-                %% key -> value in if else range ...
-                #{
-                    select => level,
-                    from => level_data,
-                    by => #{
-                        exp => '>'
-                    },
-                    order_by => #{
-                        exp => asc
-                    },
-                    limit => 1,
-                    as => get_level_by_exp_asc
-                },
+
                 %% use literal filter data
                 #{
                     select => value,
                     from => parameter_data,
                     by => #{
-                        key => #{
-                            '=' => param(),
-                            like => "%size%"
-                        }
+                        key => in
                     },
                     as => get
                 }

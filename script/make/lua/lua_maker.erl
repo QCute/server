@@ -409,20 +409,29 @@ parse_where_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     Condition = [parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
     string:join(Condition, " AND ");
 
-%% compare only
-parse_where_compare(File, SQL, Table, Operation, Name, Compare, Fields) ->
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " ", type:to_list(Format)]).
-
-
-%% not literal
-parse_where_compare_literal(File, SQL, Table, Operation, Name, '=<', {'$param$', []}, Fields) ->
-    Field = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    [Field#field{preset = '<='}];
-
-parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+%% normal compare
+parse_where_compare(File, SQL, Table, Operation, Name, Compare, Fields) when Compare == '=' orelse Compare == '>' orelse Compare == '>=' orelse Compare == '<' orelse Compare == '<=' ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " ", type:to_list(Format)]);
+
+%% other compare
+parse_where_compare(_, _, _, _, _, Compare, _) ->
+    erlang:throw(lists:flatten(io_lib:format("Compare `~ts` parameterize does not supported", [Compare]))).
+
+
+%% raw
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
+
+%% normal compare => binding param
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) when Compare == '=' orelse Compare == '>' orelse Compare == '>=' orelse Compare == '<' orelse Compare == '<=' ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " ", "(", type:to_list(Format), ")"]);
+
+%% other compare => binding param
+parse_where_compare_literal(_, _, _, _, _, Compare, {'$param$', []}, _) ->
+    erlang:throw(lists:flatten(io_lib:format("Compare `~ts` parameterize does not supported", [Compare])));
 
 %% literal
 parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
@@ -476,20 +485,29 @@ parse_having_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     Condition = [parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
     string:join(Condition, " AND ");
 
-%% compare only
-parse_having_compare(File, SQL, Table, Operation, Name, Compare, Fields) ->
-    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
-    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " ", type:to_list(Format)]).
-
-
-%% not literal
-parse_having_compare_literal(File, SQL, Table, Operation, Name, '=<', {'$param$', []}, Fields) ->
-    Field = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    [Field#field{preset = '<='}];
-
-parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+%% normal compare
+parse_having_compare(File, SQL, Table, Operation, Name, Compare, Fields) when Compare == '=' orelse Compare == '>' orelse Compare == '>=' orelse Compare == '<' orelse Compare == '<=' ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
     lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " ", type:to_list(Format)]);
+
+%% other compare
+parse_having_compare(_, _, _, _, _, Compare, _) ->
+    erlang:throw(lists:flatten(io_lib:format("Compare `~ts` parameterize does not supported", [Compare]))).
+
+
+%% raw
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
+
+%% normal compare => binding param
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) when Compare == '=' orelse Compare == '>' orelse Compare == '>=' orelse Compare == '<' orelse Compare == '<=' ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " ", "(", type:to_list(Format), ")"]);
+
+%% other compare => binding param
+parse_having_compare_literal(_, _, _, _, _, Compare, {'$param$', []}, _) ->
+    erlang:throw(lists:flatten(io_lib:format("Compare `~ts` parameterize does not supported", [Compare])));
 
 %% literal
 parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
@@ -548,41 +566,24 @@ parse_offset(_, #{}, _, _) ->
 %%%===================================================================
 
 parse_key(File, SQL, Table, Operation, Fields, WhereOrder, HavingOrder) ->
-    lists:append([parse_key_where(File, SQL, Table, Operation, Fields, WhereOrder), parse_key_having(File, SQL, Table, Operation, Fields, HavingOrder)]).
+    lists:append([parse_key_where_having(File, SQL, Table, Operation, Fields, WhereOrder), parse_key_where_having(File, SQL, Table, Operation, Fields, HavingOrder)]).
 
 %% spec key
-parse_key_where(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, Order) ->
+parse_key_where_having(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, Order) ->
     %% lists:append([parse_key_compare(File, Table, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)]);
     lists:append([parse_key_compare(File, SQL, Table, Operation, Name, maps:get(Name, Preset), Fields) || Name <- Order]);
 
 %% multi column
-parse_key_where(File, SQL = #{by := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
+parse_key_where_having(File, SQL = #{by := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
     [(parse_field_type(File, SQL, Table, Operation, Fields, Name))#field{alias = word:to_hump(Name)} || Name <- Preset];
 
 %% single column
-parse_key_where(File, SQL = #{by := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
+parse_key_where_having(File, SQL = #{by := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
     Field = parse_field_type(File, SQL, Table, Operation, Fields, Preset),
     [Field];
 
 %% without key
-parse_key_where(_, #{}, _, _, _, _) ->
-    [].
-
-%% spec key
-parse_key_having(File, SQL = #{having := Preset = #{}}, Table, Operation, Fields, _) ->
-    lists:append([parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)]);
-
-%% multi column
-parse_key_having(File, SQL = #{having := Preset = [_ | _]}, Table, Operation, Fields, _) ->
-    [(parse_field_type(File, SQL, Table, Operation, Fields, Name))#field{alias = word:to_hump(Name)} || Name <- Preset];
-
-%% single column
-parse_key_having(File, SQL = #{having := Name}, Table, Operation, Fields, _) ->
-    Field = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    [Field];
-
-%% without key
-parse_key_having(_, #{}, _, _, _, _) ->
+parse_key_where_having(_, #{}, _, _, _, _) ->
     [].
 
 
@@ -597,10 +598,6 @@ parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) ->
 
 
 %% not literal
-parse_key_compare_literal(File, SQL, Table, Operation, Name, '=<', {'$param$', []}, Fields) ->
-    Field = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    [Field#field{preset = '<='}];
-
 parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
     Field = parse_field_type(File, SQL, Table, Operation, Fields, Name),
     [Field#field{preset = Compare}];
