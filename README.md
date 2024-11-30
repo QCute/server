@@ -42,29 +42,9 @@
 
 
 ##  **Code Specs**
-1. All file use utf8 without bom(byte order mark) encoding  
-2. Line break use unix like LF(\n)  
-3. Use four space replace Tab to align and indent  
-
-
-##  **Database Specs**
-1. Use `MariaDB` and `InnoDB` engine, characters set `utf8mb4` and collation `utf8mb4_unicode_ci`  
-2. Setup `configure` and `data` table use **Dynamic** row format, `log` table use **Compressed** row format  
-3. Column `integer` type tiny(3)/small(5)/int(10)/big(20) **UNSIGNED** default 0 and **NOT NULL**
-4. Column `char`/`varchar` default empty string and **NOT NULL**   
-
-##  **SQL Specs**
-1. Table  
-    1. Configure first  *_data  
-    2. Configure test  *_test_data  
-    3. Data secondary  *  
-    4. Log at last  *_log  
-2. Fields  
-    1. Update first  
-    2. Change secondary  
-3. Data  
-    1. Add data first  
-    2. Revise data secondary  
+1. All file use **utf8** without bom(byte order mark) encoding  
+2. Line break use **unix** like LF(\n)  
+3. Use 4 **space** replace **tab** to align and indent  
 
 
 ##  **License**
