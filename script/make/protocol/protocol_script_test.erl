@@ -56,7 +56,7 @@ protocol() ->
             },
             #io{
                 number = 65534,
-                handler = #handler{module = test, function = test_list_protocol, protocol = true},
+                handler = #handler{module = test, function = test_key_list_protocol, protocol = true},
                 comment = "协议测试单个键值列表",
                 decode = [                                 %% key single list
                     u32 = u32()                            %% key single u32

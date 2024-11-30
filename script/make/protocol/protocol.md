@@ -1,6 +1,6 @@
-# protocol script 使用  
+## protocol script 使用  
 
-## 配置  
+#### 配置  
 ```erl
 protocol() ->
     #protocol{
@@ -22,9 +22,9 @@ protocol() ->
     }.
 ```
 
-## 例子 
+## 用法用例
 
-### 解码  
+#### 解码  
 
 1. 单个值
 ```erl
@@ -102,7 +102,7 @@ decode = [
 ```
 
 
-### 编码  
+#### 编码  
 
 1. 单个值
 ```erl

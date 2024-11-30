@@ -1,13 +1,13 @@
-# record script 使用  
+## record script 使用
 
-## 配置  
+#### 配置  
 
 ```erl
 record() ->
     [].
 ```
 
-## 生成  
+#### 生成  
 ```shell
 maker record 归类名  
 ```

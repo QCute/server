@@ -1,6 +1,6 @@
-# maker
+## maker script
 
-* script/shell/maker.sh  
+#### script/shell/maker.sh  
 ```sh
 usage: maker.sh
     debug [module]                                make (module) with debug mode
@@ -42,116 +42,116 @@ usage: maker.sh
 
 ## 构建相关
 
-* Debug模式编译
+#### Debug模式编译
 ```sh
 maker.sh debug module1, module2...
 ```
 
-* Release模式编译
+#### Release模式编译
 ```sh
 maker.sh release module1, module2...
 ```
 
-* 编译Maker代码
+#### 编译Maker代码
 ```sh
 maker.sh maker
 ```
 
-* 编译Lib代码
+#### 编译Lib代码
 ```sh
 maker.sh lib
 ```
 
-* 清除编译代码
+#### 清除编译代码
 ```sh
 maker.sh clean
 ```
 
 ## 开发辅助相关
 
-* 生成record beam代码
+#### 生成record beam代码
 ```sh
 maker.sh beam
 ```
 
-* 生成plt代码
+#### 生成plt代码
 ```sh
 maker.sh plt
 ```
 
-* 分析代码
+#### 分析代码
 ```sh
 maker.sh dialyzer
 ```
 
-* 生成excel(多个表)
+#### 生成excel(多个表)
 ```sh
 maker.sh book
 ```
 
-* 生成excel(单个表)
+#### 生成excel(单个表)
 ```sh
 maker.sh sheet
 ```
 
-* 导入excel(多个表)
+#### 导入excel(多个表)
 ```sh
 maker.sh collection
 ```
 
-* 导入excel(单个表)
+#### 导入excel(单个表)
 ```sh
 maker.sh table
 ```
 
 ## 代码生成相关
 
-* 生成record代码
+#### 生成record代码
 ```sh
 maker.sh record name
 ```
 
-* 生成sql代码
+#### 生成sql代码
 ```sh
 maker.sh sql name
 ```
 
-* 生成erl代码
+#### 生成erl代码
 ```sh
 maker.sh erl name
 ```
 
-* 生成lua代码
+#### 生成lua代码
 ```sh
 maker.sh lua name
 ```
 
-* 生成js代码
+#### 生成js代码
 ```sh
 maker.sh js name
 ```
 
-* 生成log代码
+#### 生成log代码
 ```sh
 maker.sh log
 ```
 
-* 生成协议代码
+#### 生成协议代码
 ```sh
 maker.sh pt name
 ```
 
-* 生成Router代码
+#### 生成Router代码
 ```sh
 maker.sh router
 ```
 
-* 生成Loop代码
+#### 生成Loop代码
 ```sh
 maker.sh loop
 ```
 
-* 生成Config代码
+#### 生成Config代码
 ```sh
 maker.sh config
 ```
