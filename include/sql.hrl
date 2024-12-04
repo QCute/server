@@ -6,8 +6,7 @@
 -compile({no_auto_import, [min/2, max/2]}).
 -compile({nowarn_unused_record, [sql]}).
 -compile({nowarn_unused_function, [raw/1]}).
--compile({nowarn_unused_function, [param/0, value/1]}).
--compile({nowarn_unused_function, [equal/0, equal/1, great_then/0, great_then/1, less_then/0, less_then/1, great_then_equal/0, great_then_equal/1, less_then_equal/0, less_then_equal/1, not_equal/0, not_equal/1, like/0, like/1, not_like/0, not_like/1, in/0, in/1, not_in/0, not_in/1, between/0, between/2, not_between/0, not_between/2, null/0, not_null/0]}).
+-compile({nowarn_unused_function, [param/0]}).
 -compile({nowarn_unused_function, [avg/1, bit_and/1, bit_or/1, bit_xor/1, count/1, max/1, min/1, std/1, std_dev/1, std_dev_pop/1, std_dev_sample/1, sum/1, var_pop/1, var_sample/1, variance/1]}).
 -compile({nowarn_unused_function, [all/1]}).
 -compile({nowarn_unused_function, [list/0, list/1, list/2, list/3, list/4, list/5, list/6, list/7, list/8, list/9, list/10, list/11, list/12, list/13, list/14, list/15, list/16, list/17, list/18, list/19, list/20, list/21, list/22, list/23, list/24, list/25, list/26]}).
