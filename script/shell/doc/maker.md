@@ -32,7 +32,6 @@ usage: maker.sh
     key [-number|-type|-prefix]                   make active key
     config                                        make erlang application config interface
     router                                        make protocol route
-    loop                                          make load/save/reset/clean/expire code
     attribute                                     make attribute code
     asset                                         make asset code
     event                                         make event code
@@ -144,11 +143,6 @@ maker.sh pt name
 #### 生成Router代码
 ```sh
 maker.sh router
-```
-
-#### 生成Loop代码
-```sh
-maker.sh loop
 ```
 
 #### 生成Config代码

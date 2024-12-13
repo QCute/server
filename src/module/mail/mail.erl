@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(mail).
 %% API
--export([load/1, save/1, expire/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
 -export([add/5, send/5, delete/2]).
@@ -19,21 +19,21 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     Mail = mail_sql:select(RoleId),
     User#user{mail = Mail}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{mail = Mail}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{mail = Mail}) ->
     NewMail = mail_sql:save(Mail),
     User#user{mail = NewMail}.
 
-%% @doc expire
--spec expire(User :: #user{}) -> NewUser :: #user{}.
-expire(User = #user{mail = MailList}) ->
+%% @doc on expire
+-spec on_expire(User :: #user{}) -> NewUser :: #user{}.
+on_expire(User = #user{mail = MailList}) ->
     Now = time:now(),
     %% delete 7 day before, read(no attachment) or received attachment mail
     {Delete, Remain} = lists:partition(fun(#mail{read_time = ReadTime, receive_attachment_time = ReceiveAttachmentTime, attachment = Attachment}) -> (Attachment == [] andalso ReadTime =/= 0 andalso ReadTime + parameter_data:get(mail_expire_time) =< Now) orelse (ReceiveAttachmentTime =/= 0 andalso ReceiveAttachmentTime + parameter_data:get(mail_expire_time) =< Now) end, MailList),

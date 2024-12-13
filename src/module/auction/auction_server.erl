@@ -15,7 +15,6 @@
 -include("common.hrl").
 -include("time.hrl").
 -include("journal.hrl").
--include("protocol.hrl").
 -include("user.hrl").
 -include("role.hrl").
 -include("guild.hrl").

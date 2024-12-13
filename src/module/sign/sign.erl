@@ -5,8 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(sign).
 %% API
--export([load/1]).
--export([reset/1]).
+-export([on_load/1, on_reset/1]).
 -export([sign/1]).
 %% Includes
 -include("common.hrl").
@@ -15,9 +14,9 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case sign_sql:select(RoleId) of
         [Sign = #sign{login_day = LoginDay}] ->
             NewSign = Sign#sign{login_day = LoginDay + 1},
@@ -28,9 +27,9 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{sign = NewSign}.
 
-%% @doc reset
--spec reset(User :: #user{}) -> NewUser :: #user{}.
-reset(User = #user{sign = Sign}) ->
+%% @doc on reset
+-spec on_reset(User :: #user{}) -> NewUser :: #user{}.
+on_reset(User = #user{sign = Sign}) ->
     NewSign = Sign#sign{is_sign_today = 0},
     sign_sql:update(NewSign),
     User#user{sign = NewSign}.

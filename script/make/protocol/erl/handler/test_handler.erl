@@ -2,6 +2,7 @@
 -export([handle/3]).
 -export([send_test_single_protocol/3]).
 -export([send_test_list_protocol/3]).
+-export([send_test_key_list_protocol/3]).
 -export([send_test_protocol/19]).
 -include("user.hrl").
 
@@ -28,7 +29,7 @@ send_test_list_protocol(User, 65533, Data) ->
     {ok, Binary} = test_protocol:encode(65533, Data),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
-send_test_list_protocol(User, 65534, Data) ->
+send_test_key_list_protocol(User, 65534, Data) ->
     {ok, Binary} = test_protocol:encode(65534, Data),
     User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

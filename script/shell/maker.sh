@@ -36,7 +36,6 @@ helps() {
     key [-number|-type|-prefix]                   make active key
     config                                        make erlang application config interface
     router                                        make protocol route
-    loop                                          make load/save/reset/clean/expire code
     attribute                                     make attribute code
     asset                                         make asset code
     event                                         make event code

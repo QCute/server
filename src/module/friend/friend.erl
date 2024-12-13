@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(friend).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query/1]).
 -export([get_number/1]).
 -export([apply/2, agree/2, delete/2, block/2, cancel_block/2]).
@@ -19,15 +19,15 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     Friend = friend_sql:select(RoleId),
     User#user{friend = Friend}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{friend = Friend}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{friend = Friend}) ->
     NewFriend = friend_sql:save(Friend),
     User#user{friend = NewFriend}.
 
@@ -122,7 +122,9 @@ agree_update(User = #user{role_id = RoleId, role_name = Name, friend = FriendLis
             user_server:apply_cast(FriendRoleId, fun agreed/2, [NewFriend]),
             %% update self side data
             NewFriendList = lists:keystore(FriendRoleId, #friend.friend_role_id, FriendList, NewestSelfFriend),
-            {ok, ok, User#user{friend = NewFriendList}};
+            NewUser = User#user{friend = NewFriendList},
+            FinalUser = event:trigger(NewUser, #event{name = friend_add}),
+            {ok, ok, FinalUser};
         _ ->
             {error, friend_apply_not_found}
     end.

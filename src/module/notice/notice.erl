@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(notice).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query/1]).
 -export([coming/2]).
 -export([broadcast/4]).
@@ -13,14 +13,13 @@
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("notice.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     Notice = notice_role_sql:select(RoleId),
     List = notice_server:list(),
     collect_notice(List, User, Notice, []).
@@ -41,9 +40,9 @@ collect_notice([#notice{notice_id = NoticeId, type = Type, receive_time = Receiv
             collect_notice(T, User, Notice, Mail)
     end.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{notice = Notice}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{notice = Notice}) ->
     NewNotice = mail_sql:save(Notice),
     User#user{notice = NewNotice}.
 

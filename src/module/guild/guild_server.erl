@@ -176,7 +176,7 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role
         {ok, GuildId} ->
             {ok, CostUser} = item:reduce(User, CostList, guild_create),
             NewUser = CostUser#user{guild = guild:get_role(RoleId, GuildId)},
-            FinalUser = user_event:trigger(NewUser, #event{name = event_guild_create}),
+            FinalUser = event:trigger(NewUser, #event{name = guild_create}),
             {ok, ok, FinalUser};
         {'EXIT', {timeout, _}} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),

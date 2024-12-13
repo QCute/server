@@ -5,25 +5,24 @@
 %%%-------------------------------------------------------------------
 -module(device).
 %% API
--export([create/1]).
--export([load/1, save/1]).
+-export([on_create/1]).
+-export([on_load/1, on_save/1]).
 %% Includes
--include("common.hrl").
 -include("user.hrl").
 -include("device.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc create
--spec create(User :: #user{}) -> NewUser :: #user{}.
-create(User = #user{role_id = RoleId, device = Device}) ->
+%% @doc on create
+-spec on_create(User :: #user{}) -> NewUser :: #user{}.
+on_create(User = #user{role_id = RoleId, device = Device}) ->
     NewDevice = Device#device{role_id = RoleId},
     device_sql:insert(NewDevice),
     User#user{device = NewDevice}.
 
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case device_sql:select(RoleId) of
         [Device] ->
             Device;
@@ -32,14 +31,14 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{device = Device}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role_id = RoleId, device = Device = #device{role_id = 0}}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, device = Device = #device{role_id = 0}}) ->
     NewDevice = Device#device{role_id = RoleId},
     %% insert new
     device_sql:insert(NewDevice),
     User#user{device = NewDevice};
-save(User = #user{device = Device}) ->
+on_save(User = #user{device = Device}) ->
     device_sql:update(Device),
     User.
 

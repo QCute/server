@@ -15,6 +15,7 @@
 -include("device.hrl").
 -include("role.hrl").
 -include("online.hrl").
+-include("event.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -143,7 +144,7 @@ start_create(Client = #client{ip = IP}, RoleName, ServerId, AccountName, Sex, Cl
     User = #user{role = Role, device = Device},
     %% name will duplicate
     try
-        #user{role_id = RoleId} = user_loop_create:loop(User),
+        #user{role_id = RoleId} = event:trigger(User, #event{name = create}),
         {ok, RoleId, Client}
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),

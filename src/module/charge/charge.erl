@@ -5,21 +5,19 @@
 %%%-------------------------------------------------------------------
 -module(charge).
 %% API
--export([load/1, save/1]).
--export([reset/1]).
+-export([on_load/1, on_save/1, on_reset/1]).
 -export([callback/2]).
 %% Includes
 -include("common.hrl").
 -include("event.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("charge.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case charge_sql:select(RoleId) of
         [Charge] ->
             Charge;
@@ -28,20 +26,20 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{charge = Charge}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role_id = RoleId, charge = Charge = #charge{role_id = 0}}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, charge = Charge = #charge{role_id = 0}}) ->
     NewCharge = Charge#charge{role_id = RoleId},
     %% insert new
     charge_sql:insert(NewCharge),
     User#user{charge = NewCharge};
-save(User = #user{charge = Charge}) ->
+on_save(User = #user{charge = Charge}) ->
     charge_sql:update(Charge),
     User.
 
-%% @doc reset
--spec reset(User :: #user{}) -> NewUser :: #user{}.
-reset(User = #user{charge = Charge}) ->
+%% @doc on reset
+-spec on_reset(User :: #user{}) -> NewUser :: #user{}.
+on_reset(User = #user{charge = Charge}) ->
     case time:weekday() of
         1 ->
             WeeklyTotal = 0;
@@ -94,7 +92,7 @@ update_statistics(User = #user{charge = Charge = #charge{first_charge_time = 0, 
     },
     NewUser = User#user{charge = NewCharge},
     %% trigger charge event
-    {ok, user_event:trigger(NewUser, #event{name = event_charge, target = ChargeId})};
+    {ok, event:trigger(NewUser, #event{name = charge, target = ChargeId})};
 update_statistics(User = #user{charge = Charge = #charge{daily_total = DailyTotal, weekly_total = WeeklyTotal, monthly_total = MonthlyTotal, charge_total = ChargeTotal}}, ChargeId, Price) ->
     Now = time:now(),
     NewCharge = Charge#charge{
@@ -106,7 +104,7 @@ update_statistics(User = #user{charge = Charge = #charge{daily_total = DailyTota
     },
     NewUser = User#user{charge = NewCharge},
     %% trigger charge event
-    {ok, user_event:trigger(NewUser, #event{name = event_charge, target = ChargeId})}.
+    {ok, event:trigger(NewUser, #event{name = charge, target = ChargeId})}.
 
 %%%===================================================================
 %%% Internal functions

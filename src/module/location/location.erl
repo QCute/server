@@ -5,17 +5,16 @@
 %%%-------------------------------------------------------------------
 -module(location).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 %% Includes
--include("common.hrl").
 -include("user.hrl").
 -include("map.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case location_sql:select(RoleId) of
         [Location] ->
             Location;
@@ -27,14 +26,14 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{location = Location}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role_id = RoleId, location = Location = #location{role_id = 0}}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, location = Location = #location{role_id = 0}}) ->
     NewLocation = Location#location{role_id = RoleId},
     %% insert new
     location_sql:insert(NewLocation),
     User#user{location = NewLocation};
-save(User = #user{location = Location}) ->
+on_save(User = #user{location = Location}) ->
     location_sql:update(Location),
     User.
 

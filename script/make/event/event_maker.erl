@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% make event trigger
+%%% make event dispatch
 %%% @end
 %%%-------------------------------------------------------------------
 -module(event_maker).
@@ -18,7 +18,7 @@ start(List) ->
 parse_file(#{include := Include, name := Name, wildcard := Wildcard}) ->
     List = parse_file_loop(filelib:wildcard(Wildcard), Include, Name, []),
     Code = format_code(List, Name, []),
-    [#{pattern => "(?m)(?s)^trigger_static.*?\\.$", code => Code}].
+    [#{pattern => "(?m)(?s)^trigger.*?\\.$", code => Code}].
 
 %% parse file [{function, [{module, function, parameter, return}, ...]}, ...]
 parse_file_loop([], _, _, List) ->
@@ -40,8 +40,10 @@ parse_file_loop([File | T], Include, Name, List) ->
 parse_form_loop([], _, _, List) ->
     List;
 parse_form_loop([{attribute, _, spec, {{Function, _}, [{type, _, 'fun', [{type, _, product, Parameter}, ReturnType]}]}} | T], Module, Name, List) ->
-    case string:str(atom_to_list(Function), "handle_event") =/= 0 of
-        true ->
+    case string:tokens(atom_to_list(Function), "_") of
+        ["handle", "event" | _] ->
+            parse_form_loop(T, Module, Name, [{Module, Function, [parse_type(Type, Name) || Type <- Parameter], parse_return_type(ReturnType, Name)} | List]);
+        ["on" | _] ->
             parse_form_loop(T, Module, Name, [{Module, Function, [parse_type(Type, Name) || Type <- Parameter], parse_return_type(ReturnType, Name)} | List]);
         false ->
             parse_form_loop(T, Module, Name, List)

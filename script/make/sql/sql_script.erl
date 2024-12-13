@@ -28,7 +28,7 @@ main(Keys) ->
 sql() ->
     [
         #{
-            file => "src/module/role/role_sql.erl",
+            file => "script/make/sql/data/role_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -58,7 +58,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/device/device_sql.erl",
+            file => "script/make/sql/data/device_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -81,7 +81,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/permission/permission_sql.erl",
+            file => "script/make/sql/data/permission_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -127,7 +127,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/asset/asset_sql.erl",
+            file => "script/make/sql/data/asset_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -150,7 +150,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/vip/vip_sql.erl",
+            file => "script/make/sql/data/vip_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -173,7 +173,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/count/count_sql.erl",
+            file => "script/make/sql/data/count_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -191,7 +191,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/package/package_sql.erl",
+            file => "script/make/sql/data/package_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -214,7 +214,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/item/item_sql.erl",
+            file => "script/make/sql/data/item_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -240,7 +240,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/task/task_sql.erl",
+            file => "script/make/sql/data/task_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -258,7 +258,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/achievement/achievement_sql.erl",
+            file => "script/make/sql/data/achievement_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -276,7 +276,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/shop/shop_sql.erl",
+            file => "script/make/sql/data/shop_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -294,7 +294,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/mail/mail_sql.erl",
+            file => "script/make/sql/data/mail_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -332,7 +332,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/friend/friend_sql.erl",
+            file => "script/make/sql/data/friend_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -379,7 +379,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/chat/chat_sql.erl",
+            file => "script/make/sql/data/chat_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -401,7 +401,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/skill/skill_sql.erl",
+            file => "script/make/sql/data/skill_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -419,7 +419,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/buff/buff_sql.erl",
+            file => "script/make/sql/data/buff_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -443,7 +443,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/fashion/fashion_sql.erl",
+            file => "script/make/sql/data/fashion_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -479,7 +479,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/title/title_sql.erl",
+            file => "script/make/sql/data/title_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -515,7 +515,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/bubble/bubble_sql.erl",
+            file => "script/make/sql/data/bubble_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -539,7 +539,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/sign/sign_sql.erl",
+            file => "script/make/sql/data/sign_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -562,7 +562,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/daily/daily_sql.erl",
+            file => "script/make/sql/data/daily_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -580,7 +580,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/daily/daily_active_sql.erl",
+            file => "script/make/sql/data/daily_active_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -603,7 +603,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/notice/notice_sql.erl",
+            file => "script/make/sql/data/notice_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -626,7 +626,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/notice/notice_role_sql.erl",
+            file => "script/make/sql/data/notice_role_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -659,7 +659,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/charge/charge_sql.erl",
+            file => "script/make/sql/data/charge_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -681,7 +681,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/charge/charge_order_sql.erl",
+            file => "script/make/sql/data/charge_order_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -703,7 +703,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/key/key_sql.erl",
+            file => "script/make/sql/data/key_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -719,7 +719,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/rank/rank_sql.erl",
+            file => "script/make/sql/data/rank_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -743,7 +743,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/dungeon/dungeon_sql.erl",
+            file => "script/make/sql/data/dungeon_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -761,7 +761,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/location/location_sql.erl",
+            file => "script/make/sql/data/location_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -784,7 +784,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/guild/guild_sql.erl",
+            file => "script/make/sql/data/guild_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -835,7 +835,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/guild/guild_role_sql.erl",
+            file => "script/make/sql/data/guild_role_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -878,7 +878,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/guild/guild_apply_sql.erl",
+            file => "script/make/sql/data/guild_apply_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -933,7 +933,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/auction/auction_sql.erl",
+            file => "script/make/sql/data/auction_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -956,7 +956,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/auction/auction_role_sql.erl",
+            file => "script/make/sql/data/auction_role_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -979,7 +979,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/lucky_money/lucky_money_sql.erl",
+            file => "script/make/sql/data/lucky_money_sql.erl",
             sql => [
                 #{
                     insert => [],
@@ -1004,7 +1004,7 @@ sql() ->
             ]
         },
         #{
-            file => "src/module/lucky_money/lucky_money_role_sql.erl",
+            file => "script/make/sql/data/lucky_money_role_sql.erl",
             sql => [
                 #{
                     insert => [],

@@ -161,14 +161,14 @@ enter(User = #user{role_id = RoleId}, Location = #location{map_id = MapId, pid =
     FinalUser = NewUser#user{location = Location#location{role_id = RoleId}},
     Fighter = user_convert:to_fighter(FinalUser),
     cast(Pid, {enter, Fighter}),
-    user_event:trigger(FinalUser, #event{name = enter_map, target = MapId}).
+    event:trigger(FinalUser, #event{name = enter_map, target = MapId}).
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
 leave(User = #user{role_id = RoleId, location = Location = #location{map_id = MapId, pid = Pid}}) ->
     cast(Pid, {leave, RoleId}),
     NewUser = User#user{location = Location#location{pid = undefined}},
-    user_event:trigger(NewUser, #event{name = leave_map, target = MapId});
+    event:trigger(NewUser, #event{name = leave_map, target = MapId});
 leave(User = #user{location = Location}) ->
     User#user{location = Location#location{pid = undefined}}.
 
@@ -414,14 +414,14 @@ do_cast({enter, Fighter = #fighter{id = Id}}, State = #map{fighter = FighterList
     NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Fighter),
     %% notify update
     map:enter(State, Fighter),
-    NewState = battle_event:trigger(State, #battle_event{name = event_role_enter, object = Fighter}),
+    NewState = battle_event:trigger(State, #battle_event{name = role_enter, object = Fighter}),
     {noreply, NewState#map{fighter = NewFighterList}};
 do_cast({leave, Id}, State = #map{fighter = FighterList}) ->
     case lists:keytake(Id, #fighter.id, FighterList) of
         {value, Fighter, NewFighterList} ->
             %% notify update
             map:leave(State, Fighter),
-            NewState = battle_event:trigger(State, #battle_event{name = event_role_leave, object = Fighter}),
+            NewState = battle_event:trigger(State, #battle_event{name = role_leave, object = Fighter}),
             {noreply, NewState#map{fighter = NewFighterList}};
         _ ->
             {noreply, State}

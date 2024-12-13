@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% user effect
+%%% effect
 %%% @end
 %%%-------------------------------------------------------------------
--module(user_effect).
+-module(effect).
 %% API
 -export([add/3, remove/3, calculate/6]).
 %% Includes

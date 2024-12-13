@@ -25,7 +25,7 @@
 -spec start(State :: #map{}) -> {ok, #map{}}.
 start(State) ->
     %% add hurt/monster dead event
-    {ok, battle_event:add_trigger(State, [#trigger{name = event_battle_monster_hurt, module = ?MODULE, function = update_hp}])}.
+    {ok, battle_event:add_trigger(State, [#trigger{name = battle_monster_hurt, module = ?MODULE, function = update_hp}])}.
 
 %% @doc handle battle hurt event
 -spec update_hp(State :: #map{}, #battle_event{}) -> ok.

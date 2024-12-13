@@ -5,21 +5,19 @@
 %%%-------------------------------------------------------------------
 -module(daily).
 %% API
--export([load/1, save/1, reset/1]).
+-export([on_load/1, on_save/1, on_reset/1]).
 -export([query_count/1, query/1]).
 -export([award/2, award_active/2]).
 %% Includes
 -include("common.hrl").
--include("protocol.hrl").
 -include("user.hrl").
--include("count.hrl").
 -include("daily.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     Daily = daily_sql:select(RoleId),
     case daily_active_sql:select(RoleId) of
         [DailyActive] ->
@@ -29,16 +27,16 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{daily = Daily, daily_active = DailyActive}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{daily = Daily, daily_active = DailyActive}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{daily = Daily, daily_active = DailyActive}) ->
     NewDaily = daily_sql:save(Daily),
     daily_active_sql:update(DailyActive),
     User#user{daily = NewDaily}.
 
-%% @doc reset
--spec reset(User :: #user{}) -> NewUser :: #user{}.
-reset(User = #user{daily = DailyList, daily_active = DailyActive}) ->
+%% @doc on reset
+-spec on_reset(User :: #user{}) -> NewUser :: #user{}.
+on_reset(User = #user{daily = DailyList, daily_active = DailyActive}) ->
     NewDailyList = [Daily#daily{is_award = 0, flag = 1} || Daily <- DailyList],
     NewDailyActive = DailyActive#daily_active{stage_id = 0, score = 0},
     User#user{daily = NewDailyList, daily_active = NewDailyActive}.

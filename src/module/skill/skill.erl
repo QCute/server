@@ -5,28 +5,27 @@
 %%%-------------------------------------------------------------------
 -module(skill).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query/1]).
 -export([learn/2]).
 -export([to_battle_skill/1]).
 %% Includes
 -include("common.hrl").
--include("protocol.hrl").
 -include("user.hrl").
 -include("map.hrl").
 -include("skill.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     Skill = skill_sql:select(RoleId),
     User#user{skill = Skill}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{skill = Skill}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{skill = Skill}) ->
     NewSkill = skill_sql:save(Skill),
     User#user{skill = NewSkill}.
 

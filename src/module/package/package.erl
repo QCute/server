@@ -5,17 +5,16 @@
 %%%-------------------------------------------------------------------
 -module(package).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 %% Includes
--include("common.hrl").
 -include("user.hrl").
 -include("package.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case package_sql:select(RoleId) of
         [Package] ->
             Package;
@@ -30,14 +29,14 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{package = Package}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role_id = RoleId, package = Package = #package{role_id = 0}}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, package = Package = #package{role_id = 0}}) ->
     NewPackage = Package#package{role_id = RoleId},
     %% insert new
     package_sql:insert(NewPackage),
     User#user{package = NewPackage};
-save(User = #user{package = Package}) ->
+on_save(User = #user{package = Package}) ->
     package_sql:update(Package),
     User.
 

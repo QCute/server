@@ -5,22 +5,21 @@
 %%%-------------------------------------------------------------------
 -module(chat).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([world/3, guild/3, private/4]).
 -export([world_notify/2, guild_notify/2, private_notify/3]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("guild.hrl").
 -include("chat.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case chat_sql:select(RoleId) of
         [Chat] ->
             Chat;
@@ -30,13 +29,13 @@ load(User = #user{role_id = RoleId}) ->
     User#user{chat = Chat}.
 
 %% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role_id = RoleId, chat = Chat = #chat{role_id = 0}}) ->
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, chat = Chat = #chat{role_id = 0}}) ->
     NewChat = Chat#chat{role_id = RoleId},
     %% insert new
     chat_sql:insert(NewChat),
     User#user{chat = NewChat};
-save(User = #user{chat = Chat}) ->
+on_save(User = #user{chat = Chat}) ->
     chat_sql:update(Chat),
     User.
 

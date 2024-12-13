@@ -368,7 +368,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 u() ->
     %% load
-    LoadedUser = user_loop_load:loop(#user{role_id = 1, sender_pid = self()}),
+    LoadedUser = event:trigger(#user{role_id = 1, sender_pid = self()}, #event{name = load}),
     %% reset and clean
     USER = user_loop:loop(LoadedUser, 1, 0, time:now()),
     %% list type
