@@ -664,9 +664,6 @@ elif [[ "$1" == "config" ]];then
 elif [[ "$1" == "router" ]];then
     shift 1
     escript "script/make/router/router_script.erl" "$@"
-elif [[ "$1" == "loop" ]];then
-    shift 1
-    escript "script/make/loop/loop_script.erl" "$@"
 elif [[ "$1" == "map" ]];then
     shift 1
     escript "script/make/map/map_script.erl" "$@"
