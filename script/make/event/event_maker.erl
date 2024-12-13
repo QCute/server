@@ -25,7 +25,7 @@ parse_file_loop([], _, _, List) ->
     listing:key_group(2, lists:append(List));
 parse_file_loop([File | T], Include, Name, List) ->
     {ok, Data} = file:read_file(File),
-    case binary:match(Data, <<"handle_event">>) of
+    case binary:match(Data, <<"on_">>) of
         {_, _} ->
             %% epp
             {ok, Forms} = epp:parse_file(File, [Include], []),
@@ -41,8 +41,6 @@ parse_form_loop([], _, _, List) ->
     List;
 parse_form_loop([{attribute, _, spec, {{Function, _}, [{type, _, 'fun', [{type, _, product, Parameter}, ReturnType]}]}} | T], Module, Name, List) ->
     case string:tokens(atom_to_list(Function), "_") of
-        ["handle", "event" | _] ->
-            parse_form_loop(T, Module, Name, [{Module, Function, [parse_type(Type, Name) || Type <- Parameter], parse_return_type(ReturnType, Name)} | List]);
         ["on" | _] ->
             parse_form_loop(T, Module, Name, [{Module, Function, [parse_type(Type, Name) || Type <- Parameter], parse_return_type(ReturnType, Name)} | List]);
         false ->
