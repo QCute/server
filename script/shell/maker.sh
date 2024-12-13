@@ -64,6 +64,8 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     $0 maker
     # compile beam
     $0 beam compile
+    # event
+    $0 event
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
     emake='{["src/*/*", "src/*/*/*", "script/make/*/data/*", "script/make/protocol/erl/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
@@ -88,6 +90,8 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     $0 maker
     # compile beam
     $0 beam compile
+    # event
+    $0 event
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
     emake='{["src/*/*", "src/*/*/*", "script/make/*/data/*", "script/make/protocol/erl/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'

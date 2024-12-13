@@ -66,7 +66,9 @@ call "script/batch/%~nx0" lib
 :: compile maker
 call "script/batch/%~nx0" maker
 :: execute reload beam 
-call "script/batch/%~nx0" beam compile
+call "script/batch/%~nx0" beam
+:: execute reload event
+call "script/batch/%~nx0" event
 :: erl -pa beam/ -make
 set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\", \"script/make/*/data/*\", \"script/make/protocol/erl/*\", \"script/make/protocol/erl/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
@@ -100,7 +102,9 @@ call "script/batch/%~nx0" lib
 :: compile maker
 call "script/batch/%~nx0" maker
 :: execute reload beam 
-call "script/batch/%~nx0" beam compile
+call "script/batch/%~nx0" beam
+:: execute reload event
+call "script/batch/%~nx0" event
 :: erl -pa beam/ -make
 set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\", \"script/make/*/data/*\", \"script/make/protocol/erl/*\", \"script/make/protocol/erl/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
