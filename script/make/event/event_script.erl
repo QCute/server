@@ -26,7 +26,7 @@ main(_) ->
 event() ->
     [
         #{
-            file => "src/module/user/event/dispatcher.erl",
+            file => "src/module/event/dispatcher.erl",
             include => "include/",
             name => {user, event},
             wildcard => "src/module/*/*.erl"

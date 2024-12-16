@@ -162,7 +162,7 @@ init([RoleId, RoleName, _, _, ReceiverPid, SocketType, Socket, ProtocolType]) ->
     %% reset/clean/expire loop
     NewUser = user_loop:loop(LoadedUser, 2, role:logout_time(LoadedUser), Now),
     %% login after loaded
-    FinalUser = event:loop(NewUser, #event{name = login}),
+    FinalUser = event:trigger(NewUser, #event{name = login}),
     %% add online user info
     user_manager:add(user_convert:to_online(FinalUser)),
     %% load completed

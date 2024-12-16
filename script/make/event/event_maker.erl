@@ -43,7 +43,7 @@ parse_form_loop([{attribute, _, spec, {{Function, _}, [{type, _, 'fun', [{type, 
     case string:tokens(atom_to_list(Function), "_") of
         ["on" | _] ->
             parse_form_loop(T, Module, Name, [{Module, Function, [parse_type(Type, Name) || Type <- Parameter], parse_return_type(ReturnType, Name)} | List]);
-        false ->
+        _ ->
             parse_form_loop(T, Module, Name, List)
     end;
 parse_form_loop([_ | T], Module, Name, List) ->
@@ -83,14 +83,14 @@ parse_return_type(_, _) ->
 
 %% format code
 format_code([], {State, _}, List) ->
-    list_to_binary(lists:concat([string:join(List, ";\n"), ";\n", "trigger_static(", word:to_hump(State), ", _) ->\n    ", word:to_hump(State), "."]));
+    list_to_binary(lists:concat([string:join(List, ";\n"), ";\n", "trigger(", word:to_hump(State), ", _) ->\n    ", word:to_hump(State), "."]));
 format_code([{Function, CodeList} | T], Name = {State, _}, List) ->
-    Exprs = format_code_list(CodeList, '', Name, []),
-    %% remove handle
-    Event = lists:flatten(string:replace(atom_to_list(Function), "handle_", "")),
+    Expressions = format_code_list(CodeList, '', Name, []),
+    %% remove on
+    Event = lists:flatten(string:replace(atom_to_list(Function), "on_", "")),
     %% function clause
-    Underscore = case [P || {_, _, P, _} <- CodeList, lists:member(event, P)] of [] -> "_"; _ -> "" end,
-    Code = io_lib:format("trigger_static(~s, ~sEvent = #event{name = ~s}) ->\n    ~s", [word:to_hump(State), Underscore, Event, Exprs]),
+    EventName = ["Event = " || lists:all(fun({_, _, P, _}) -> lists:member(event, P) end, CodeList)],
+    Code = io_lib:format("trigger(~s, ~s#event{name = ~s}) ->\n    ~s", [word:to_hump(State), EventName, Event, Expressions]),
     format_code(T, Name, [Code | List]).
 
 format_code_list([], Next, {State, _}, List) ->

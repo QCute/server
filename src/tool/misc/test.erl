@@ -349,7 +349,7 @@ handle_info({'EXIT', Pid, _}, State = #state{active = Active}) ->
     {noreply, State#state{active = NewActive}};
 
 handle_info(timeout, State) ->
-    NewState = user_loop_save:loop(State),
+    NewState = event:trigger(State, #event{name = save}),
     {noreply, NewState, ?SECOND_MILLISECONDS};
 
 handle_info(Request, State) ->
@@ -409,7 +409,7 @@ u() ->
 uf(Id) ->
     db:insert("INSERT IGNORE INTO `role` (`role_id`, `role_name`) VALUES (?, ?)", [Id, integer_to_binary(Id)]),
     Number = 100,
-    user_loop_save:loop(#user{
+    User = #user{
         role = #role{role_id = Id, role_name = integer_to_binary(Id)},
         asset = #asset{role_id = Id},
         vip = #vip{role_id = Id},
@@ -442,7 +442,8 @@ uf(Id) ->
         attributes = [],
         effect = [],
         trigger = []
-    }).
+    },
+    event:trigger(User, #event{name = save}).
 
 %%%===================================================================
 %%% User Socket Event Test
