@@ -13,15 +13,6 @@ return {
             {name = "item", type = "u32", comment = "single u32", explain = {}}
         }}
     },
-    [65534] = {
-        ["comment"] = "协议测试单个键值列表",
-        ["write"] = {name = "data", type = "list", comment = "key single list", key = "u32", explain = {
-            {name = "item", type = "u32", comment = "key single u32", explain = {}}
-        }},
-        ["read"] = {name = "data", type = "list", comment = "key single list", key = "u32", explain = {
-            {name = "item", type = "u32", comment = "key single u32", explain = {}}
-        }}
-    },
     [65535] = {
         ["comment"] = "协议测试",
         ["write"] = {name = "data", type = "map", comment = "", explain = {

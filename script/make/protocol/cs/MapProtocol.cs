@@ -84,7 +84,7 @@ public static class MapProtocol
                         // 数量
                         var skillNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // object
-                        var skillBattleSkill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skill_id", skillSkillId}, {"time", skillTime}, {"number", skillNumber}};
+                        var skillBattleSkill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skillId", skillSkillId}, {"time", skillTime}, {"number", skillNumber}};
                         // add
                         skill.Add(skillBattleSkill);
                     }
@@ -101,7 +101,7 @@ public static class MapProtocol
                         // 数量
                         var buffOverlap = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // object
-                        var buffBattleBuff = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"buff_id", buffBuffId}, {"expire_time", buffExpireTime}, {"overlap", buffOverlap}};
+                        var buffBattleBuff = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"buffId", buffBuffId}, {"expireTime", buffExpireTime}, {"overlap", buffOverlap}};
                         // add
                         buff.Add(buffBattleBuff);
                     }
@@ -177,7 +177,7 @@ public static class MapProtocol
                         // 数量
                         var fighterListSkillNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // object
-                        var fighterListSkillBattleSkill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skill_id", fighterListSkillSkillId}, {"time", fighterListSkillTime}, {"number", fighterListSkillNumber}};
+                        var fighterListSkillBattleSkill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skillId", fighterListSkillSkillId}, {"time", fighterListSkillTime}, {"number", fighterListSkillNumber}};
                         // add
                         fighterListSkill.Add(fighterListSkillBattleSkill);
                     }
@@ -194,7 +194,7 @@ public static class MapProtocol
                         // 数量
                         var fighterListBuffOverlap = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // object
-                        var fighterListBuffBattleBuff = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"buff_id", fighterListBuffBuffId}, {"expire_time", fighterListBuffExpireTime}, {"overlap", fighterListBuffOverlap}};
+                        var fighterListBuffBattleBuff = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"buffId", fighterListBuffBuffId}, {"expireTime", fighterListBuffExpireTime}, {"overlap", fighterListBuffOverlap}};
                         // add
                         fighterListBuff.Add(fighterListBuffBattleBuff);
                     }
@@ -208,7 +208,7 @@ public static class MapProtocol
                     fighterList.Add(fighterListFighter);
                 }
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fighter_id", fighterId}, {"perform_skill_id", performSkillId}, {"fighter_list", fighterList}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fighterId", fighterId}, {"performSkillId", performSkillId}, {"fighterList", fighterList}};
                 return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));

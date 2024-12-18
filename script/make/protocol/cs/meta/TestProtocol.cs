@@ -21,18 +21,9 @@ public static class TestProtocol
                     new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "single u32"}, {"explain", new List()} }
                 }}}}
             }},
-            {"65534", new Map() {
-                {"comment", "协议测试单个键值列表"},
-                {"write", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "key single list"}, {"key", "u32"}, {"explain", new List() {
-                    new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "key single u32"}, {"explain", new List()} }
-                }}}},
-                {"read", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "key single list"}, {"key", "u32"}, {"explain", new List() {
-                    new Map() { {"name", "item"}, {"type", "u32"}, {"comment", "key single u32"}, {"explain", new List()} }
-                }}}}
-            }},
             {"65535", new Map() {
                 {"comment", "协议测试"},
-                {"write", new Map() { {"name", "data"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                {"write", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                     new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "binary"}, {"explain", 6} },
                     new Map() { {"name", "boolean"}, {"type", "bool"}, {"comment", "bool"}, {"explain", new List()} },
                     new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "u8"}, {"explain", new List()} },
@@ -47,14 +38,14 @@ public static class TestProtocol
                     new Map() { {"name", "f64"}, {"type", "f64"}, {"comment", "f64"}, {"explain", new List()} },
                     new Map() { {"name", "str"}, {"type", "str"}, {"comment", "str"}, {"explain", new List()} },
                     new Map() { {"name", "bst"}, {"type", "bst"}, {"comment", "bst"}, {"explain", new List()} },
-                    new Map() { {"name", "tuple"}, {"type", "map"}, {"comment": "tuple"}, {"explain": new List() {
+                    new Map() { {"name", "tuple"}, {"type", "map"}, {"comment", "tuple"}, {"explain", new List() {
                         new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "tuple binary"}, {"explain", 6} },
-                        new Map() { {"name", "sub"}, {"type", "map"}, {"comment": "tuple tuple"}, {"explain": new List() {
+                        new Map() { {"name", "sub"}, {"type", "map"}, {"comment", "tuple tuple"}, {"explain", new List() {
                             new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "tuple tuple u8"}, {"explain", new List()} },
                             new Map() { {"name", "str"}, {"type", "str"}, {"comment", "tuple tuple str"}, {"explain", new List()} }
                         }}},
                         new Map() { {"name", "list"}, {"type", "list"}, {"comment", "tuple list"}, {"explain", new List() {
-                            new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                            new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                                 new Map() { {"name", "i16"}, {"type", "i16"}, {"comment", "tuple list i16"}, {"explain", new List()} },
                                 new Map() { {"name", "bst"}, {"type", "bst"}, {"comment", "tuple list bst"}, {"explain", new List()} }
                             }}}
@@ -64,14 +55,14 @@ public static class TestProtocol
                         }}}
                     }}},
                     new Map() { {"name", "indexList"}, {"type", "list"}, {"comment", "list"}, {"explain", new List() {
-                        new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                        new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                             new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "tuple binary"}, {"explain", 6} },
-                            new Map() { {"name", "sub"}, {"type", "map"}, {"comment": "tuple tuple"}, {"explain": new List() {
+                            new Map() { {"name", "sub"}, {"type", "map"}, {"comment", "tuple tuple"}, {"explain", new List() {
                                 new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "tuple tuple u8"}, {"explain", new List()} },
                                 new Map() { {"name", "str"}, {"type", "str"}, {"comment", "tuple tuple str"}, {"explain", new List()} }
                             }}},
                             new Map() { {"name", "list"}, {"type", "list"}, {"comment", "tuple list"}, {"explain", new List() {
-                                new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                                new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                                     new Map() { {"name", "i16"}, {"type", "i16"}, {"comment", "tuple list i16"}, {"explain", new List()} },
                                     new Map() { {"name", "bst"}, {"type", "bst"}, {"comment", "tuple list bst"}, {"explain", new List()} }
                                 }}}
@@ -82,7 +73,7 @@ public static class TestProtocol
                         }}}
                     }}},
                     new Map() { {"name", "keyList"}, {"type", "list"}, {"comment", ""}, {"key", "u8"}, {"explain", new List() {
-                        new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                        new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                             new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "binary"}, {"explain", 6} },
                             new Map() { {"name", "boolean"}, {"type", "bool"}, {"comment", "bool"}, {"explain", new List()} },
                             new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "u8"}, {"explain", new List()} },
@@ -100,7 +91,7 @@ public static class TestProtocol
                         }}}
                     }}}
                 }}}},
-                {"read", new Map() { {"name", "data"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                {"read", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                     new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "binary"}, {"explain", 6} },
                     new Map() { {"name", "boolean"}, {"type", "bool"}, {"comment", "bool"}, {"explain", new List()} },
                     new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "u8"}, {"explain", new List()} },
@@ -115,14 +106,14 @@ public static class TestProtocol
                     new Map() { {"name", "f64"}, {"type", "f64"}, {"comment", "f64"}, {"explain", new List()} },
                     new Map() { {"name", "str"}, {"type", "str"}, {"comment", "str"}, {"explain", new List()} },
                     new Map() { {"name", "bst"}, {"type", "bst"}, {"comment", "bst"}, {"explain", new List()} },
-                    new Map() { {"name", "tuple"}, {"type", "map"}, {"comment": "tuple"}, {"explain": new List() {
+                    new Map() { {"name", "tuple"}, {"type", "map"}, {"comment", "tuple"}, {"explain", new List() {
                         new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "tuple binary"}, {"explain", 6} },
-                        new Map() { {"name", "sub"}, {"type", "map"}, {"comment": "tuple tuple"}, {"explain": new List() {
+                        new Map() { {"name", "sub"}, {"type", "map"}, {"comment", "tuple tuple"}, {"explain", new List() {
                             new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "tuple tuple u8"}, {"explain", new List()} },
                             new Map() { {"name", "str"}, {"type", "str"}, {"comment", "tuple tuple str"}, {"explain", new List()} }
                         }}},
                         new Map() { {"name", "list"}, {"type", "list"}, {"comment", "tuple list"}, {"explain", new List() {
-                            new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                            new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                                 new Map() { {"name", "i16"}, {"type", "i16"}, {"comment", "tuple list i16"}, {"explain", new List()} },
                                 new Map() { {"name", "bst"}, {"type", "bst"}, {"comment", "tuple list bst"}, {"explain", new List()} }
                             }}}
@@ -132,14 +123,14 @@ public static class TestProtocol
                         }}}
                     }}},
                     new Map() { {"name", "indexList"}, {"type", "list"}, {"comment", "list"}, {"explain", new List() {
-                        new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                        new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                             new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "tuple binary"}, {"explain", 6} },
-                            new Map() { {"name", "sub"}, {"type", "map"}, {"comment": "tuple tuple"}, {"explain": new List() {
+                            new Map() { {"name", "sub"}, {"type", "map"}, {"comment", "tuple tuple"}, {"explain", new List() {
                                 new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "tuple tuple u8"}, {"explain", new List()} },
                                 new Map() { {"name", "str"}, {"type", "str"}, {"comment", "tuple tuple str"}, {"explain", new List()} }
                             }}},
                             new Map() { {"name", "list"}, {"type", "list"}, {"comment", "tuple list"}, {"explain", new List() {
-                                new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                                new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                                     new Map() { {"name", "i16"}, {"type", "i16"}, {"comment", "tuple list i16"}, {"explain", new List()} },
                                     new Map() { {"name", "bst"}, {"type", "bst"}, {"comment", "tuple list bst"}, {"explain", new List()} }
                                 }}}
@@ -150,7 +141,7 @@ public static class TestProtocol
                         }}}
                     }}},
                     new Map() { {"name", "keyList"}, {"type", "list"}, {"comment", ""}, {"key", "u8"}, {"explain", new List() {
-                        new Map() { {"name", "item"}, {"type", "map"}, {"comment": ""}, {"explain": new List() {
+                        new Map() { {"name", "item"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
                             new Map() { {"name", "binary"}, {"type", "binary"}, {"comment", "binary"}, {"explain", 6} },
                             new Map() { {"name", "boolean"}, {"type", "bool"}, {"comment", "boolean"}, {"explain", new List()} },
                             new Map() { {"name", "u8"}, {"type", "u8"}, {"comment", "u8"}, {"explain", new List()} },

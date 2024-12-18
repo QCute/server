@@ -206,7 +206,7 @@ function ChatProtocol.decode(offset, protocol, data)
             offset = offset + 2 + string.len(message)
             -- object
             local guildChat = {id = id, roleId = roleId, roleName = roleName, type = type, message = message}
-            data[guildChat] = guildChat
+            data[dataIndex] = guildChat
         end
         return data
     elseif protocol == 11607 then

@@ -31,7 +31,7 @@ public static class BuffProtocol
                     // 叠加数量
                     var overlap = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var buff = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"buff_id", buffId}, {"expire_time", expireTime}, {"overlap", overlap}};
+                    var buff = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"buffId", buffId}, {"expireTime", expireTime}, {"overlap", overlap}};
                     // add
                     data.Add(buff);
                 }

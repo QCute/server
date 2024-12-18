@@ -99,7 +99,7 @@ public static class ChatProtocol
                     var messageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var message = encoding.GetString(reader.ReadBytes(messageLength));
                     // object
-                    var systemChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"role_id", roleId}, {"role_name", roleName}, {"type", type}, {"message", message}};
+                    var systemChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"roleId", roleId}, {"roleName", roleName}, {"type", type}, {"message", message}};
                     // add
                     data.Add(systemChat);
                 }
@@ -125,9 +125,9 @@ public static class ChatProtocol
                 var worldChatMessageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var worldChatMessage = encoding.GetString(reader.ReadBytes(worldChatMessageLength));
                 // object
-                var worldChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", worldChatId}, {"role_id", worldChatRoleId}, {"role_name", worldChatRoleName}, {"type", worldChatType}, {"message", worldChatMessage}};
+                var worldChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", worldChatId}, {"roleId", worldChatRoleId}, {"roleName", worldChatRoleName}, {"type", worldChatType}, {"message", worldChatMessage}};
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"world_chat", worldChat}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"worldChat", worldChat}};
                 return data;
             }
             case 11604:
@@ -151,7 +151,7 @@ public static class ChatProtocol
                     var messageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var message = encoding.GetString(reader.ReadBytes(messageLength));
                     // object
-                    var worldChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"role_id", roleId}, {"role_name", roleName}, {"type", type}, {"message", message}};
+                    var worldChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"roleId", roleId}, {"roleName", roleName}, {"type", type}, {"message", message}};
                     // add
                     data.Add(worldChat);
                 }
@@ -177,16 +177,16 @@ public static class ChatProtocol
                 var guildChatMessageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var guildChatMessage = encoding.GetString(reader.ReadBytes(guildChatMessageLength));
                 // object
-                var guildChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", guildChatId}, {"role_id", guildChatRoleId}, {"role_name", guildChatRoleName}, {"type", guildChatType}, {"message", guildChatMessage}};
+                var guildChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", guildChatId}, {"roleId", guildChatRoleId}, {"roleName", guildChatRoleName}, {"type", guildChatType}, {"message", guildChatMessage}};
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"guild_chat", guildChat}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"guildChat", guildChat}};
                 return data;
             }
             case 11606:
             {
                 // 
                 var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var data = new System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>(dataLength);
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
                 while (dataLength-- > 0)
                 {
                     // 
@@ -203,9 +203,9 @@ public static class ChatProtocol
                     var messageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var message = encoding.GetString(reader.ReadBytes(messageLength));
                     // object
-                    var guildChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"role_id", roleId}, {"role_name", roleName}, {"type", type}, {"message", message}};
+                    var guildChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"id", id}, {"roleId", roleId}, {"roleName", roleName}, {"type", type}, {"message", message}};
                     // add
-                    data[guildChat] = guildChat;
+                    data.Add(guildChat);
                 }
                 return data;
             }
@@ -226,9 +226,9 @@ public static class ChatProtocol
                 var privateChatMessageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var privateChatMessage = encoding.GetString(reader.ReadBytes(privateChatMessageLength));
                 // object
-                var privateChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"sender_id", privateChatSenderId}, {"receiver_id", privateChatReceiverId}, {"type", privateChatType}, {"message", privateChatMessage}};
+                var privateChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"senderId", privateChatSenderId}, {"receiverId", privateChatReceiverId}, {"type", privateChatType}, {"message", privateChatMessage}};
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"private_chat", privateChat}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"privateChat", privateChat}};
                 return data;
             }
             case 11608:
@@ -249,7 +249,7 @@ public static class ChatProtocol
                     var messageLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var message = encoding.GetString(reader.ReadBytes(messageLength));
                     // object
-                    var privateChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"sender_id", senderId}, {"receiver_id", receiverId}, {"type", type}, {"message", message}};
+                    var privateChat = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"senderId", senderId}, {"receiverId", receiverId}, {"type", type}, {"message", message}};
                     // add
                     data.Add(privateChat);
                 }

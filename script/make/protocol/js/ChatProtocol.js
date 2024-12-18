@@ -307,7 +307,7 @@ export default class ChatProtocol {
             }
             case 11606: {
                 // 
-                const data = {};
+                const data = [];
                 let dataLength = view.getUint16(offset, false);
                 offset = offset + 2;
                 while (--dataLength >= 0) {
@@ -336,7 +336,7 @@ export default class ChatProtocol {
                     // object
                     const guildChat = {"id": id, "roleId": roleId, "roleName": roleName, "type": type, "message": message};
                     // add
-                    data[guildChat] = guildChat;
+                    data.push(guildChat);
                 }
                 return data;
             }

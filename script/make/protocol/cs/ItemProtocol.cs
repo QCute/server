@@ -53,7 +53,7 @@ public static class ItemProtocol
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"item_no", itemNo}, {"item_id", itemId}, {"type", type}, {"number", number}};
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}};
                     // add
                     data.Add(item);
                 }
@@ -76,7 +76,7 @@ public static class ItemProtocol
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"item_no", itemNo}, {"item_id", itemId}, {"type", type}, {"number", number}};
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}};
                     // add
                     data.Add(item);
                 }
@@ -99,7 +99,7 @@ public static class ItemProtocol
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"item_no", itemNo}, {"item_id", itemId}, {"type", type}, {"number", number}};
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}, {"number", number}};
                     // add
                     data.Add(item);
                 }
@@ -120,7 +120,7 @@ public static class ItemProtocol
                     // 类型
                     var type = reader.ReadByte();
                     // object
-                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"item_no", itemNo}, {"item_id", itemId}, {"type", type}};
+                    var item = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemNo", itemNo}, {"itemId", itemId}, {"type", type}};
                     // add
                     data.Add(item);
                 }

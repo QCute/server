@@ -111,7 +111,7 @@ parse_meta_cs_loop([#meta{name = Name, type = tuple, explain = Explain, comment 
     SubCodes = parse_meta_cs_loop(tuple_to_list(Explain), Depth + 1, []),
 
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\": \"~ts\"}, {\"explain\": new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
 
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
@@ -125,7 +125,7 @@ parse_meta_cs_loop([#meta{name = Name, type = record, explain = Explain, comment
     SubCodes = parse_meta_cs_loop(SubExplain, Depth + 1, []),
 
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\": \"~ts\"}, {\"explain\": new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
 
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
@@ -137,7 +137,7 @@ parse_meta_cs_loop([#meta{name = Name, type = maps, explain = Explain, comment =
     SubCodes = parse_meta_cs_loop(maps:values(Explain), Depth + 1, []),
 
     %% format one field
-    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\": \"~ts\"}, {\"explain\": new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
+    Code = lists:flatten(io_lib:format("~snew Map() { {\"name\", \"~s\"}, {\"type\", \"~s\"}, {\"comment\", \"~ts\"}, {\"explain\", new List() {\n~ts\n~s}}}", [Padding, word:to_lower_hump(Name), map, Comment, SubCodes, Padding])),
 
     parse_meta_cs_loop(T, Depth, [Code | List]);
 
@@ -813,7 +813,7 @@ parse_decode_cs_loop([#meta{name = Name, type = tuple, explain = Explain, commen
         Padding, "// ", Comment, "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "// object", "\n",
-        Padding, "var ", PathHumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", FieldName, "\", ", PathName, "}"]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubFields)], ", "), "};"
+        Padding, "var ", PathHumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", word:to_lower_hump(FieldName), "\", ", PathName, "}"]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubFields)], ", "), "};"
     ],
 
     %% flatten
@@ -836,7 +836,7 @@ parse_decode_cs_loop([#meta{name = Name, type = record, explain = Explain, comme
         Padding, "// ", Comment, "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "// object", "\n",
-        Padding, "var ", PathHumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", FieldName, "\", ", PathName, "}"]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubFields)], ", "), "};"
+        Padding, "var ", PathHumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", word:to_lower_hump(FieldName), "\", ", PathName, "}"]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubFields)], ", "), "};"
     ],
 
     %% flatten
@@ -859,7 +859,7 @@ parse_decode_cs_loop([#meta{name = Name, type = maps, explain = Explain, comment
         Padding, "// ", Comment, "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "// object", "\n",
-        Padding, "var ", PathHumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", FieldName, "\", ", PathName, "}"]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubFields)], ", "), "};"
+        Padding, "var ", PathHumpName, " = new System.Collections.Generic.Dictionary<System.String, System.Object>() {", string:join([lists:concat(["{\"", word:to_lower_hump(FieldName), "\", ", PathName, "}"]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubFields)], ", "), "};"
     ],
 
     %% flatten
@@ -906,7 +906,7 @@ parse_decode_cs_loop([#meta{name = Name, type = list, explain = Explain, comment
         Padding, "{", "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "    // add", "\n",
-        Padding, "    ", PathHumpName, "[", word:to_lower_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
+        Padding, "    ", PathHumpName, "[", PathHumpName, word:to_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
         Padding, "}"
     ],
     parse_decode_cs_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -952,7 +952,7 @@ parse_decode_cs_loop([#meta{name = Name, type = ets, explain = Explain, comment 
         Padding, "{", "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "    // add", "\n",
-        Padding, "    ", PathHumpName, "[", word:to_lower_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
+        Padding, "    ", PathHumpName, "[", PathHumpName, word:to_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
         Padding, "}"
     ],
     parse_decode_cs_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]).

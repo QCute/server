@@ -36,30 +36,6 @@ export default class TestProtocol {
                 }
                 return new DataView(view.buffer.slice(0, offset));
             }
-            case 65534: {
-                // extend
-                while (view.byteLength < offset + 2) {
-                    const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
-                    (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
-                    view = extendView;
-                }
-                // key single list
-                view.setUint16(offset, Object.keys(data).length, false);
-                offset = offset + 2;
-                for (const dataKey in data) {
-                    const dataItem = data[dataKey];
-                    // extend
-                    while (view.byteLength < offset + 4) {
-                        const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
-                        (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
-                        view = extendView;
-                    }
-                    // key single u32
-                    view.setUint32(offset, dataItem, false);
-                    offset = offset + 4;
-                }
-                return new DataView(view.buffer.slice(0, offset));
-            }
             case 65535: {
                 // extend
                 while (view.byteLength < offset + 6) {
@@ -604,20 +580,6 @@ export default class TestProtocol {
                 }
                 return data;
             }
-            case 65534: {
-                // key single list
-                const data = {};
-                let dataLength = view.getUint16(offset, false);
-                offset = offset + 2;
-                while (--dataLength >= 0) {
-                    // key single u32
-                    const item = view.getUint32(offset, false);
-                    offset = offset + 4;
-                    // add
-                    data[u32] = item;
-                }
-                return data;
-            }
             case 65535: {
                 // 
                 // binary
@@ -831,7 +793,7 @@ export default class TestProtocol {
                     // object
                     const keyListItem = {"binary": keyListBinary, "boolean": keyListBoolean, "u8": keyListU8, "u16": keyListU16, "u32": keyListU32, "u64": keyListU64, "i8": keyListI8, "i16": keyListI16, "i32": keyListI32, "i64": keyListI64, "f32": keyListF32, "f64": keyListF64, "str": keyListStr, "bst": keyListBst};
                     // add
-                    keyList[u8] = keyListItem;
+                    keyList[keyListU8] = keyListItem;
                 }
                 // object
                 const data = {"binary": binary, "boolean": boolean, "u8": u8, "u16": u16, "u32": u32, "u64": u64, "i8": i8, "i16": i16, "i32": i32, "i64": i64, "f32": f32, "f64": f64, "str": str, "bst": bst, "tuple": tuple, "indexList": indexList, "keyList": keyList};

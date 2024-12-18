@@ -1,135 +1,107 @@
 return {
     [11602] = {
         ["comment"] = "系统公告列表",
-        ["write"] = {
-            {name = "data", type = "u16", comment = "页", explain = {}}
-        },
-        ["read"] = {
-            {name = "data", type = "list", comment = "", explain = {
-                {name = "systemChat", type = "record", comment = "", explain = {
-                    {name = "id", type = "u64", comment = "ID", explain = {}},
-                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
+        ["write"] = {name = "data", type = "u16", comment = "页", explain = {}},
+        ["read"] = {name = "data", type = "list", comment = "", explain = {
+            {name = "systemChat", type = "map", comment = "", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        }
+        }}
     },
     [11603] = {
         ["comment"] = "世界聊天",
-        ["write"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
+        ["write"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "type", type = "u8", comment = "类型", explain = {}},
+            {name = "message", type = "bst", comment = "消息", explain = {}}
+        }},
+        ["read"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "result", type = "rst", comment = "结果", explain = {}},
+            {name = "worldChat", type = "map", comment = "", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息", explain = {}}
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        },
-        ["read"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
-                {name = "result", type = "rst", comment = "结果", explain = {}},
-                {name = "worldChat", type = "record", comment = "", explain = {
-                    {name = "id", type = "u64", comment = "ID", explain = {}},
-                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
-            }}
-        }
+        }}
     },
     [11604] = {
         ["comment"] = "世界聊天列表",
-        ["write"] = {
-            {name = "data", type = "u16", comment = "页", explain = {}}
-        },
-        ["read"] = {
-            {name = "data", type = "list", comment = "", explain = {
-                {name = "worldChat", type = "record", comment = "", explain = {
-                    {name = "id", type = "u64", comment = "ID", explain = {}},
-                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
+        ["write"] = {name = "data", type = "u16", comment = "页", explain = {}},
+        ["read"] = {name = "data", type = "list", comment = "", explain = {
+            {name = "worldChat", type = "map", comment = "", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        }
+        }}
     },
     [11605] = {
         ["comment"] = "公会聊天",
-        ["write"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
+        ["write"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "type", type = "u8", comment = "类型", explain = {}},
+            {name = "message", type = "bst", comment = "消息", explain = {}}
+        }},
+        ["read"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "result", type = "rst", comment = "结果", explain = {}},
+            {name = "guildChat", type = "map", comment = "", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息", explain = {}}
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        },
-        ["read"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
-                {name = "result", type = "rst", comment = "结果", explain = {}},
-                {name = "guildChat", type = "record", comment = "", explain = {
-                    {name = "id", type = "u64", comment = "ID", explain = {}},
-                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
-            }}
-        }
+        }}
     },
     [11606] = {
         ["comment"] = "公会聊天列表",
-        ["write"] = {
-            {name = "data", type = "u16", comment = "页", explain = {}}
-        },
-        ["read"] = {
-            {name = "data", type = "map", comment = "", key = "guildChat", explain = {
-                {name = "guildChat", type = "record", comment = "", explain = {
-                    {name = "id", type = "u64", comment = "ID", explain = {}},
-                    {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                    {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
+        ["write"] = {name = "data", type = "u16", comment = "页", explain = {}},
+        ["read"] = {name = "data", type = "list", comment = "", explain = {
+            {name = "guildChat", type = "map", comment = "", explain = {
+                {name = "id", type = "u64", comment = "ID", explain = {}},
+                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+                {name = "roleName", type = "bst", comment = "角色名字", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        }
+        }}
     },
     [11607] = {
         ["comment"] = "私聊",
-        ["write"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
-                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+        ["write"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+            {name = "type", type = "u8", comment = "类型", explain = {}},
+            {name = "message", type = "bst", comment = "消息", explain = {}}
+        }},
+        ["read"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "result", type = "rst", comment = "结果", explain = {}},
+            {name = "privateChat", type = "map", comment = "", explain = {
+                {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
+                {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "message", type = "bst", comment = "消息", explain = {}}
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        },
-        ["read"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
-                {name = "result", type = "rst", comment = "结果", explain = {}},
-                {name = "privateChat", type = "record", comment = "", explain = {
-                    {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
-                    {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
-            }}
-        }
+        }}
     },
     [11608] = {
         ["comment"] = "私聊列表",
-        ["write"] = {
-            {name = "data", type = "tuple", comment = "", explain = {
-                {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
-                {name = "page", type = "u16", comment = "页", explain = {}}
+        ["write"] = {name = "data", type = "map", comment = "", explain = {
+            {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+            {name = "page", type = "u16", comment = "页", explain = {}}
+        }},
+        ["read"] = {name = "data", type = "list", comment = "", explain = {
+            {name = "privateChat", type = "map", comment = "", explain = {
+                {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
+                {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
+                {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "message", type = "bst", comment = "消息内容", explain = {}}
             }}
-        },
-        ["read"] = {
-            {name = "data", type = "list", comment = "", explain = {
-                {name = "privateChat", type = "record", comment = "", explain = {
-                    {name = "senderId", type = "u64", comment = "发送者角色ID", explain = {}},
-                    {name = "receiverId", type = "u64", comment = "接收者角色ID", explain = {}},
-                    {name = "type", type = "u8", comment = "类型", explain = {}},
-                    {name = "message", type = "bst", comment = "消息内容", explain = {}}
-                }}
-            }}
-        }
+        }}
     }
 }

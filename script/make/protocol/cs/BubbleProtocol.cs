@@ -29,7 +29,7 @@ public static class BubbleProtocol
                     // 过期时间
                     var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var bubble = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"bubble_id", bubbleId}, {"expire_time", expireTime}};
+                    var bubble = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"bubbleId", bubbleId}, {"expireTime", expireTime}};
                     // add
                     data.Add(bubble);
                 }

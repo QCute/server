@@ -45,7 +45,7 @@ public static class DailyProtocol
                     // 今日数量
                     var todayNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var count = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"today_number", todayNumber}};
+                    var count = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"todayNumber", todayNumber}};
                     // add
                     data.Add(count);
                 }
@@ -60,16 +60,16 @@ public static class DailyProtocol
                 // 是否领取奖励
                 var dailyIsAward = reader.ReadByte();
                 // object
-                var daily = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"daily_id", dailyDailyId}, {"is_award", dailyIsAward}};
+                var daily = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dailyId", dailyDailyId}, {"isAward", dailyIsAward}};
                 // 
                 // 奖励阶段ID
                 var dailyActiveStageId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 活跃度
                 var dailyActiveScore = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // object
-                var dailyActive = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"stage_id", dailyActiveStageId}, {"score", dailyActiveScore}};
+                var dailyActive = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"stageId", dailyActiveStageId}, {"score", dailyActiveScore}};
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"daily", daily}, {"daily_active", dailyActive}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"daily", daily}, {"dailyActive", dailyActive}};
                 return data;
             }
             case 12303:

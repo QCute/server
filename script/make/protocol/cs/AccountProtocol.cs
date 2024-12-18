@@ -111,7 +111,7 @@ public static class AccountProtocol
                     var listRoleNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var listRoleName = encoding.GetString(reader.ReadBytes(listRoleNameLength));
                     // object
-                    var listItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role_id", listRoleId}, {"role_name", listRoleName}};
+                    var listItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", listRoleId}, {"roleName", listRoleName}};
                     // add
                     list.Add(listItem);
                 }
@@ -131,7 +131,7 @@ public static class AccountProtocol
                 var roleNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var roleName = encoding.GetString(reader.ReadBytes(roleNameLength));
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"role_id", roleId}, {"role_name", roleName}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"roleId", roleId}, {"roleName", roleName}};
                 return data;
             }
             case 10003:

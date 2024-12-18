@@ -29,53 +29,53 @@ class Test
             {"bst", "1二三"},
 
             {"tuple", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
-                {"tupleBinary", new byte [] {97, 98, 99, 100, 101, 102}},
-                {"tupleSubTuple", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
-                    {"tupleSubTupleU8", (System.Byte)95},
-                    {"tupleSubTupleStr", "xyz"},
+                {"binary", new byte [] {97, 98, 99, 100, 101, 102}},
+                {"sub", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
+                    {"u8", (System.Byte)95},
+                    {"str", "xyz"},
                 }},
-                {"tupleSubList", new System.Collections.Generic.List<System.Object>() {
-                    new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleSubListI16", (System.Int16)456}, {"tupleSubListBst", "wow"}},
-                    new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"tupleSubListI16", (System.Int16)369}, {"tupleSubListBst", "oops"}},
+                {"list", new System.Collections.Generic.List<System.Object>() {
+                    new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"i16", (System.Int16)456}, {"bst", "wow"}},
+                    new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"i16", (System.Int16)369}, {"bst", "oops"}},
                 }},
-                {"tupleSubListSingle", new System.Collections.Generic.List<System.Object>() {true, false, false, true, false}},
+                {"single", new System.Collections.Generic.List<System.Object>() {true, false, false, true, false}},
             }},
             
             {"indexList", new System.Collections.Generic.List<System.Object>() {
                 new System.Collections.Generic.Dictionary<System.String, System.Object>() {
-                    {"listBinary", new byte [] {97, 98, 99, 100, 101, 102}},
-                    {"listSubTuple", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
-                        {"listSubTupleU8", (System.Byte)95},
-                        {"listSubTupleStr", "xyz"},
+                    {"binary", new byte [] {97, 98, 99, 100, 101, 102}},
+                    {"sub", new System.Collections.Generic.Dictionary<System.String, System.Object>() {
+                        {"u8", (System.Byte)95},
+                        {"str", "xyz"},
                     }},
-                    {"listSubList", new System.Collections.Generic.List<System.Object>() {
-                        new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listSubListI16", (System.Int16)456}, {"listSubListBst", "wow"}},
-                        new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"listSubListI16", (System.Int16)369}, {"listSubListBst", "oops"}},
+                    {"list", new System.Collections.Generic.List<System.Object>() {
+                        new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"i16", (System.Int16)456}, {"bst", "wow"}},
+                        new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"i16", (System.Int16)369}, {"bst", "oops"}},
                     }},
-                    {"listSubListSingle", new System.Collections.Generic.List<System.Object>() {true, false, false, true, false}},
+                    {"single", new System.Collections.Generic.List<System.Object>() {true, false, false, true, false}},
                 }
             }},
 
             {"keyList", new System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>() {
                 {(System.Object)1, new System.Collections.Generic.Dictionary<System.String, System.Object>() {
-                    {"listBinary", new byte [] {97, 98, 99, 100, 101, 102}},
-                    {"listBoolean", false},
-                    
-                    {"listU8", (System.Byte)1},
-                    {"listU16", (System.UInt16)2},
-                    {"listU32", (System.UInt32)3},
-                    {"listU64", (System.UInt64)4},
-                    
-                    {"listI8", (System.SByte)4},
-                    {"listI16", (System.Int16)3},
-                    {"listI32", (System.Int32)2},
-                    {"listI64", (System.Int64)1},
-                    
-                    {"listF32", (System.Single)1.23},
-                    {"listF64", (System.Double)4.56},
-                    
-                    {"listStr", "一23"},
-                    {"listBst", "1二三"},
+                    {"binary", new byte [] {97, 98, 99, 100, 101, 102}},
+                    {"boolean", true},
+
+                    {"u8", (System.Byte)1},
+                    {"u16", (System.UInt16)2},
+                    {"u32", (System.UInt32)3},
+                    {"u64", (System.UInt64)4},
+
+                    {"i8", (System.SByte)4},
+                    {"i16", (System.Int16)3},
+                    {"i32", (System.Int32)2},
+                    {"i64", (System.Int64)1},
+
+                    {"f32", (System.Single)1.23},
+                    {"f64", (System.Double)4.56},
+
+                    {"str", "一23"},
+                    {"bst", "1二三"},
                 }}
             }}
         }}
@@ -219,6 +219,15 @@ class Test
                 foreach (var kv in (System.Collections.Generic.Dictionary<System.String, System.Object>)data)
                 {
                     str += kv.Key + " = " + Stringify(kv.Value) + ", ";
+                }
+                return str += "}";
+            }
+            case "System.Collections.Generic.Dictionary`2[System.Object,System.Object]": 
+            {
+                var str = "{";
+                foreach (var kv in (System.Collections.Generic.Dictionary<System.Object, System.Object>)data)
+                {
+                    str += Stringify(kv.Key) + " = " + Stringify(kv.Value) + ", ";
                 }
                 return str += "}";
             }

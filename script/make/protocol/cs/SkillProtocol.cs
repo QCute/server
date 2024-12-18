@@ -35,7 +35,7 @@ public static class SkillProtocol
                     // 技能等级
                     var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var skill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skill_id", skillId}, {"level", level}};
+                    var skill = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"skillId", skillId}, {"level", level}};
                     // add
                     data.Add(skill);
                 }

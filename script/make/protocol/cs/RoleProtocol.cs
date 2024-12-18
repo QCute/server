@@ -39,7 +39,7 @@ public static class RoleProtocol
                 // 等级
                 var level = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // object
-                var role = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role_id", roleId}, {"role_name", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}};
+                var role = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}};
                 return role;
             }
             case 10102:
@@ -67,7 +67,7 @@ public static class RoleProtocol
                 // 过期时间
                 var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // object
-                var vip = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vip_level", vipLevel}, {"exp", exp}, {"expire_time", expireTime}};
+                var vip = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vipLevel", vipLevel}, {"exp", exp}, {"expireTime", expireTime}};
                 return vip;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));

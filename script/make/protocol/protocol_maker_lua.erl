@@ -921,7 +921,7 @@ parse_decode_lua_loop([#meta{name = Name, type = list, explain = Explain, commen
         Padding, "offset = offset + 2", "\n",
         Padding, "for ", PathHumpName, "Index = 1, ", PathHumpName, "Length do", "\n",
         string:join(SubCodes, "\n"), "\n",
-        Padding, "    ", PathHumpName, "[", word:to_lower_hump(Key), "] = ", string:join(SubFields, ", "), "\n",
+        Padding, "    ", PathHumpName, "[", PathHumpName, word:to_hump(Key), "] = ", string:join(SubFields, ", "), "\n",
         Padding, "end"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -965,7 +965,7 @@ parse_decode_lua_loop([#meta{name = Name, type = ets, explain = Explain, comment
         Padding, "offset = offset + 2", "\n",
         Padding, "for ", PathHumpName, "Index = 1, ", PathHumpName, "Length do", "\n",
         string:join(SubCodes, "\n"), "\n",
-        Padding, "    ", PathHumpName, "[", word:to_lower_hump(Key), "] = ", string:join(SubFields, ", "), "\n",
+        Padding, "    ", PathHumpName, "[", PathHumpName, word:to_hump(Key), "] = ", string:join(SubFields, ", "), "\n",
         Padding, "end"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]).

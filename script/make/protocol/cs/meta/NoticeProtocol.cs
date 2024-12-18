@@ -9,22 +9,18 @@ public static class NoticeProtocol
         {
             {"50001", new Map() {
                 {"comment", "公告列表"},
-                {"write", new List() {
-                    new Map() { {"name", "data"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
+                {"write", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
 
+                }}}},
+                {"read", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "公告列表"}, {"explain", new List() {
+                    new Map() { {"name", "noticeRole"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
+                        new Map() { {"name", "noticeId"}, {"type", "u64"}, {"comment", "公告ID"}, {"explain", new List()} },
+                        new Map() { {"name", "receiveTime"}, {"type", "u32"}, {"comment", "收到时间"}, {"explain", new List()} },
+                        new Map() { {"name", "readTime"}, {"type", "u32"}, {"comment", "读取时间"}, {"explain", new List()} },
+                        new Map() { {"name", "title"}, {"type", "bst"}, {"comment", "标题"}, {"explain", new List()} },
+                        new Map() { {"name", "content"}, {"type", "bst"}, {"comment", "内容"}, {"explain", new List()} }
                     }}}
-                }},
-                {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "公告列表"}, {"explain", new List() {
-                        new Map() { {"name", "noticeRole"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
-                            new Map() { {"name", "noticeId"}, {"type", "u64"}, {"comment", "公告ID"}, {"explain", new List()} },
-                            new Map() { {"name", "receiveTime"}, {"type", "u32"}, {"comment", "收到时间"}, {"explain", new List()} },
-                            new Map() { {"name", "readTime"}, {"type", "u32"}, {"comment", "读取时间"}, {"explain", new List()} },
-                            new Map() { {"name", "title"}, {"type", "bst"}, {"comment", "标题"}, {"explain", new List()} },
-                            new Map() { {"name", "content"}, {"type", "bst"}, {"comment", "内容"}, {"explain", new List()} }
-                        }}}
-                    }}}
-                }}
+                }}}}
             }}
         };
     }

@@ -64,7 +64,7 @@ public static class FriendProtocol
                     // 添加/修改状态时间
                     var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var friend = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"friend_role_id", friendRoleId}, {"friend_name", friendName}, {"relation", relation}, {"time", time}};
+                    var friend = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"friendRoleId", friendRoleId}, {"friendName", friendName}, {"relation", relation}, {"time", time}};
                     // add
                     data.Add(friend);
                 }
@@ -93,7 +93,7 @@ public static class FriendProtocol
                 // 好友角色ID
                 var friendRoleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"friend_role_id", friendRoleId}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"friendRoleId", friendRoleId}};
                 return data;
             }
             case 11505:
@@ -105,7 +105,7 @@ public static class FriendProtocol
                 // 好友角色ID
                 var friendRoleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"friend_role_id", friendRoleId}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"friendRoleId", friendRoleId}};
                 return data;
             }
             case 11506:
@@ -117,7 +117,7 @@ public static class FriendProtocol
                 // 好友角色ID
                 var friendRoleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"friend_role_id", friendRoleId}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"friendRoleId", friendRoleId}};
                 return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));

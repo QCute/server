@@ -29,7 +29,7 @@ public static class TitleProtocol
                     // 过期时间
                     var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var title = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"title_id", titleId}, {"expire_time", expireTime}};
+                    var title = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"titleId", titleId}, {"expireTime", expireTime}};
                     // add
                     data.Add(title);
                 }

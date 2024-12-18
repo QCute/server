@@ -31,10 +31,10 @@ public class Reader
                 this.Length = this.Length - length - 4;
                 var reader = new System.IO.BinaryReader(new System.IO.MemoryStream(packet));
                 var meta = ProtocolDefine.GetRead(protocol);
-                var result = this.__Read__(meta, reader);
+                var data = this.__Read__(meta, reader);
                 // update stream buffer
                 this.stream.Write(this.stream.GetBuffer(), length + 4, this.Length);
-                return new Map() { {"protocol", protocol}, {"data", result["data"]} };
+                return new Map() { {"protocol", protocol}, {"data", data} };
             }
         }
         return null;
@@ -48,98 +48,98 @@ public class Reader
             case "binary": 
             {
                 return reader.ReadBytes((System.Int32)meta["explain"]);
-            } break;
+            }
             case "bool": 
             {
                 return reader.ReadByte() != 0;
-            } break;
+            }
             case "u8": 
             {
                 return reader.ReadByte();
-            } break;
+            }
             case "u16": 
             {
                 return (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-            } break;
+            }
             case "u32": 
             {
                 return (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-            } break;
+            }
             case "u64": 
             {
                 return (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-            } break;
+            }
             case "i8": 
             {
                 return reader.ReadSByte();
-            } break;
+            }
             case "i16": 
             {
                 return System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-            } break;
+            }
             case "i32": 
             {
                 return System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-            } break;
+            }
             case "i64": 
             {
                 return System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-            } break;
+            }
             case "f32": 
             {
                 return System.BitConverter.ToSingle(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32())), 0);
-            } break;
+            }
             case "f64": 
             {
                 return System.BitConverter.ToDouble(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64())), 0);
-            } break;
+            }
             case "str":
             case "bst":
             case "rst": 
             {
                 var strLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 return this.encoding.GetString(reader.ReadBytes(strLength));
-            } break;
+            }
             case "list": 
             {
-                var key = meta["key"];
-                if(key == null) {
+                if(!meta.ContainsKey("key")) {
                     var list = new List();
-                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var explain = (List)meta["explain"];
+                    var sub = (Map)explain[0];
+                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     while (length-- > 0) 
                     {
-                        var result = this.__Read__(explain, reader);
-                        list.Add(result);
+                        var data = this.__Read__(sub, reader);
+                        list.Add(data);
                     }
                     return list;
                 } else {
-                    var map = new Map();
-                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var explain = (System.String)meta["name"];
+                    var key = (System.String)meta["key"];
+                    var map = new System.Collections.Generic.Dictionary<System.Object, System.Object>();
                     var explain = (List)meta["explain"];
+                    var sub = (Map)explain[0];
+                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     while (length-- > 0) 
                     {
-                        var result = this.__Read__(explain, reader);
-                        map[] = result;
+                        var data = (System.Collections.Generic.Dictionary<System.String, System.Object>)this.__Read__(sub, reader);
+                        // @todo convert key data to spec type
+                        var keyData = data[key];
+                        map[keyData] = data;
                     }
-                    return list;
+                    return map;
                 }
-            } break;
+            }
             case "map": 
             {
-                var map = new System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>();
-                var key = (System.String)meta["key"];
-                var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var map = new Map();
                 var explain = (List)meta["explain"];
-                while (length-- > 0) 
+                foreach(Map sub in explain)
                 {
-                    var result = this.__Read__(explain, reader);
-                    var sub = (System.Collections.Generic.Dictionary<System.String, System.Object>)result["data"];
-                    map[sub[key]] = sub;
+                    var name = (System.String)sub["name"];
+                    map[name] = this.__Read__(sub, reader);
                 }
-                data[(System.String)meta["name"]] = map;
-            } break;
+                return map;
+            }
             default: throw new System.ArgumentException(System.String.Format("unknown meta type: {0}", meta["type"]));
         }
     }

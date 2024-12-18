@@ -69,12 +69,12 @@ public static class MailProtocol
                         // 数量
                         var attachmentNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                         // object
-                        var attachmentItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"item_id", attachmentItemId}, {"number", attachmentNumber}};
+                        var attachmentItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemId", attachmentItemId}, {"number", attachmentNumber}};
                         // add
                         attachment.Add(attachmentItem);
                     }
                     // object
-                    var mail = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"mail_id", mailId}, {"receive_time", receiveTime}, {"expire_time", expireTime}, {"read_time", readTime}, {"receive_attachment_time", receiveAttachmentTime}, {"title", title}, {"content", content}, {"attachment", attachment}};
+                    var mail = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"mailId", mailId}, {"receiveTime", receiveTime}, {"expireTime", expireTime}, {"readTime", readTime}, {"receiveAttachmentTime", receiveAttachmentTime}, {"title", title}, {"content", content}, {"attachment", attachment}};
                     // add
                     data.Add(mail);
                 }

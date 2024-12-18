@@ -43,7 +43,7 @@ public static class TaskProtocol
                     // 是否领取奖励
                     var isAward = reader.ReadByte();
                     // object
-                    var task = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"task_id", taskId}, {"number", number}, {"is_award", isAward}};
+                    var task = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"taskId", taskId}, {"number", number}, {"isAward", isAward}};
                     // add
                     data.Add(task);
                 }
@@ -63,7 +63,7 @@ public static class TaskProtocol
                 // 是否领取奖励
                 var taskIsAward = reader.ReadByte();
                 // object
-                var task = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"task_id", taskTaskId}, {"number", taskNumber}, {"is_award", taskIsAward}};
+                var task = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"taskId", taskTaskId}, {"number", taskNumber}, {"isAward", taskIsAward}};
                 // object
                 var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"task", task}};
                 return data;

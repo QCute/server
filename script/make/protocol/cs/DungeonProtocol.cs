@@ -41,7 +41,7 @@ public static class DungeonProtocol
                     // 总次数
                     var totalNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var dungeon = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dungeon_id", dungeonId}, {"today_number", todayNumber}, {"total_number", totalNumber}};
+                    var dungeon = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dungeonId", dungeonId}, {"todayNumber", todayNumber}, {"totalNumber", totalNumber}};
                     // add
                     data.Add(dungeon);
                 }

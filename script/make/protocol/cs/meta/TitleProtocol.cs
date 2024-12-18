@@ -9,19 +9,15 @@ public static class TitleProtocol
         {
             {"11901", new Map() {
                 {"comment", "称号列表"},
-                {"write", new List() {
-                    new Map() { {"name", "data"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
+                {"write", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
 
+                }}}},
+                {"read", new Map() { {"name", "data"}, {"type", "list"}, {"comment", "称号列表"}, {"explain", new List() {
+                    new Map() { {"name", "title"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
+                        new Map() { {"name", "titleId"}, {"type", "u32"}, {"comment", "称号ID"}, {"explain", new List()} },
+                        new Map() { {"name", "expireTime"}, {"type", "u32"}, {"comment", "过期时间"}, {"explain", new List()} }
                     }}}
-                }},
-                {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", "称号列表"}, {"explain", new List() {
-                        new Map() { {"name", "title"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
-                            new Map() { {"name", "titleId"}, {"type", "u32"}, {"comment", "称号ID"}, {"explain", new List()} },
-                            new Map() { {"name", "expireTime"}, {"type", "u32"}, {"comment", "过期时间"}, {"explain", new List()} }
-                        }}}
-                    }}}
-                }}
+                }}}}
             }}
         };
     }

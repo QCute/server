@@ -39,7 +39,7 @@ public static class ShopProtocol
                     // 数量
                     var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var shop = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"shop_id", shopId}, {"number", number}};
+                    var shop = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"shopId", shopId}, {"number", number}};
                     // add
                     data.Add(shop);
                 }

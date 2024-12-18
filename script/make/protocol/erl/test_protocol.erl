@@ -12,12 +12,6 @@ decode(65533, _Rest_ = <<_/binary>>) ->
     <<_:DataByteSize/binary, _DataRest_/binary>> = _DataLengthRest_,
     {ok, Data};
 
-decode(65534, _Rest_ = <<_/binary>>) ->
-    <<DataLength:16, _DataLengthRest_/binary>> = _Rest_,
-    {DataByteSize, Data} = decode_data_65534(_DataLengthRest_, 0, DataLength, []),
-    <<_:DataByteSize/binary, _DataRest_/binary>> = _DataLengthRest_,
-    {ok, Data};
-
 decode(65535, _Rest_ = <<_/binary>>) ->
     <<Binary:6/binary, _BinaryRest_/binary>> = _Rest_,
     <<BooleanFlag:8, _BooleanRest_/binary>> = _BinaryRest_,
@@ -61,12 +55,6 @@ decode_data_65533(<<_/binary>>, Size, 0, List) ->
 decode_data_65533(_Rest_ = <<_/binary>>, Size, DataLength, List) ->
     <<Item:32, _ItemRest_/binary>> = _Rest_,
     decode_data_65533(_ItemRest_, Size + byte_size(_Rest_) - byte_size(_ItemRest_), DataLength - 1, [Item | List]).
-
-decode_data_65534(<<_/binary>>, Size, 0, List) ->
-    {Size, List};
-decode_data_65534(_Rest_ = <<_/binary>>, Size, DataLength, List) ->
-    <<Item:32, _ItemRest_/binary>> = _Rest_,
-    decode_data_65534(_ItemRest_, Size + byte_size(_Rest_) - byte_size(_ItemRest_), DataLength - 1, [Item | List]).
 
 decode_tuple_list_65535(<<_/binary>>, Size, 0, List) ->
     {Size, List};
@@ -142,10 +130,6 @@ encode(65533, Data) ->
     Data65533 = <<(encode_data_65533(<<>>, 0, Data))/binary>>,
     {ok, <<(byte_size(Data65533)):16, 65533:16, Data65533/binary>>};
 
-encode(65534, Data) ->
-    Data65534 = <<(encode_data_65534(<<>>, 0, Data))/binary>>,
-    {ok, <<(byte_size(Data65534)):16, 65534:16, Data65534/binary>>};
-
 encode(65535, {Binary, Boolean, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, Str, Bst, {TupleBinary, {TupleSubU8, TupleSubStr}, TupleList, TupleSingle}, IndexList, KeyList}) ->
     Data65535 = <<Binary:6/binary, (type:to_flag(Boolean)):8, U8:8, U16:16, U32:32, U64:64, I8:8/signed, I16:16/signed, I32:32/signed, I64:64/signed, F32:32/float, F64:64/float, (begin StrBinary = unicode:characters_to_binary(Str), <<(byte_size(StrBinary)):16, StrBinary/binary>> end)/binary, (byte_size(Bst)):16, (Bst)/binary, TupleBinary:6/binary, TupleSubU8:8, (begin TupleSubStrBinary = unicode:characters_to_binary(TupleSubStr), <<(byte_size(TupleSubStrBinary)):16, TupleSubStrBinary/binary>> end)/binary, (encode_tuple_list_65535(<<>>, 0, TupleList))/binary, (encode_tuple_single_65535(<<>>, 0, TupleSingle))/binary, (encode_index_list_65535(<<>>, 0, IndexList))/binary, (encode_key_list_65535(<<>>, 0, KeyList))/binary>>,
     {ok, <<(byte_size(Data65535)):16, 65535:16, Data65535/binary>>};
@@ -157,11 +141,6 @@ encode_data_65533(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;
 encode_data_65533(Acc = <<_/binary>>, Length, [Item | Data]) ->
     encode_data_65533(<<Acc/binary, Item:32>>, Length + 1, Data).
-
-encode_data_65534(Acc = <<_/binary>>, Length, []) ->
-    <<Length:16, Acc/binary>>;
-encode_data_65534(Acc = <<_/binary>>, Length, [Item | Data]) ->
-    encode_data_65534(<<Acc/binary, Item:32>>, Length + 1, Data).
 
 encode_tuple_list_65535(Acc = <<_/binary>>, Length, []) ->
     <<Length:16, Acc/binary>>;

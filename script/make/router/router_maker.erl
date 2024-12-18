@@ -571,7 +571,7 @@ make_cs_decode_pattern_loop([{Protocol, _, _, Name} | T], List) ->
 make_cs_meta_pattern(List) ->
     ReadCase = make_cs_read_meta_pattern_loop(List, []),
     ReadFunction = [
-        "    ", "public static List GetRead(System.UInt16 protocol)", "\n",
+        "    ", "public static Map GetRead(System.UInt16 protocol)", "\n",
         "    ", "{", "\n",
         "    ", "    ", "switch (protocol / 100)", "\n",
         "    ", "    ", "{", "\n",
@@ -582,7 +582,7 @@ make_cs_meta_pattern(List) ->
     ],
     WriteCase = make_cs_write_meta_pattern_loop(List, []),
     WriteFunction = [
-        "    ", "public static List GetWrite(System.UInt16 protocol)", "\n",
+        "    ", "public static Map GetWrite(System.UInt16 protocol)", "\n",
         "    ", "{", "\n",
         "    ", "    ", "switch (protocol / 100)", "\n",
         "    ", "    ", "{", "\n",
@@ -677,7 +677,7 @@ make_cs_read_meta_pattern_loop([], List) ->
     string:join(lists:reverse(List), "\n");
 make_cs_read_meta_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
-        "    ", "    ", "    ", "case ", Protocol, ": return (List)(((Map)", word:to_hump(Name), "Protocol.GetMeta()[protocol.ToString()])[\"read\"]);"
+        "    ", "    ", "    ", "case ", Protocol, ": return (Map)(((Map)", word:to_hump(Name), "Protocol.GetMeta()[protocol.ToString()])[\"read\"]);"
     ]),
     make_cs_read_meta_pattern_loop(T, [Code | List]).
 
@@ -685,7 +685,7 @@ make_cs_write_meta_pattern_loop([], List) ->
     string:join(lists:reverse(List), "\n");
 make_cs_write_meta_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
-        "    ", "    ", "    ", "case ", Protocol, ": return (List)(((Map)", word:to_hump(Name), "Protocol.GetMeta()[protocol.ToString()])[\"write\"]);"
+        "    ", "    ", "    ", "case ", Protocol, ": return (Map)(((Map)", word:to_hump(Name), "Protocol.GetMeta()[protocol.ToString()])[\"write\"]);"
     ]),
     make_cs_write_meta_pattern_loop(T, [Code | List]).
 

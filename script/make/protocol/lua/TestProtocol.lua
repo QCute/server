@@ -21,18 +21,6 @@ function TestProtocol.encode(offset, protocol, data)
             offset = offset + 1
         end
         return table
-    elseif protocol == 65534 then
-        local offset = offset
-        local table = {}
-        -- key single list
-        table[offset] = string.pack(">I2", #data)
-        offset = offset + 1
-        for _, dataItem in pairs(data) do
-            -- key single u32
-            table[offset] = string.pack(">I4", dataItem)
-            offset = offset + 1
-        end
-        return table
     elseif protocol == 65535 then
         local offset = offset
         local table = {}
@@ -229,19 +217,6 @@ function TestProtocol.decode(offset, protocol, data)
             data[dataIndex] = item
         end
         return data
-    elseif protocol == 65534 then
-        local offset = offset
-        -- key single list
-        local data = {}
-        local dataLength = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        for dataIndex = 1, dataLength do
-            -- key single u32
-            local item = string.unpack(">I4", data, offset)
-            offset = offset + 4
-            data[u32] = item
-        end
-        return data
     elseif protocol == 65535 then
         local offset = offset
         -- 
@@ -426,7 +401,7 @@ function TestProtocol.decode(offset, protocol, data)
             offset = offset + 2 + string.len(keyListBst)
             -- object
             local keyListItem = {binary = keyListBinary, boolean = keyListBoolean, u8 = keyListU8, u16 = keyListU16, u32 = keyListU32, u64 = keyListU64, i8 = keyListI8, i16 = keyListI16, i32 = keyListI32, i64 = keyListI64, f32 = keyListF32, f64 = keyListF64, str = keyListStr, bst = keyListBst}
-            keyList[u8] = keyListItem
+            keyList[keyListU8] = keyListItem
         end
         -- object
         local data = {binary = binary, boolean = boolean, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst, tuple = tuple, indexList = indexList, keyList = keyList}

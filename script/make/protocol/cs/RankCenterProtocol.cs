@@ -56,7 +56,7 @@ public static class RankCenterProtocol
                     // 服务器ID
                     var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // object
-                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"server_id", serverId}};
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}};
                     // add
                     data.Add(rank);
                 }
@@ -93,7 +93,7 @@ public static class RankCenterProtocol
                     // object
                     var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", otherLevel}, {"classes", otherClasses}};
                     // object
-                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"server_id", serverId}, {"other", other}};
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
                     data.Add(rank);
                 }
@@ -132,7 +132,7 @@ public static class RankCenterProtocol
                     // object
                     var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", otherLevel}, {"classes", otherClasses}, {"sex", otherSex}};
                     // object
-                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"server_id", serverId}, {"other", other}};
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
                     data.Add(rank);
                 }
@@ -171,9 +171,9 @@ public static class RankCenterProtocol
                     // VIP等级
                     var otherVipLevel = reader.ReadByte();
                     // object
-                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", otherLevel}, {"classes", otherClasses}, {"sex", otherSex}, {"vip_level", otherVipLevel}};
+                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", otherLevel}, {"classes", otherClasses}, {"sex", otherSex}, {"vipLevel", otherVipLevel}};
                     // object
-                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"server_id", serverId}, {"other", other}};
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
                     data.Add(rank);
                 }
@@ -214,9 +214,9 @@ public static class RankCenterProtocol
                     // 头像
                     var otherAvatar = reader.ReadByte();
                     // object
-                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", otherLevel}, {"classes", otherClasses}, {"sex", otherSex}, {"vip_level", otherVipLevel}, {"avatar", otherAvatar}};
+                    var other = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", otherLevel}, {"classes", otherClasses}, {"sex", otherSex}, {"vipLevel", otherVipLevel}, {"avatar", otherAvatar}};
                     // object
-                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"server_id", serverId}, {"other", other}};
+                    var rank = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"other", other}};
                     // add
                     data.Add(rank);
                 }

@@ -79,14 +79,14 @@ public static class WelfareProtocol
                     // 领取时间
                     var receiveListTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var receiveListLuckyMoneyRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"server_id", receiveListServerId}, {"role_id", receiveListRoleId}, {"role_name", receiveListRoleName}, {"gold", receiveListGold}, {"time", receiveListTime}};
+                    var receiveListLuckyMoneyRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"serverId", receiveListServerId}, {"roleId", receiveListRoleId}, {"roleName", receiveListRoleName}, {"gold", receiveListGold}, {"time", receiveListTime}};
                     // add
                     receiveList.Add(receiveListLuckyMoneyRole);
                 }
                 // 发送时间
                 var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // object
-                var luckyMoney = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"lucky_money_no", luckyMoneyNo}, {"total_gold", totalGold}, {"total_number", totalNumber}, {"receive_number", receiveNumber}, {"receive_list", receiveList}, {"time", time}};
+                var luckyMoney = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"luckyMoneyNo", luckyMoneyNo}, {"totalGold", totalGold}, {"totalNumber", totalNumber}, {"receiveNumber", receiveNumber}, {"receiveList", receiveList}, {"time", time}};
                 return luckyMoney;
             }
             case 15004:

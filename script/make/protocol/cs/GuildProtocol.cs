@@ -141,7 +141,7 @@ public static class GuildProtocol
                     var leaderNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var leaderName = encoding.GetString(reader.ReadBytes(leaderNameLength));
                     // object
-                    var guild = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guild_id", guildId}, {"guild_name", guildName}, {"create_time", createTime}, {"leader_role_id", leaderRoleId}, {"leader_name", leaderName}};
+                    var guild = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"guildName", guildName}, {"createTime", createTime}, {"leaderRoleId", leaderRoleId}, {"leaderName", leaderName}};
                     // add
                     data.Add(guild);
                 }
@@ -171,7 +171,7 @@ public static class GuildProtocol
                     // Vip等级
                     var vipLevel = reader.ReadByte();
                     // object
-                    var guildRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role_id", roleId}, {"job", job}, {"join_time", joinTime}, {"role_name", roleName}, {"sex", sex}, {"classes", classes}, {"vip_level", vipLevel}};
+                    var guildRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"job", job}, {"joinTime", joinTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
                     // add
                     data.Add(guildRole);
                 }
@@ -199,7 +199,7 @@ public static class GuildProtocol
                     // Vip等级
                     var vipLevel = reader.ReadByte();
                     // object
-                    var guildApply = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role_id", roleId}, {"apply_time", applyTime}, {"role_name", roleName}, {"sex", sex}, {"classes", classes}, {"vip_level", vipLevel}};
+                    var guildApply = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"applyTime", applyTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
                     // add
                     data.Add(guildApply);
                 }
@@ -230,7 +230,7 @@ public static class GuildProtocol
                 var leaderNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var leaderName = encoding.GetString(reader.ReadBytes(leaderNameLength));
                 // object
-                var guild = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guild_id", guildId}, {"guild_name", guildName}, {"exp", exp}, {"wealth", wealth}, {"level", level}, {"create_time", createTime}, {"notice", notice}, {"leader_role_id", leaderRoleId}, {"leader_name", leaderName}};
+                var guild = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"guildName", guildName}, {"exp", exp}, {"wealth", wealth}, {"level", level}, {"createTime", createTime}, {"notice", notice}, {"leaderRoleId", leaderRoleId}, {"leaderName", leaderName}};
                 return guild;
             }
             case 30105:
@@ -252,7 +252,7 @@ public static class GuildProtocol
                 // Vip等级
                 var vipLevel = reader.ReadByte();
                 // object
-                var guildRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role_id", roleId}, {"job", job}, {"join_time", joinTime}, {"role_name", roleName}, {"sex", sex}, {"classes", classes}, {"vip_level", vipLevel}};
+                var guildRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"job", job}, {"joinTime", joinTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
                 return guildRole;
             }
             case 30106:
@@ -271,7 +271,7 @@ public static class GuildProtocol
                     var guildNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var guildName = encoding.GetString(reader.ReadBytes(guildNameLength));
                     // object
-                    var guildApply = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guild_id", guildId}, {"apply_time", applyTime}, {"guild_name", guildName}};
+                    var guildApply = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"applyTime", applyTime}, {"guildName", guildName}};
                     // add
                     data.Add(guildApply);
                 }

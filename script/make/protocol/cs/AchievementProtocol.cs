@@ -39,7 +39,7 @@ public static class AchievementProtocol
                     // 总数
                     var totalNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var count = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"total_number", totalNumber}};
+                    var count = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"totalNumber", totalNumber}};
                     // add
                     data.Add(count);
                 }
@@ -58,7 +58,7 @@ public static class AchievementProtocol
                     // 成就类型
                     var type = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var achievement = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"achievement_id", achievementId}, {"type", type}};
+                    var achievement = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"achievementId", achievementId}, {"type", type}};
                     // add
                     data.Add(achievement);
                 }

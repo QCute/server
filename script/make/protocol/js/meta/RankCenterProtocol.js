@@ -1,129 +1,109 @@
 export default {
-    "19101" : {
-        "comment" : "等级榜",
-        "write" : [
-            {"name": "data", "type": "tuple", "comment": "", "explain": [
+    "19101": {
+        "comment": "等级榜",
+        "write": {"name": "data", "type": "map", "comment": "", "explain": [
 
+        ]},
+        "read": {"name": "data", "type": "list", "comment": "", "explain": [
+            {"name": "rank", "type": "map", "comment": "", "explain": [
+                {"name": "type", "type": "u16", "comment": "类型", "explain": []},
+                {"name": "order", "type": "u64", "comment": "排名", "explain": []},
+                {"name": "key", "type": "u64", "comment": "键", "explain": []},
+                {"name": "value", "type": "u64", "comment": "值", "explain": []},
+                {"name": "time", "type": "u32", "comment": "时间", "explain": []},
+                {"name": "name", "type": "bst", "comment": "名字", "explain": []},
+                {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []}
             ]}
-        ],
-        "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": [
-                {"name": "rank", "type": "record", "comment": "", "explain": [
-                    {"name": "type", "type": "u16", "comment": "类型", "explain": []},
-                    {"name": "order", "type": "u64", "comment": "排名", "explain": []},
-                    {"name": "key", "type": "u64", "comment": "键", "explain": []},
-                    {"name": "value", "type": "u64", "comment": "值", "explain": []},
-                    {"name": "time", "type": "u32", "comment": "时间", "explain": []},
-                    {"name": "name", "type": "bst", "comment": "名字", "explain": []},
-                    {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []}
-                ]}
-            ]}
-        ]
+        ]}
     },
-    "19102" : {
-        "comment" : "战力榜",
-        "write" : [
-            {"name": "data", "type": "tuple", "comment": "", "explain": [
+    "19102": {
+        "comment": "战力榜",
+        "write": {"name": "data", "type": "map", "comment": "", "explain": [
 
-            ]}
-        ],
-        "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": [
-                {"name": "rank", "type": "record", "comment": "", "explain": [
-                    {"name": "type", "type": "u16", "comment": "类型", "explain": []},
-                    {"name": "order", "type": "u64", "comment": "排名", "explain": []},
-                    {"name": "key", "type": "u64", "comment": "键", "explain": []},
-                    {"name": "value", "type": "u64", "comment": "值", "explain": []},
-                    {"name": "time", "type": "u32", "comment": "时间", "explain": []},
-                    {"name": "name", "type": "bst", "comment": "名字", "explain": []},
-                    {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
-                    {"name": "other", "type": "tuple", "comment": "", "explain": [
-                        {"name": "level", "type": "u16", "comment": "等级", "explain": []},
-                        {"name": "classes", "type": "u8", "comment": "职业", "explain": []}
-                    ]}
+        ]},
+        "read": {"name": "data", "type": "list", "comment": "", "explain": [
+            {"name": "rank", "type": "map", "comment": "", "explain": [
+                {"name": "type", "type": "u16", "comment": "类型", "explain": []},
+                {"name": "order", "type": "u64", "comment": "排名", "explain": []},
+                {"name": "key", "type": "u64", "comment": "键", "explain": []},
+                {"name": "value", "type": "u64", "comment": "值", "explain": []},
+                {"name": "time", "type": "u32", "comment": "时间", "explain": []},
+                {"name": "name", "type": "bst", "comment": "名字", "explain": []},
+                {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
+                {"name": "other", "type": "map", "comment": "", "explain": [
+                    {"name": "level", "type": "u16", "comment": "等级", "explain": []},
+                    {"name": "classes", "type": "u8", "comment": "职业", "explain": []}
                 ]}
             ]}
-        ]
+        ]}
     },
-    "19103" : {
-        "comment" : "成就榜",
-        "write" : [
-            {"name": "data", "type": "tuple", "comment": "", "explain": [
+    "19103": {
+        "comment": "成就榜",
+        "write": {"name": "data", "type": "map", "comment": "", "explain": [
 
-            ]}
-        ],
-        "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": [
-                {"name": "rank", "type": "record", "comment": "", "explain": [
-                    {"name": "type", "type": "u16", "comment": "类型", "explain": []},
-                    {"name": "order", "type": "u64", "comment": "排名", "explain": []},
-                    {"name": "key", "type": "u64", "comment": "键", "explain": []},
-                    {"name": "value", "type": "u64", "comment": "值", "explain": []},
-                    {"name": "time", "type": "u32", "comment": "时间", "explain": []},
-                    {"name": "name", "type": "bst", "comment": "名字", "explain": []},
-                    {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
-                    {"name": "other", "type": "tuple", "comment": "", "explain": [
-                        {"name": "level", "type": "u16", "comment": "等级", "explain": []},
-                        {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
-                        {"name": "sex", "type": "u8", "comment": "性别", "explain": []}
-                    ]}
+        ]},
+        "read": {"name": "data", "type": "list", "comment": "", "explain": [
+            {"name": "rank", "type": "map", "comment": "", "explain": [
+                {"name": "type", "type": "u16", "comment": "类型", "explain": []},
+                {"name": "order", "type": "u64", "comment": "排名", "explain": []},
+                {"name": "key", "type": "u64", "comment": "键", "explain": []},
+                {"name": "value", "type": "u64", "comment": "值", "explain": []},
+                {"name": "time", "type": "u32", "comment": "时间", "explain": []},
+                {"name": "name", "type": "bst", "comment": "名字", "explain": []},
+                {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
+                {"name": "other", "type": "map", "comment": "", "explain": [
+                    {"name": "level", "type": "u16", "comment": "等级", "explain": []},
+                    {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
+                    {"name": "sex", "type": "u8", "comment": "性别", "explain": []}
                 ]}
             ]}
-        ]
+        ]}
     },
-    "19104" : {
-        "comment" : "财富榜",
-        "write" : [
-            {"name": "data", "type": "tuple", "comment": "", "explain": [
+    "19104": {
+        "comment": "财富榜",
+        "write": {"name": "data", "type": "map", "comment": "", "explain": [
 
-            ]}
-        ],
-        "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": [
-                {"name": "rank", "type": "record", "comment": "", "explain": [
-                    {"name": "type", "type": "u16", "comment": "类型", "explain": []},
-                    {"name": "order", "type": "u64", "comment": "排名", "explain": []},
-                    {"name": "key", "type": "u64", "comment": "键", "explain": []},
-                    {"name": "value", "type": "u64", "comment": "值", "explain": []},
-                    {"name": "time", "type": "u32", "comment": "时间", "explain": []},
-                    {"name": "name", "type": "bst", "comment": "名字", "explain": []},
-                    {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
-                    {"name": "other", "type": "tuple", "comment": "", "explain": [
-                        {"name": "level", "type": "u16", "comment": "等级", "explain": []},
-                        {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
-                        {"name": "sex", "type": "u8", "comment": "性别", "explain": []},
-                        {"name": "vipLevel", "type": "u8", "comment": "VIP等级", "explain": []}
-                    ]}
+        ]},
+        "read": {"name": "data", "type": "list", "comment": "", "explain": [
+            {"name": "rank", "type": "map", "comment": "", "explain": [
+                {"name": "type", "type": "u16", "comment": "类型", "explain": []},
+                {"name": "order", "type": "u64", "comment": "排名", "explain": []},
+                {"name": "key", "type": "u64", "comment": "键", "explain": []},
+                {"name": "value", "type": "u64", "comment": "值", "explain": []},
+                {"name": "time", "type": "u32", "comment": "时间", "explain": []},
+                {"name": "name", "type": "bst", "comment": "名字", "explain": []},
+                {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
+                {"name": "other", "type": "map", "comment": "", "explain": [
+                    {"name": "level", "type": "u16", "comment": "等级", "explain": []},
+                    {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
+                    {"name": "sex", "type": "u8", "comment": "性别", "explain": []},
+                    {"name": "vipLevel", "type": "u8", "comment": "VIP等级", "explain": []}
                 ]}
             ]}
-        ]
+        ]}
     },
-    "19105" : {
-        "comment" : "职业榜",
-        "write" : [
-            {"name": "data", "type": "tuple", "comment": "", "explain": [
+    "19105": {
+        "comment": "职业榜",
+        "write": {"name": "data", "type": "map", "comment": "", "explain": [
 
-            ]}
-        ],
-        "read" : [
-            {"name": "data", "type": "list", "comment": "", "explain": [
-                {"name": "rank", "type": "record", "comment": "", "explain": [
-                    {"name": "type", "type": "u16", "comment": "类型", "explain": []},
-                    {"name": "order", "type": "u64", "comment": "排名", "explain": []},
-                    {"name": "key", "type": "u64", "comment": "键", "explain": []},
-                    {"name": "value", "type": "u64", "comment": "值", "explain": []},
-                    {"name": "time", "type": "u32", "comment": "时间", "explain": []},
-                    {"name": "name", "type": "bst", "comment": "名字", "explain": []},
-                    {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
-                    {"name": "other", "type": "tuple", "comment": "", "explain": [
-                        {"name": "level", "type": "u16", "comment": "等级", "explain": []},
-                        {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
-                        {"name": "sex", "type": "u8", "comment": "性别", "explain": []},
-                        {"name": "vipLevel", "type": "u8", "comment": "VIP等级", "explain": []},
-                        {"name": "avatar", "type": "u8", "comment": "头像", "explain": []}
-                    ]}
+        ]},
+        "read": {"name": "data", "type": "list", "comment": "", "explain": [
+            {"name": "rank", "type": "map", "comment": "", "explain": [
+                {"name": "type", "type": "u16", "comment": "类型", "explain": []},
+                {"name": "order", "type": "u64", "comment": "排名", "explain": []},
+                {"name": "key", "type": "u64", "comment": "键", "explain": []},
+                {"name": "value", "type": "u64", "comment": "值", "explain": []},
+                {"name": "time", "type": "u32", "comment": "时间", "explain": []},
+                {"name": "name", "type": "bst", "comment": "名字", "explain": []},
+                {"name": "serverId", "type": "u16", "comment": "服务器ID", "explain": []},
+                {"name": "other", "type": "map", "comment": "", "explain": [
+                    {"name": "level", "type": "u16", "comment": "等级", "explain": []},
+                    {"name": "classes", "type": "u8", "comment": "职业", "explain": []},
+                    {"name": "sex", "type": "u8", "comment": "性别", "explain": []},
+                    {"name": "vipLevel", "type": "u8", "comment": "VIP等级", "explain": []},
+                    {"name": "avatar", "type": "u8", "comment": "头像", "explain": []}
                 ]}
             ]}
-        ]
+        ]}
     }
 };

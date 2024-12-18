@@ -22,18 +22,6 @@ public static class TestProtocol
                 }
                 return;
             }
-            case 65534:
-            {
-                // key single list
-                var dataCast = (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)data;
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)dataCast.Count));
-                foreach(var dataCastItemRaw in dataCast)
-                {
-                    // key single u32
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)dataCastItemRaw.Value));
-                }
-                return;
-            }
             case 65535:
             {
                 // convert
@@ -222,20 +210,6 @@ public static class TestProtocol
                 }
                 return data;
             }
-            case 65534:
-            {
-                // key single list
-                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var data = new System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>(dataLength);
-                while (dataLength-- > 0)
-                {
-                    // key single u32
-                    var item = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // add
-                    data[u32] = item;
-                }
-                return data;
-            }
             case 65535:
             {
                 // 
@@ -394,10 +368,10 @@ public static class TestProtocol
                     // object
                     var keyListItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"binary", keyListBinary}, {"boolean", keyListBoolean}, {"u8", keyListU8}, {"u16", keyListU16}, {"u32", keyListU32}, {"u64", keyListU64}, {"i8", keyListI8}, {"i16", keyListI16}, {"i32", keyListI32}, {"i64", keyListI64}, {"f32", keyListF32}, {"f64", keyListF64}, {"str", keyListStr}, {"bst", keyListBst}};
                     // add
-                    keyList[u8] = keyListItem;
+                    keyList[keyListU8] = keyListItem;
                 }
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"binary", binary}, {"boolean", boolean}, {"u8", u8}, {"u16", u16}, {"u32", u32}, {"u64", u64}, {"i8", i8}, {"i16", i16}, {"i32", i32}, {"i64", i64}, {"f32", f32}, {"f64", f64}, {"str", str}, {"bst", bst}, {"tuple", tuple}, {"index_list", indexList}, {"key_list", keyList}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"binary", binary}, {"boolean", boolean}, {"u8", u8}, {"u16", u16}, {"u32", u32}, {"u64", u64}, {"i8", i8}, {"i16", i16}, {"i32", i32}, {"i64", i64}, {"f32", f32}, {"f64", f64}, {"str", str}, {"bst", bst}, {"tuple", tuple}, {"indexList", indexList}, {"keyList", keyList}};
                 return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));

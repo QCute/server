@@ -9,57 +9,41 @@ public static class DailyProtocol
         {
             {"12301", new Map() {
                 {"comment", "统计列表"},
-                {"write", new List() {
-                    new Map() { {"name", "data"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
+                {"write", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
 
+                }}}},
+                {"read", new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
+                    new Map() { {"name", "count"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
+                        new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "统计类型"}, {"explain", new List()} },
+                        new Map() { {"name", "todayNumber"}, {"type", "u32"}, {"comment", "今日数量"}, {"explain", new List()} }
                     }}}
-                }},
-                {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
-                        new Map() { {"name", "count"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
-                            new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "统计类型"}, {"explain", new List()} },
-                            new Map() { {"name", "todayNumber"}, {"type", "u32"}, {"comment", "今日数量"}, {"explain", new List()} }
-                        }}}
-                    }}}
-                }}
+                }}}}
             }},
             {"12302", new Map() {
                 {"comment", "日常列表"},
-                {"write", new List() {
-                    new Map() { {"name", "data"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
+                {"write", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
 
+                }}}},
+                {"read", new Map() { {"name", "data"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
+                    new Map() { {"name", "daily"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
+                        new Map() { {"name", "dailyId"}, {"type", "u32"}, {"comment", "日常ID"}, {"explain", new List()} },
+                        new Map() { {"name", "isAward"}, {"type", "u8"}, {"comment", "是否领取奖励"}, {"explain", new List()} }
+                    }}},
+                    new Map() { {"name", "dailyActive"}, {"type", "map"}, {"comment", ""}, {"explain", new List() {
+                        new Map() { {"name", "stageId"}, {"type", "u32"}, {"comment", "奖励阶段ID"}, {"explain", new List()} },
+                        new Map() { {"name", "score"}, {"type", "u32"}, {"comment", "活跃度"}, {"explain", new List()} }
                     }}}
-                }},
-                {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "tuple"}, {"comment": ""}, {"explain": new List() {
-                        new Map() { {"name", "daily"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
-                            new Map() { {"name", "dailyId"}, {"type", "u32"}, {"comment", "日常ID"}, {"explain", new List()} },
-                            new Map() { {"name", "isAward"}, {"type", "u8"}, {"comment", "是否领取奖励"}, {"explain", new List()} }
-                        }}},
-                        new Map() { {"name", "dailyActive"}, {"type", "record"}, {"comment": ""}, {"explain": new List() {
-                            new Map() { {"name", "stageId"}, {"type", "u32"}, {"comment", "奖励阶段ID"}, {"explain", new List()} },
-                            new Map() { {"name", "score"}, {"type", "u32"}, {"comment", "活跃度"}, {"explain", new List()} }
-                        }}}
-                    }}}
-                }}
+                }}}}
             }},
             {"12303", new Map() {
                 {"comment", "领取日常奖励"},
-                {"write", new List() {
-                    new Map() { {"name", "data"}, {"type", "u32"}, {"comment", "日常ID"}, {"explain", new List()} }
-                }},
-                {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
-                }}
+                {"write", new Map() { {"name", "data"}, {"type", "u32"}, {"comment", "日常ID"}, {"explain", new List()} }},
+                {"read", new Map() { {"name", "data"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }}
             }},
             {"12304", new Map() {
                 {"comment", "领取活跃度阶段奖励"},
-                {"write", new List() {
-                    new Map() { {"name", "data"}, {"type", "u32"}, {"comment", "阶段ID"}, {"explain", new List()} }
-                }},
-                {"read", new List() {
-                    new Map() { {"name", "data"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
-                }}
+                {"write", new Map() { {"name", "data"}, {"type", "u32"}, {"comment", "阶段ID"}, {"explain", new List()} }},
+                {"read", new Map() { {"name", "data"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }}
             }}
         };
     }

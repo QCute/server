@@ -29,7 +29,7 @@ public static class FashionProtocol
                     // 过期时间
                     var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var fashion = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fashion_id", fashionId}, {"expire_time", expireTime}};
+                    var fashion = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"fashionId", fashionId}, {"expireTime", expireTime}};
                     // add
                     data.Add(fashion);
                 }

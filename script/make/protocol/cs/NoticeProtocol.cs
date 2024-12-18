@@ -37,7 +37,7 @@ public static class NoticeProtocol
                     var contentLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var content = encoding.GetString(reader.ReadBytes(contentLength));
                     // object
-                    var noticeRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"notice_id", noticeId}, {"receive_time", receiveTime}, {"read_time", readTime}, {"title", title}, {"content", content}};
+                    var noticeRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"noticeId", noticeId}, {"receiveTime", receiveTime}, {"readTime", readTime}, {"title", title}, {"content", content}};
                     // add
                     data.Add(noticeRole);
                 }

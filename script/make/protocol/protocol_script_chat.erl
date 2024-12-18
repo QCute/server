@@ -111,7 +111,7 @@ protocol() ->
                 handler = #handler{module = chat_server, function = get_guild_list},
                 decode = u16(),                            %% 页
                 encode = [
-                    guild_chat = #guild_chat{
+                    #guild_chat{
                         id = u64(),                        %% ID
                         role_id = u64(),                   %% 角色ID
                         role_name = bst(),                 %% 角色名字

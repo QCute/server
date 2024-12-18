@@ -1059,7 +1059,7 @@ parse_decode_js_loop([#meta{name = Name, type = list, explain = Explain, comment
         Padding, "while (--", PathHumpName, "Length >= 0) {", "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "    // add", "\n",
-        Padding, "    ", PathHumpName, "[", word:to_lower_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
+        Padding, "    ", PathHumpName, "[", PathHumpName, word:to_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
         Padding, "}"
     ],
     parse_decode_js_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -1105,7 +1105,7 @@ parse_decode_js_loop([#meta{name = Name, type = ets, explain = Explain, comment 
         Padding, "while (--", PathHumpName, "Length >= 0) {", "\n",
         string:join(SubCodes, "\n"), "\n",
         Padding, "    // add", "\n",
-        Padding, "    ", PathHumpName, "[", word:to_lower_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
+        Padding, "    ", PathHumpName, "[", PathHumpName, word:to_hump(Key), "] = ", string:join(SubFields, ", "), ";", "\n",
         Padding, "}"
     ],
     parse_decode_js_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]).

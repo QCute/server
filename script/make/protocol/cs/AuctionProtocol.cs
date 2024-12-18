@@ -49,7 +49,7 @@ public static class AuctionProtocol
                     // 下次出价的价格
                     var nextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // object
-                    var auction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auction_no", auctionNo}, {"auction_id", auctionId}, {"number", number}, {"type", type}, {"end_time", endTime}, {"now_price", nowPrice}, {"next_price", nextPrice}};
+                    var auction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", auctionNo}, {"auctionId", auctionId}, {"number", number}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}};
                     // add
                     data.Add(auction);
                 }
@@ -77,9 +77,9 @@ public static class AuctionProtocol
                 // 下次出价的价格
                 var auctionNextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // object
-                var auction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auction_no", auctionAuctionNo}, {"auction_id", auctionAuctionId}, {"type", auctionType}, {"end_time", auctionEndTime}, {"now_price", auctionNowPrice}, {"next_price", auctionNextPrice}};
+                var auction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", auctionAuctionNo}, {"auctionId", auctionAuctionId}, {"type", auctionType}, {"endTime", auctionEndTime}, {"nowPrice", auctionNowPrice}, {"nextPrice", auctionNextPrice}};
                 // object
-                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"new_price", newPrice}, {"auction", auction}};
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"newPrice", newPrice}, {"auction", auction}};
                 return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
