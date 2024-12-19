@@ -180,5 +180,6 @@ compress(Name, Pattern, Shebang) ->
 extract(File) ->
     {ok, Binary} = escript:parse_file(File),
     {ok, FileInfo} = file:read_file_info(File),
-    code:set_primary_archive(File, Binary, FileInfo, fun escript:parse_file/1),
+    [apply(code, set_primary_archive, [File, Binary, FileInfo, fun escript:parse_file/1]) || erlang:function_exported(code, set_primary_archive, 4)],
+    [apply(erl_prim_loader, set_primary_archive, [File, Binary, FileInfo, fun escript:parse_file/1]) || erlang:function_exported(erl_prim_loader, set_primary_archive, 4)],
     code:load_file(list_to_atom(filename:basename(File))).

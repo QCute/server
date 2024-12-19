@@ -79,9 +79,11 @@ format(Format) ->
 -spec format(Format :: string(), Args :: [term()]) -> ok.
 format(Format, Args) ->
     %% find remote group leader list
-    LeaderList = lists:usort([element(2, erlang:process_info(shell:whereis_evaluator(X), group_leader)) || X <- erlang:processes(), shell:whereis_evaluator(X) =/= undefined]),
+    LeaderList = lists:usort([element(2, erlang:process_info(apply(shell, whereis_evaluator, [Pid]), group_leader)) || Pid <- erlang:processes(), erlang:function_exported(shell, whereis_evaluator, 1) andalso apply(shell, whereis_evaluator, [Pid]) =/= undefined]),
+    %% since OTP 26
+    GroupList = [element(2, erlang:process_info(apply(shell, whereis, []), group_leader)) || erlang:function_exported(shell, whereis, 0)],
     %% io Request
-    PidList = [spawn(fun() -> io:format(Leader, Format, Args) end) || Leader <- LeaderList],
+    PidList = [spawn(fun() -> io:format(Leader, Format, Args) end) || Leader <- lists:append(LeaderList, GroupList)],
     %% kill it after 3 second if process block on io Request
     spawn(fun() -> receive _ -> ok after 3000 -> [erlang:exit(Pid, kill) || Pid <- PidList] end end),
     ok.
