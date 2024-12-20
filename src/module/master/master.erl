@@ -22,7 +22,7 @@ treat(State, Http = #http{fields = Fields}, Body) ->
         true ->
             case listing:key_get(<<"content-type">>, 1, Fields, <<>>) of
                 <<"application/json", _/binary>> ->
-                    Json = json:decode(Body, maps:new()),
+                    Json = json:decode(Body),
                     dispatch(State, Http, Json),
                     {ok, State};
                 _ ->
@@ -82,7 +82,7 @@ dispatch(State, Http = #http{uri = <<"/server/chat">>}, Data) ->
         <<"ban-scene">> => ?CHAT_STATE_BAN_SCENE,
         <<"ban-private">> => ?CHAT_STATE_BAN_PRIVATE
     },
-    State = lists:foldl(fun(Operation, Acc) -> Acc bor maps:get(Operation, ChatState, 0) end, 0, json:get(<<"operations">>, Data, [])),
+    State = lists:foldl(fun(Operation, Acc) -> Acc bor maps:get(Operation, ChatState, 0) end, 0, maps:get(<<"operations">>, Data, [])),
     user_manager:set_chat_state(State),
     response(State, Http, #{result => <<"ok">>}, 200);
 
@@ -115,25 +115,25 @@ dispatch(State, Http = #http{uri = <<"/server/chat/ban/private">>}, _) ->
 %%%===================================================================
 
 dispatch(State, Http = #http{uri = <<"/role/login/ban">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `type` = ? WHERE `role_id` IN (?)">>, [?SERVER_STATE_BAN, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_BAN]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/login/normal">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `type` = ? WHERE `role_id` IN (?)">>, [?SERVER_STATE_NORMAL, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_NORMAL]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/login/insider">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `type` = ? WHERE `role_id` IN (?)">>, [?SERVER_STATE_INSIDER, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_INSIDER]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/login/master">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `type` = ? WHERE `role_id` IN (?)">>, [?SERVER_STATE_MASTER, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_MASTER]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
@@ -152,38 +152,38 @@ dispatch(State, Http = #http{uri = <<"/role/chat">>}, Data) ->
         <<"ban-scene">> => ?CHAT_STATE_BAN_SCENE,
         <<"ban-private">> => ?CHAT_STATE_BAN_PRIVATE
     },
-    State = lists:foldl(fun(Operation, Acc) -> Acc bor maps:get(Operation, ChatState, 0) end, 0, json:get(<<"operations">>, Data, [])),
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    State = lists:foldl(fun(Operation, Acc) -> Acc bor maps:get(Operation, ChatState, 0) end, 0, maps:get(<<"operations">>, Data, [])),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `status` = `status` WHERE `role_id` IN (?)">>, [State, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [State]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/chat/normal">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `status` = `status` WHERE `role_id` IN (?)">>, [?CHAT_STATE_NORMAL, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_NORMAL]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/chat/ban">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `status` = `status` | ? WHERE `role_id` IN (?)">>, [?CHAT_STATE_BAN, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_BAN]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/chat/ban/world">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `status` = `status` | ? WHERE `role_id` IN (?)">>, [?CHAT_STATE_BAN_WORLD, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_BAN_WORLD]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/chat/ban/guild">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `status` = `status` | ? WHERE `role_id` IN (?)">>, [?CHAT_STATE_BAN_GUILD, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_BAN_GUILD]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/role/chat/ban/private">>}, Data) ->
-    RoleIdList = json:get(<<"roles">>, Data, []),
+    RoleIdList = maps:get(<<"roles">>, Data, []),
     db:query(db:format(<<"UPDATE `role` SET `status` = `status` | ? WHERE `role_id` IN (?)">>, [?CHAT_STATE_BAN_PRIVATE, db:in(RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_BAN_PRIVATE]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
@@ -195,26 +195,26 @@ dispatch(State, Http = #http{uri = <<"/role/chat/ban/private">>}, Data) ->
 
 %% charge event notify
 dispatch(State, Http = #http{uri = <<"/charge">>}, Data) ->
-    RoleId = json:get(<<"role_id">>, Data, 0),
-    ChargeNo = json:get(<<"charge_no">>, Data, 0),
+    RoleId = maps:get(<<"role_id">>, Data, 0),
+    ChargeNo = maps:get(<<"charge_no">>, Data, 0),
     user_server:apply_cast(RoleId, charge, callback, [ChargeNo]),
     response(State, Http, #{result => <<"ok">>}, 200);
 
 %% admin notice notify
 dispatch(State, Http = #http{uri = <<"/notice">>}, Data) ->
-    Type = json:get(<<"type">>, Data, 1),
-    Title = json:get(<<"title">>, Data, <<>>),
-    Content = json:get(<<"content">>, Data, <<>>),
-    Items = [{Id, Number} || #{id := Id, number := Number} <- json:get(<<"items">>, Data, [])],
+    Type = maps:get(<<"type">>, Data, 1),
+    Title = maps:get(<<"title">>, Data, <<>>),
+    Content = maps:get(<<"content">>, Data, <<>>),
+    Items = [{Id, Number} || #{id := Id, number := Number} <- maps:get(<<"items">>, Data, [])],
     notice_server:add(Type, Title, Content, Items),
     response(State, Http, #{result => <<"ok">>}, 200);
 
 %% admin mail notify
 dispatch(State, Http = #http{uri = <<"/mail">>}, Data) ->
-    RoleId = json:get(<<"roles">>, Data, []),
-    Title = json:get(<<"title">>, Http = #http{uri = <<>>}, Data),
-    Content = json:get(<<"content">>, Http = #http{uri = <<>>}, Data),
-    Items = [{Id, Number} || #{id := Id, number := Number} <- json:get(<<"items">>, Data, [])],
+    RoleId = maps:get(<<"roles">>, Data, []),
+    Title = maps:get(<<"title">>, Http = #http{uri = <<>>}, Data),
+    Content = maps:get(<<"content">>, Http = #http{uri = <<>>}, Data),
+    Items = [{Id, Number} || #{id := Id, number := Number} <- maps:get(<<"items">>, Data, [])],
     mail:send(RoleId, Title, Content, ?MODULE, Items),
     response(State, Http, #{result => <<"ok">>}, 200);
 
