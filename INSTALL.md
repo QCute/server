@@ -1,4 +1,14 @@
 
+## Clone repository
+```sh
+git clone https://github.com:QCute/server
+```
+
+## Clone sub repository
+```
+git submodule update --recursive
+```
+
 ## Setup config from `config/src/{type}.config.src`
 ```sh
 cp config/src/local.config.src config/local.config
@@ -14,6 +24,17 @@ cp config/src/local.config.src config/local.config
             {database,                                "local"},                                    %% database name
             {encoding,                                "utf8mb4"}                                   %% database encoding
         ]},
+```
+
+## Build
+```sh
+./script/shell/maker release
+```
+
+* or
+
+```bat
+./script/batch/maker.bat release
 ```
 
 ## Run
