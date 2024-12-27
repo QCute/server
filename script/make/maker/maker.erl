@@ -31,8 +31,8 @@ parse_args(List) ->
 %% @doc get config file
 -spec config() -> term().
 config() ->
-    %% find local src file
-    List = [begin {ok, [Config]} = file:consult(File), Config end || File <- filelib:wildcard(relative_path("config/src/*.config"))],
+    %% find local config file
+    List = [begin {ok, [Config]} = file:consult(File), Config end || File <- filelib:wildcard(relative_path("config/*.config"))],
     [Config | _] = [Config || Config <- List, proplists:get_value(node_type, proplists:get_value(main, Config, [])) == local],
     Config.
 
