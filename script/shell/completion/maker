@@ -54,12 +54,8 @@ _maker() {
                 local module=$(grep -Po "(?<=/)\w+(?=\.lua)" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
-            "log")
-                local module=$(grep -Po "\b\w+_log\b" "${path}/script/make/log/log_script.erl" | paste -sd " ")
-                COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
-                ;;
             "pt")
-                local module=$(find "${path}/script/make/protocol/" -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
+                local module=$(find "${path}/script/make/protocol/" -name "protocol_script_*.erl" -maxdepth 1 -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "book")

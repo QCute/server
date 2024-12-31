@@ -37,13 +37,99 @@ erl() ->
             file => "script/make/erl/data/test_data.erl",
             comment => "测试配置",
             sql => [
-
+                %% key -> value
+                #{
+                    select => 'zhCN',
+                    from => text_data,
+                    by => key,
+                    as => zhCN
+                },
+                %% key -> column value
+                #{
+                    select => {},
+                    from => text_data,
+                    by => key,
+                    as => text
+                },
+                %% key -> [value]
+                #{
+                    select => all(monster_id),
+                    from => monster_data,
+                    by => type,
+                    as => type
+                },
+                %% -> [value] (not unique)
+                #{
+                    select => all(level),
+                    from => level_data,
+                    order_by => level,
+                    as => level
+                },
+                %% -> [value] (unique)
+                #{
+                    select => all(type),
+                    from => monster_data,
+                    group_by => type,
+                    as => type_list
+                },
+                %% -> value
+                #{
+                    select => {min(exp), max(level)},
+                    from => level_data,
+                    as => min_exp_max_level
+                },
+                %% -> value
+                #{
+                    select => count(zhCN),
+                    from => text_data,
+                    as => text_count
+                },
+                %% -> value
+                #{
+                    select => {max(key), max(zhCN)},
+                    from => text_data,
+                    as => max_text
+                },
+                %% key, key, ... -> value
+                #{
+                    select => description,
+                    from => reference_data,
+                    by => [key, value],
+                    as => ref
+                },
+                %% key, key, ... -> value in if else range
+                #{
+                    select => all(description),
+                    from => reference_data,
+                    by => #{
+                        key => '=',
+                        value => '<'
+                    },
+                    as => ref_range
+                },
+                %% key -> value in if else range ...
+                #{
+                    select => level,
+                    from => level_data,
+                    by => #{
+                        exp => '<='
+                    },
+                    order_by => #{
+                        exp => desc
+                    },
+                    limit => 1,
+                    default => 0,
+                    as => get_level_by_exp_asc
+                },
                 %% use literal filter data
                 #{
                     select => value,
                     from => parameter_data,
                     by => #{
-                        key => in
+                        key => #{
+                            '=' => param(),
+                            like => "%size%"
+                        }
                     },
                     as => get
                 }
@@ -99,7 +185,6 @@ erl() ->
         #{
             file => "script/make/erl/data/effect_data.erl",
             comment => "效果配置",
-            include => ["effect.hrl"],
             sql => [
                 #{
                     select => record(effect_id, scope, object, operation, attribute, field),
@@ -112,7 +197,6 @@ erl() ->
         #{
             file => "script/make/erl/data/charge_data.erl",
             comment => "充值配置",
-            include => ["charge.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -125,7 +209,6 @@ erl() ->
         #{
             file => "script/make/erl/data/sex_data.erl",
             comment => "角色性别配置",
-            include => ["role.hrl"],
             sql => [
                 #{
                     select => name,
@@ -140,7 +223,6 @@ erl() ->
         #{
             file => "script/make/erl/data/classes_data.erl",
             comment => "角色职业配置",
-            include => ["role.hrl"],
             sql => [   
                 #{
                     select => name,
@@ -206,7 +288,6 @@ erl() ->
         #{
             file => "script/make/erl/data/vip_data.erl",
             comment => "VIP配置",
-            include => ["vip.hrl"],
             sql => [
                 #{
                     select => vip_level,
@@ -226,7 +307,6 @@ erl() ->
         #{
             file => "script/make/erl/data/item_data.erl",
             comment => "物品配置",
-            include => ["item.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -239,7 +319,6 @@ erl() ->
         #{
             file => "script/make/erl/data/task_data.erl",
             comment => "任务配置",
-            include => ["task.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -252,7 +331,6 @@ erl() ->
         #{
             file => "script/make/erl/data/achievement_data.erl",
             comment => "成就配置",
-            include => ["achievement.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -284,7 +362,6 @@ erl() ->
         #{
             file => "script/make/erl/data/shop_data.erl",
             comment => "商店配置",
-            include => ["shop.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -297,7 +374,6 @@ erl() ->
         #{
             file => "script/make/erl/data/skill_data.erl",
             comment => "技能配置",
-            include => ["skill.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -310,7 +386,6 @@ erl() ->
         #{
             file => "script/make/erl/data/buff_data.erl",
             comment => "Buff配置",
-            include => ["buff.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -323,7 +398,6 @@ erl() ->
         #{
             file => "script/make/erl/data/fashion_data.erl",
             comment => "时装配置",
-            include => ["fashion.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -336,7 +410,6 @@ erl() ->
         #{
             file => "script/make/erl/data/title_data.erl",
             comment => "称号配置",
-            include => ["title.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -349,7 +422,6 @@ erl() ->
         #{
             file => "script/make/erl/data/bubble_data.erl",
             comment => "气泡配置",
-            include => ["bubble.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -362,7 +434,6 @@ erl() ->
         #{
             comment => "签到配置",
             file => "script/make/erl/data/sign_data.erl",
-            include => ["sign.hrl"],
             sql => [
                 #{
                     select => record(award),
@@ -375,7 +446,6 @@ erl() ->
         #{
             file => "script/make/erl/data/daily_data.erl",
             comment => "日常配置",
-            include => ["daily.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -388,7 +458,6 @@ erl() ->
         #{
             file => "script/make/erl/data/daily_active_data.erl",
             comment => "日常阶段配置",
-            include => ["daily.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -401,7 +470,6 @@ erl() ->
         #{
             file => "script/make/erl/data/key_data.erl",
             comment => "激活码配置",
-            include => ["key.hrl"],
             sql => [
                 #{
                     select => key_award_id,
@@ -415,7 +483,6 @@ erl() ->
         #{
             file => "script/make/erl/data/key_award_data.erl",
             comment => "激活码奖励配置",
-            include => ["key.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -428,7 +495,6 @@ erl() ->
         #{
             file => "script/make/erl/data/activity_data.erl",
             comment => "活动配置",
-            include => ["activity.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -446,7 +512,6 @@ erl() ->
         #{
             file => "script/make/erl/data/auction_data.erl",
             comment => "拍卖配置",
-            include => ["auction.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -459,7 +524,6 @@ erl() ->
         #{
             file => "script/make/erl/data/dungeon_data.erl",
             comment => "副本配置",
-            include => ["dungeon.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -472,7 +536,6 @@ erl() ->
         #{
             file => "script/make/erl/data/map_data.erl",
             comment => "地图配置",
-            include => ["map.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -485,7 +548,6 @@ erl() ->
         #{
             file => "script/make/erl/data/monster_data.erl",
             comment => "怪物配置",
-            include => ["monster.hrl"],
             sql => [
                 #{
                     select => record(),
@@ -509,7 +571,6 @@ erl() ->
         #{
             file => "script/make/erl/data/guild_data.erl",
             comment => "公会配置",
-            include => ["guild.hrl"],
             sql => [
                 #{
                     select => {},
