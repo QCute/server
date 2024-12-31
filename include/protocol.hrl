@@ -114,7 +114,7 @@
 %%% achievement
 %%%===================================================================
 
--define(PROTOCOL_ACHIEVEMENT_QUERY_COUNT,             12301).
+-define(PROTOCOL_ACHIEVEMENT_QUERY_COUNT,             12201).
 -define(PROTOCOL_ACHIEVEMENT_QUERY,                   12202).
 -define(PROTOCOL_ACHIEVEMENT_AWARD,                   12203).
 
