@@ -123,7 +123,7 @@ parse_log([Table | T], ExportList, CodeList) ->
     
     %% code
     Spec = lists:concat(["-spec ", Table, "(", SpecArgs, ") -> ok.\n"]),
-    Code = lists:concat([Spec, Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n"]),
+    Code = lists:concat([Spec, Table, "(", Args, ") ->\n    log_server:log(", Table, ", {", Value, "}).\n"]),
     
     parse_log(T, [Export | ExportList], [Code | CodeList]).
 
@@ -219,7 +219,7 @@ parse_save([Table | T], CodeList) ->
     
     %% convert type to format
     InsertFields = string:join([io_lib:format("`~ts`", [Name]) || #field{name = Name, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
-    InsertFormat = string:join(["?" || #field{extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
+    InsertFormat = string:join([lists:concat([":", Position - 1, ":"]) || #field{extra = Extra, position = Position} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     
     SaveSql = io_lib:format("INSERT INTO `~s` (~s) VALUES ", [Table, InsertFields]),
     Code = io_lib:format("save(~s, Binding) ->\n    db:save_into(<<\"~s\">>, <<\"(~s)\">>, <<>>, Binding, 0);", [Table, SaveSql, InsertFormat]),
@@ -424,7 +424,7 @@ parse_replace([Table | T], Preset, CodeList) ->
     %% Code = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, ~w}", [DeleteSql, ReplaceSql, ReplaceFormat, RetainExpireTime]),
 
     InsertFields = string:join([io_lib:format("`~ts`", [Name]) || #field{name = Name} <- AllFields], ", "),
-    InsertFormat = string:join(["?" || #field{} <- AllFields], ", "),
+    InsertFormat = string:join([lists:concat([":", Position - 1, ":"]) || #field{position = Position} <- AllFields], ", "),
     Code = io_lib:format("replace(~s, Data) ->\n    db:collect(<<\"REPLACE INTO (~s) VALUES \">>, <<\"~s\">>, <<>>, Data, 0);", [Table, InsertFields, InsertFormat]),
 
     parse_replace(T, Preset, [Code | CodeList]).

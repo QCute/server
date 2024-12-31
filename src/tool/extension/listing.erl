@@ -18,6 +18,7 @@
 -export([key_group/2, key_group/3, key_count/2, update_count/3]).
 -export([find/2, find/3]).
 -export([range_find/4, range_find/5]).
+-export([enumerate/1]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
 -export([multi_random/2]).
@@ -371,6 +372,16 @@ range_find_loop([H | _], Min, Max, Value, _) when element(Min, H) =< Value andal
     H;
 range_find_loop([_ | T], Min, Max, Value, Default) ->
     range_find_loop(T, Min, Max, Value, Default).
+
+%% @doc enumerate
+-spec enumerate(List :: list()) -> [{Index :: non_neg_integer(), term()}].
+enumerate(List) ->
+    enumerate_loop(List, 1).
+
+enumerate_loop([], _) ->
+    [];
+enumerate_loop([H | T], Index) ->
+    [{Index, H} | enumerate_loop(T, Index + 1)].
 
 %% @doc shuffle list order
 -spec shuffle(list()) -> list().
