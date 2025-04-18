@@ -446,7 +446,7 @@ parse_decode_erl_loop([#meta{name = Name, type = tuple, explain = Explain} | T],
     NewFunctions = lists:append(lists:reverse(SubFunctions), Functions),
     parse_decode_erl_loop(T, Protocol, Depth, Parent, Ancestor, NextScope, NewRecords, NewFunctions, [SubName | Names], [SubCode | List]);
 
-parse_decode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
+parse_decode_erl_loop([#meta{name = Name, tag = Tag, type = record, explain = Explain} | T], Protocol, Depth, Parent, Ancestor, Scope, Records, Functions, Names, List) ->
     SubExplain = [Meta || Meta = #meta{} <- tuple_to_list(Explain)],
 
     NewAncestor = lists:append([Name || Parent =/= list], Ancestor),
@@ -455,10 +455,10 @@ parse_decode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T]
     {NextScope, SubRecords, SubFunctions, SubNames, SubCodes} = parse_decode_erl_loop(SubExplain, Protocol, Depth, record, NewAncestor, Scope, [], [], [], []),
 
     SubName = lists:concat([
-        "#", word:to_snake(Name), "{", string:join([lists:concat([word:to_snake(FieldName), " = ", PathName]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubNames)], ", "), "}"
+        "#", word:to_snake(Tag), "{", string:join([lists:concat([word:to_snake(FieldName), " = ", PathName]) || {#meta{name = FieldName}, PathName} <- lists:zip(SubExplain, SubNames)], ", "), "}"
     ]),
 
-    Record = type:to_atom(word:to_snake(Name)),
+    Record = type:to_atom(word:to_snake(Tag)),
     
     SubCode = string:join(SubCodes, "\n"),
 
@@ -674,7 +674,7 @@ parse_encode_erl_loop([#meta{name = Name, type = tuple, explain = Explain} | T],
     NewFunctions = lists:append(lists:reverse(SubFunctions), Functions),
     parse_encode_erl_loop(T, Protocol, Depth, Parent, Ancestor, NewRecords, NewFunctions, [SubName | Names], [SubCode | List]);
 
-parse_encode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
+parse_encode_erl_loop([#meta{name = Name, tag = Tag, type = record, explain = Explain} | T], Protocol, Depth, Parent, Ancestor, Records, Functions, Names, List) ->
 
     SubExplain = [Meta || Meta = #meta{} <- tuple_to_list(Explain)],
 
@@ -685,10 +685,10 @@ parse_encode_erl_loop([#meta{name = Name, type = record, explain = Explain} | T]
 
     KeyNameList = [KeyName || #meta{name = KeyName} <- SubExplain],
     SubName = lists:concat([
-        "#", word:to_snake(Name), "{", string:join([lists:concat([word:to_snake(SubKey), " = ", SubName]) || {SubKey, SubName} <- lists:zip(KeyNameList, SubNames)], ", "), "}"
+        "#", word:to_snake(Tag), "{", string:join([lists:concat([word:to_snake(SubKey), " = ", SubName]) || {SubKey, SubName} <- lists:zip(KeyNameList, SubNames)], ", "), "}"
     ]),
 
-    Record = type:to_atom(word:to_snake(Name)),
+    Record = type:to_atom(word:to_snake(Tag)),
 
     SubCode = string:join(SubCodes, ", "),
 

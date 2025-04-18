@@ -34,7 +34,7 @@
 }).
 
 %% ast metadata
--record(meta, {name = "", type, explain, comment = "", key}).
+-record(meta, {name = "", tag, type, explain, comment = "", key}).
 %% file
 -record(file, {import = [], export = [], function = [], extra = []}).
 %% language code set
@@ -91,7 +91,7 @@ rst(Name, Data, Comment) -> #meta{name = Name, type = ?FUNCTION_NAME, explain = 
 %% { name = ... }
 '$tuple$'(Name, Data, Comment) -> #meta{name = Name, type = list_to_atom(string:trim(atom_to_list(?FUNCTION_NAME), both, "$")), explain = Data, comment = Comment}.
 %% #record{ name = ... }
-'$record$'(Name, Data, Comment) -> #meta{name = Name, type = list_to_atom(string:trim(atom_to_list(?FUNCTION_NAME), both, "$")), explain = Data, comment = Comment}.
+'$record$'(Name, Tag, Data, Comment) -> #meta{name = Name, tag = Tag, type = list_to_atom(string:trim(atom_to_list(?FUNCTION_NAME), both, "$")), explain = Data, comment = Comment}.
 %% #{ name => ... }
 '$maps$'(Name, Data, Comment) -> #meta{name = Name, type = list_to_atom(string:trim(atom_to_list(?FUNCTION_NAME), both, "$")), explain = Data, comment = Comment}.
 %% [ ... ] / [ name = ... ]

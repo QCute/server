@@ -44,7 +44,7 @@ lookup_element(Tab, Key, Pos, Default) ->
 %% @doc ets page
 -spec page(Data :: atom(), Index :: non_neg_integer(), Per :: non_neg_integer()) -> list().
 %% @doc ETS
-page(Tab, Index, Per) when is_atom(Tab) andalso Index > 0 andalso Per > 0 ->
+page(Tab, Index, Per) when (is_atom(Tab) orelse is_reference(Tab)) andalso Index > 0 andalso Per > 0 ->
     ets:safe_fixtable(Tab, true),
     Start = (Index - 1) * Per + 1,
     End = Start + Per,

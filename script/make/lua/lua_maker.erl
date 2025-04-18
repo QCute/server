@@ -54,7 +54,22 @@ parse_sql(File, SQL = #{select := Select, from := Table, as := FunctionName}, Or
     Join = parse_join(SQL, Table, Fields),
 
     DefaultFields = listing:collect_into(#field.alias, [Field || Field = #field{table = Target} <- Fields, Target == type:to_binary(Table)], fun erlang:binary_to_atom/1),
-    PresetFields = maps:get(Select, #{[] => DefaultFields, {} => DefaultFields, {'$list$', []} => DefaultFields, {'$tuple$', []} => DefaultFields, {'$map$', []} => DefaultFields, {'$record$', []} => DefaultFields}, Select),
+    Preset = #{
+        [] => DefaultFields, 
+        {} => DefaultFields, 
+        {'$list$', []} => DefaultFields, 
+        {'$tuple$', []} => DefaultFields, 
+        {'$map$', []} => DefaultFields, 
+        {'$record$', []} => DefaultFields,
+        {'$all$', {'$list$', []}} => DefaultFields, 
+        {'$all$', []} => DefaultFields, 
+        {'$all$', {'$tuple$', []}} => DefaultFields, 
+        {'$all$', {}} => DefaultFields, 
+        {'$all$', {'$map$', []}} => DefaultFields, 
+        {'$all$', #{}} => DefaultFields, 
+        {'$all$', {'$record$', []}} => DefaultFields
+    },
+    PresetFields = maps:get(Select, Preset, Select),
     ValueFields = parse_value(File, SQL, Table, select, PresetFields, Fields, maps:get(select, Order, []), []),
 
     %% format names SELECT `key`, `value`, ...
@@ -132,48 +147,6 @@ parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, KeyRa
     ]),
 
     #{code => Code}.
-
-%%%===================================================================
-%%% collect data part
-%%%===================================================================
-
-%% n degree array product
-compose([Head]) ->
-    [{X, []} || [X] <- Head];
-
-compose([Head, Tail]) ->
-    [{X, [Y || [Y] <- Tail]} || [X] <- Head];
-
-compose([Head | Tail]) ->
-    [{X, [Y || Y <- compose(Tail)]} || [X] <- Head].
-
-
-%% collect value by key
-collect_data([], _, _, _, _, _, List) ->
-    lists:reverse(List);
-
-%% recursive child
-collect_data([{Key, []} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
-    Result = collect_data([Key], Parent, Sql, KeyFields, ValueFields, 1, []),
-    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, lists:append(Result, List));
-
-collect_data([{Key, Value} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
-    Result = collect_data(Value, [Key | Parent], Sql, KeyFields, ValueFields, Depth + 1, []),
-    Field = lists:nth(Depth, KeyFields),
-    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{[Field#field{value = Key}], Result} | List]);
-
-collect_data([Child | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
-    Binding = lists:reverse([Child | Parent]),
-    RawValue = db:select(Sql, Binding),
-    %% filter empty value
-    case RawValue of
-        [] ->
-            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, List);
-        _ ->
-            Key = [(lists:last(KeyFields))#field{value = lists:last(Binding)}],
-            Value = [[Field#field{value = Column} || {Column, Field} <- lists:zip(Row, ValueFields)] || Row <- RawValue],
-            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{Key, Value} | List])
-    end.
 
 %%%===================================================================
 %%% collect fields part
@@ -268,10 +241,6 @@ parse_value(File, SQL, Table, Operation, {'$map$', Preset}, Fields, Order, Value
 %% record
 parse_value(File, SQL, Table, Operation, {'$record$', Preset}, Fields, Order, Values) ->
     parse_value(File, SQL, Table, Operation, Preset, Fields, Order, Values);
-
-parse_value(File, SQL, Table, Operation, Preset = {'$raw$', Raw}, Fields, Order, Values) ->
-    Field = parse_field_value(File, SQL, Table, Operation, Fields, Raw, Preset),
-    parse_value(File, SQL, Table, Operation, [], Fields, Order, [Field | Values]);
 
 parse_value(File, SQL, Table, Operation, Preset = {'$all$', All}, Fields, Order, Values) ->
     Field = parse_field_value(File, SQL, Table, Operation, Fields, All, Preset),
@@ -808,237 +777,22 @@ format_row(File, SQL, Select, Table, Fields, FunctionName, Range = false, Depth,
 
 format_row(File, SQL, Select = {'$all$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
+    ValueList = [format_column(File, SQL, Select, Table, Fields, Depth + 1, Sub, []) || Sub <- Value],
     %% concat with [ ... ]
-    ValueData = lists:concat([
-        "{", string:join(ValueList, ", "), "}"
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$avg$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$bit_and$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$bit_or$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$bit_xor$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$count$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$max$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$min$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$std$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$std_dev$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$std_dev_pop$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$std_dev_sample$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$sum$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$var_sample$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$variance$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with ,
-    ValueData = lists:concat([
-        string:join(ValueList, ", ")
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-%% the list type
-format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) when is_list(Select) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
-    ValueData = lists:concat([
-        "{", string:join(ValueList, ", "), "}"
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-format_row(File, SQL, Select = {'$list$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
-    ValueData = lists:concat([
-        "{", string:join(ValueList, ", "), "}"
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-%% the tuple type
-format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) when is_tuple(Select) ->
-    %% padding
-    Padding = lists:duplicate(Depth + 1, "    "),
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), lists:concat([",\n", Padding])) || Sub <- Value],
-    %% concat with { ... }
-    ValueData = lists:concat([
-        "{", "\n",
-        Padding, string:join(ValueList, ", "), "\n",
-        lists:duplicate(Depth, "    "), "}"
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number, Rows,[Pair | List]);
-
-format_row(File, SQL, Select = {'$tuple$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% padding
-    Padding = lists:duplicate(Depth + 1, "    "),
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), lists:concat([",\n", Padding])) || Sub <- Value],
-    %% concat with { ... }
-    ValueData = lists:concat([
-        "{", "\n",
-        Padding, string:join(ValueList, ", "), "\n",
-        lists:duplicate(Depth, "    "), "}"
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-%% the map type
-format_row(File, SQL, Select = {'$map$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% padding
-    Padding = lists:duplicate(Depth + 1, "    "),
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), lists:concat([",\n", Padding])) || Sub <- Value],
-    %% concat with { ... }
-    ValueData = lists:concat([
-        "{", "\n",
-        Padding, string:join(ValueList, ", "), "\n",
-        lists:duplicate(Depth, "    "), "}"
-    ]),
-    Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
-    format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
-
-%% the record type
-format_row(File, SQL, Select = {'$record$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
-    %% padding
-    Padding = lists:duplicate(Depth + 1, "    "),
-    %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), lists:concat([",\n", Padding])) || Sub <- Value],
-    %% concat with { ... }
-    ValueData = lists:concat([
-        "{", "\n",
-        Padding, string:join(ValueList, ", "), "\n",
-        lists:duplicate(Depth, "    "), "}"
-    ]),
+    case lists:flatlength(ValueList) =< 120 of
+        true ->
+            ValueData = lists:concat(["{", string:join(ValueList, ", "), "}"]);
+        false ->
+            FrontPadding = lists:duplicate(Depth + 1, "    "),
+            BackPadding = lists:duplicate(Depth, "    "),
+            ValueData = lists:concat(["{", "\n", FrontPadding, string:join(ValueList, ",\n" ++ FrontPadding), "\n", BackPadding, "}"])
+    end,
     Pair = format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, true, Total, Number, Key, ValueData, [], []),
     format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number + 1, Rows, [Pair | List]);
 
 format_row(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
-    ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
+    ValueList = [format_column(File, SQL, Select, Table, Fields, Depth, Sub, []) || Sub <- Value],
     %% concat with [ ... ]
     ValueData = lists:concat([
         string:join(ValueList, ", ")
@@ -1128,148 +882,225 @@ format_key(_, _, _, _, _, _, _, Depth, Leaf, _, _, [], Value, _, Guard) ->
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, [Key = #field{alias = Alias, preset = '>'} | Keys], Value, Match, Guard) ->
     HumpName = db:to_lower_hump(Alias),
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     Arg = lists:concat([HumpName, " > ", KeyData]),
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [HumpName | Match], [Arg | Guard]);
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, [Key = #field{alias = Alias, preset = '<'} | Keys], Value, Match, Guard) ->
     HumpName = db:to_lower_hump(Alias),
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     Arg = lists:concat([HumpName, " < ", KeyData]),
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [HumpName | Match], [Arg | Guard]);
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, [Key = #field{alias = Alias, preset = '>='} | Keys], Value, Match, Guard) ->
     HumpName = db:to_lower_hump(Alias),
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     Arg = lists:concat([HumpName, " >= ", KeyData]),
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [HumpName | Match], [Arg | Guard]);
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, [Key = #field{alias = Alias, preset = '<='} | Keys], Value, Match, Guard) ->
     HumpName = db:to_lower_hump(Alias),
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     Arg = lists:concat([HumpName, " <= ", KeyData]),
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [HumpName | Match], [Arg | Guard]);
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, [Key = #field{alias = Alias, preset = '=<'} | Keys], Value, Match, Guard) ->
     HumpName = db:to_lower_hump(Alias),
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     Arg = lists:concat([HumpName, " <= ", KeyData]),
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [HumpName | Match], [Arg | Guard]);
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range = true, Depth, Leaf, Total, Number, [Key = #field{alias = Alias} | Keys], Value, Match, Guard) ->
     HumpName = db:to_lower_hump(Alias),
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     %% add double quote
     Arg = lists:concat([HumpName, " == ", KeyData]),
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [HumpName | Match], [Arg | Guard]);
 
 format_key(File, SQL, Select, Table, Fields, FunctionName, Range = false, Depth, Leaf, Total, Number, [Key = #field{} | Keys], Value, Match, Guard) ->
-    KeyData = format_term({'$raw$', []}, Key),
+    KeyData = format_term([], Key),
     %% add double quote
     format_key(File, SQL, Select, Table, Fields, FunctionName, Range, Depth, Leaf, Total, Number, Keys, Value, [KeyData | Match], Guard).
 
 
 %% format column
-format_column(_, _, _, _, _, [], List) ->
-    lists:reverse(List);
+format_column(_, _, {'$all$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
 
-format_column(File, SQL, Select = {'$all$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(_, _, {'$avg$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$bit_and$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$bit_or$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$bit_xor$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$count$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$max$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$min$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$std$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$std_dev$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$std_dev_pop$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$std_dev_sample$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$sum$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$var_sample$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$variance$', _}, _, _, _, [], List) ->
+    string:join(lists:reverse(List), ", ");
+
+format_column(_, _, {'$list$', _}, _, _, _, [], List) ->
+    lists:concat(["{", string:join(lists:reverse(List), ", "), "}"]);
+
+format_column(_, _, Select, _, _, _, [], List) when is_list(Select) ->
+    lists:concat(["{", string:join(lists:reverse(List), ", "), "}"]);
+
+format_column(_, _, {'$map$', _}, _, _, Depth, [], List) ->
+    FrontPadding = lists:duplicate(Depth + 1, "    "),
+    BackPadding = lists:duplicate(Depth, "    "),
+    lists:concat(["{", "\n", FrontPadding, string:join(lists:reverse(List), ",\n" ++ FrontPadding), "\n", BackPadding, "}"]);
+
+format_column(_, _, Select, _, _, Depth, [], List) when is_map(Select) ->
+    FrontPadding = lists:duplicate(Depth + 1, "    "),
+    BackPadding = lists:duplicate(Depth, "    "),
+    lists:concat(["{", "\n", FrontPadding, string:join(lists:reverse(List), ",\n" ++ FrontPadding), "\n", BackPadding, "}"]);
+
+format_column(_, _, {'$record$', _}, _, _, Depth, [], List) ->
+    FrontPadding = lists:duplicate(Depth + 1, "    "),
+    BackPadding = lists:duplicate(Depth, "    "),
+    lists:concat(["{", "\n", FrontPadding, string:join(lists:reverse(List), ",\n" ++ FrontPadding), "\n", BackPadding, "}"]);
+
+format_column(_, _, {'$tuple$', _}, _, _, Depth, [], List) ->
+    FrontPadding = lists:duplicate(Depth + 1, "    "),
+    BackPadding = lists:duplicate(Depth, "    "),
+    lists:concat(["{", "\n", FrontPadding, string:join(lists:reverse(List), ",\n" ++ FrontPadding), "\n", BackPadding, "}"]);
+
+format_column(_, _, Select, _, _, Depth, [], List) when is_tuple(Select) ->
+    FrontPadding = lists:duplicate(Depth + 1, "    "),
+    BackPadding = lists:duplicate(Depth, "    "),
+    lists:concat(["{", "\n", FrontPadding, string:join(lists:reverse(List), ",\n" ++ FrontPadding), "\n", BackPadding, "}"]);
+
+
+format_column(_, _, _, _, _, _, [], List) ->
+    string:join(List, ", ");
+
+%% all
+format_column(File, SQL, {'$all$', All}, Table, Fields, Depth, Columns, List) ->
+    format_column(File, SQL, All, Table, Fields, Depth, Columns, List);
+
+format_column(File, SQL, Select = {'$avg$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$avg$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$bit_and$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$bit_and$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$bit_or$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$bit_or$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$bit_xor$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$bit_xor$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$count$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$count$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$max$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$max$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$min$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$min$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$std$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$std$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$std_dev$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$std_dev$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$std_dev_pop$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$std_dev_pop$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$std_dev_sample$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$std_dev_sample$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$sum$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$sum$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$var_sample$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
-format_column(File, SQL, Select = {'$var_sample$', _}, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select = {'$variance$', _}, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
-
-format_column(File, SQL, Select = {'$variance$', _}, Table, Fields, [Column | Columns], List) ->
-    Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]);
-
-%% the tuple type
-format_column(File, SQL, Select, Table, Fields, [Column = #field{alias = Alias} | Columns], List) when is_tuple(Select) ->
-    Value = format_term(Select, Column),
-    %% concat with key => value
-    Pair = lists:concat(["[\"", db:to_lower_hump(Alias), "\"]", " = ", Value]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Pair | List]);
-
-%% the tuple type
-format_column(File, SQL, Select = {'$tuple$', _}, Table, Fields, [Column = #field{alias = Alias} | Columns], List) ->
-    Value = format_term(Select, Column),
-    %% concat with key => value
-    Pair = lists:concat(["[\"", db:to_lower_hump(Alias), "\"]", " = ", Value]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Pair | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]);
 
 %% the map type
-format_column(File, SQL, Select = {'$map$', _}, Table, Fields, [Column = #field{alias = Alias} | Columns], List) ->
+format_column(File, SQL, Select = {'$map$', _}, Table, Fields, Depth, [Column = #field{alias = Alias} | Columns], List) ->
     Value = format_term(Select, Column),
     %% concat with key => value
     Pair = lists:concat(["[\"", db:to_lower_hump(Alias), "\"]", " = ", Value]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Pair | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Pair | List]);
+
+%% the tuple type
+format_column(File, SQL, Select, Table, Fields, Depth, [Column = #field{alias = Alias} | Columns], List) when is_tuple(Select) ->
+    Value = format_term(Select, Column),
+    %% concat with key => value
+    Pair = lists:concat(["[\"", db:to_lower_hump(Alias), "\"]", " = ", Value]),
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Pair | List]);
+
+%% the tuple type
+format_column(File, SQL, Select = {'$tuple$', _}, Table, Fields, Depth, [Column = #field{alias = Alias} | Columns], List) ->
+    Value = format_term(Select, Column),
+    %% concat with key => value
+    Pair = lists:concat(["[\"", db:to_lower_hump(Alias), "\"]", " = ", Value]),
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Pair | List]);
 
 %% the record type
-format_column(File, SQL, Select = {'$record$', _}, Table, Fields, [Column = #field{alias = Alias} | Columns], List) ->
+format_column(File, SQL, Select = {'$record$', _}, Table, Fields, Depth, [Column = #field{alias = Alias} | Columns], List) ->
     Value = format_term(Select, Column),
     %% concat with key = value
     Pair = lists:concat(["[\"", db:to_lower_hump(Alias), "\"]", " = ", Value]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Pair | List]);
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Pair | List]);
 
 %% other type
-format_column(File, SQL, Select, Table, Fields, [Column | Columns], List) ->
+format_column(File, SQL, Select, Table, Fields, Depth, [Column | Columns], List) ->
     Value = lists:concat([format_term(Select, Column)]),
-    format_column(File, SQL, Select, Table, Fields, Columns, [Value | List]).
+    format_column(File, SQL, Select, Table, Fields, Depth, Columns, [Value | List]).
 
 
 %% value to term
 format_term({'$all$', All}, Field) ->
-    format_term({'$raw$', All}, Field);
+    format_term(All, Field);
 
 format_term({'$avg$', _}, #field{value = Value}) ->
     lists:concat([type:to_integer(Value)]);
@@ -1287,10 +1118,10 @@ format_term({'$count$', _}, #field{value = Value}) ->
     lists:concat([type:to_integer(Value)]);
 
 format_term({'$max$', Max}, Field) ->
-    format_term({'$raw$', Max}, Field);
+    format_term(Max, Field);
 
 format_term({'$min$', Min}, Field) ->
-    format_term({'$raw$', Min}, Field);
+    format_term(Min, Field);
 
 format_term({'$std$', _}, #field{value = Value}) ->
     lists:concat([type:to_float(Value)]);
@@ -1399,3 +1230,45 @@ convert(<<$_, Rest/binary>>, Word, Object, Acc) when 0 < byte_size(Word) ->
 
 convert(<<C, Rest/binary>>, Word, Object, Acc) ->
     convert(Rest, Word, Object, <<Acc/binary, C>>).
+
+%%%===================================================================
+%%% collect data part
+%%%===================================================================
+
+%% n degree array product
+compose([Head]) ->
+    [{X, []} || [X] <- Head];
+
+compose([Head, Tail]) ->
+    [{X, [Y || [Y] <- Tail]} || [X] <- Head];
+
+compose([Head | Tail]) ->
+    [{X, [Y || Y <- compose(Tail)]} || [X] <- Head].
+
+
+%% collect value by key
+collect_data([], _, _, _, _, _, List) ->
+    lists:reverse(List);
+
+%% recursive child
+collect_data([{Key, []} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
+    Result = collect_data([Key], Parent, Sql, KeyFields, ValueFields, 1, []),
+    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, lists:append(Result, List));
+
+collect_data([{Key, Value} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
+    Result = collect_data(Value, [Key | Parent], Sql, KeyFields, ValueFields, Depth + 1, []),
+    Field = lists:nth(Depth, KeyFields),
+    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{[Field#field{value = Key}], Result} | List]);
+
+collect_data([Child | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
+    Binding = lists:reverse([Child | Parent]),
+    RawValue = db:select(Sql, Binding),
+    %% filter empty value
+    case RawValue of
+        [] ->
+            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, List);
+        _ ->
+            Key = [(lists:last(KeyFields))#field{value = lists:last(Binding)}],
+            Value = [[Field#field{value = Column} || {Column, Field} <- lists:zip(Row, ValueFields)] || Row <- RawValue],
+            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{Key, Value} | List])
+    end.

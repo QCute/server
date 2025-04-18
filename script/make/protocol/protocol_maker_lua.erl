@@ -34,7 +34,7 @@ format_code(LuaName, EncodeList, DecodeList) ->
         "    ", "    ", "error(string.format('unknown protocol define: %d', protocol))", "\n"
         "    ", "end", "\n",
         "end", "\n\n",
-        "function ", LuaName, ".decode(offset, protocol, data)", "\n",
+        "function ", LuaName, ".decode(offset, protocol, bytes)", "\n",
         "    ", string:join(Decode, ""), "\n",
         "    ", "    ", "error(string.format('unknown protocol define: %d', protocol))", "\n"
         "    ", "end", "\n",
@@ -182,7 +182,6 @@ parse_encode_lua(Protocol, Meta = #meta{name = Name, type = Type}) ->
     %% format one protocol define
     Code = lists:concat([
         "if protocol == ", Protocol, " then", "\n",
-        Padding, "    ", "local offset = offset", "\n",
         Padding, "    ", "local table = {}", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "else"
@@ -459,12 +458,13 @@ parse_encode_lua_loop([#meta{name = Name, type = tuple, explain = Explain} | T],
     %% flatten
     parse_encode_lua_loop(T, Depth, Parent, Ancestor, Scope, lists:reverse(SubNames), lists:reverse(SubCodes));
 
-parse_encode_lua_loop([#meta{name = Name, type = record, explain = Explain} | T], Depth, Parent, Ancestor, Scope, Names, List) ->
+parse_encode_lua_loop([#meta{name = Name, tag = Tag, type = record, explain = Explain} | T], Depth, Parent, Ancestor, Scope, Names, List) ->
     Padding = lists:duplicate(Depth, "    "),
     NewAncestor = [Name | Ancestor],
-    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
+    NewTagAncestor = lists:append([[Name || Ancestor == []], [Tag || Ancestor =/= []], Ancestor]),
+    PathNames = lists:reverse(lists:sublist(NewTagAncestor, max(1, length(NewTagAncestor) - 1))),
     PathHumpName = word:to_lower_hump(string:join([word:to_hump(PathName) || PathName <- PathNames], "")),
-    LastGetNames = lists:sublist(NewAncestor, 1),
+    LastGetNames = lists:sublist([Name | Ancestor], 1),
     PathGetName = [lists:concat(["[\"", word:to_lower_hump(PathName), "\"]"]) || PathName <- LastGetNames],
     SubExplain = [Meta || Meta = #meta{} <- tuple_to_list(Explain)],
 
@@ -587,7 +587,6 @@ parse_decode_lua(Protocol, Meta) ->
     %% format one protocol define
     Code = lists:concat([
         "if protocol == ", Protocol, " then", "\n",
-        Padding, "    ", "local offset = offset", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "else"
     ]),
@@ -612,7 +611,7 @@ parse_decode_lua_loop([#meta{name = Name, type = binary, explain = Explain, comm
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\"c", integer_to_list(Explain), "\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\"c", integer_to_list(Explain), "\", bytes, offset)", "\n",
         Padding, "offset = offset + ", integer_to_list(Explain)
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -626,7 +625,7 @@ parse_decode_lua_loop([#meta{name = Name, type = bool, explain = undefined, comm
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">I1\", data, offset) ~= 0", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">I1\", bytes, offset) ~= 0", "\n",
         Padding, "offset = offset + 1"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -640,7 +639,7 @@ parse_decode_lua_loop([#meta{name = Name, type = u8, explain = undefined, commen
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">I1\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">I1\", bytes, offset)", "\n",
         Padding, "offset = offset + 1"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -654,7 +653,7 @@ parse_decode_lua_loop([#meta{name = Name, type = u16, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">I2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">I2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -668,7 +667,7 @@ parse_decode_lua_loop([#meta{name = Name, type = u32, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">I4\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">I4\", bytes, offset)", "\n",
         Padding, "offset = offset + 4"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -682,7 +681,7 @@ parse_decode_lua_loop([#meta{name = Name, type = u64, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">I8\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">I8\", bytes, offset)", "\n",
         Padding, "offset = offset + 8"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -696,7 +695,7 @@ parse_decode_lua_loop([#meta{name = Name, type = i8, explain = undefined, commen
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">i1\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">i1\", bytes, offset)", "\n",
         Padding, "offset = offset + 1"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -710,7 +709,7 @@ parse_decode_lua_loop([#meta{name = Name, type = i16, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">i2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">i2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -724,7 +723,7 @@ parse_decode_lua_loop([#meta{name = Name, type = i32, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">i4\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">i4\", bytes, offset)", "\n",
         Padding, "offset = offset + 4"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -738,7 +737,7 @@ parse_decode_lua_loop([#meta{name = Name, type = i64, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">i8\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">i8\", bytes, offset)", "\n",
         Padding, "offset = offset + 8"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -752,7 +751,7 @@ parse_decode_lua_loop([#meta{name = Name, type = f32, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">f\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">f\", bytes, offset)", "\n",
         Padding, "offset = offset + 4"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -766,7 +765,7 @@ parse_decode_lua_loop([#meta{name = Name, type = f64, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">d\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">d\", bytes, offset)", "\n",
         Padding, "offset = offset + 8"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -780,7 +779,7 @@ parse_decode_lua_loop([#meta{name = Name, type = str, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">s2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">s2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2 + string.len(", PathHumpName, ")"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -794,7 +793,7 @@ parse_decode_lua_loop([#meta{name = Name, type = bst, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">s2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">s2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2 + string.len(", PathHumpName, ")"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -808,7 +807,7 @@ parse_decode_lua_loop([#meta{name = Name, type = rst, explain = undefined, comme
 
     Code = [
         Padding, "-- ", Comment, "\n",
-        Padding, "local ", PathHumpName, " = string.unpack(\">s2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, " = string.unpack(\">s2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2 + string.len(", PathHumpName, ")"
     ],
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
@@ -820,7 +819,7 @@ parse_decode_lua_loop([#meta{name = Name, type = tuple, explain = Explain, comme
     PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = word:to_lower_hump(string:join([word:to_hump(PathName) || PathName <- PathNames], "")),
 
-    SubExplain = tuple_to_list(Explain),
+        SubExplain = [Meta || Meta = #meta{type = SubType} <- tuple_to_list(Explain), SubType =/= zero],
     NewNextAncestor = lists:append([Name || Parent =/= list andalso Parent =/= ets], Ancestor),
 
     %% recursive
@@ -836,10 +835,10 @@ parse_decode_lua_loop([#meta{name = Name, type = tuple, explain = Explain, comme
     %% flatten
     parse_decode_lua_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
 
-parse_decode_lua_loop([#meta{name = Name, type = record, explain = Explain, comment = Comment} | T], Depth, Parent, Ancestor, Fields, List) ->
+parse_decode_lua_loop([#meta{name = Name, tag = Tag, type = record, explain = Explain, comment = Comment} | T], Depth, Parent, Ancestor, Fields, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
-    NewAncestor = [Name | Ancestor],
+    NewAncestor = [Tag | Ancestor],
     PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = word:to_lower_hump(string:join([word:to_hump(PathName) || PathName <- PathNames], "")),
 
@@ -895,7 +894,7 @@ parse_decode_lua_loop([#meta{name = Name, type = list, explain = Explain, commen
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "local ", PathHumpName, " = {}", "\n",
-        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2", "\n",
         Padding, "for ", PathHumpName, "Index = 1, ", PathHumpName, "Length do", "\n",
         string:join(SubCodes, "\n"), "\n",
@@ -917,7 +916,7 @@ parse_decode_lua_loop([#meta{name = Name, type = list, explain = Explain, commen
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "local ", PathHumpName, " = {}", "\n",
-        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2", "\n",
         Padding, "for ", PathHumpName, "Index = 1, ", PathHumpName, "Length do", "\n",
         string:join(SubCodes, "\n"), "\n",
@@ -939,7 +938,7 @@ parse_decode_lua_loop([#meta{name = Name, type = ets, explain = Explain, comment
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "local ", PathHumpName, " = {}", "\n",
-        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2", "\n",
         Padding, "for ", PathHumpName, "Index = 1, ", PathHumpName, "Length do", "\n",
         string:join(SubCodes, "\n"), "\n",
@@ -961,7 +960,7 @@ parse_decode_lua_loop([#meta{name = Name, type = ets, explain = Explain, comment
     Code = [
         Padding, "-- ", Comment, "\n",
         Padding, "local ", PathHumpName, " = {}", "\n",
-        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", data, offset)", "\n",
+        Padding, "local ", PathHumpName, "Length = string.unpack(\">I2\", bytes, offset)", "\n",
         Padding, "offset = offset + 2", "\n",
         Padding, "for ", PathHumpName, "Index = 1, ", PathHumpName, "Length do", "\n",
         string:join(SubCodes, "\n"), "\n",

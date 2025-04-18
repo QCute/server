@@ -51,6 +51,12 @@ lua() ->
                     by => key,
                     as => text
                 },
+                %%  -> [value]
+                #{
+                    select => all({}),
+                    from => text_data,
+                    as => text_list
+                },
                 %% key -> [value]
                 #{
                     select => all(monster_id),

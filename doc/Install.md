@@ -1,20 +1,20 @@
 
-## Clone repository
+## 拉取仓库
 ```sh
 git clone https://github.com:QCute/server
 ```
 
-## Clone sub repository
+## 拉取子模块仓库
 ```
 git submodule update --recursive
 ```
 
-## Setup config from `config/src/{type}.config.src`
+## 使用配置 `config/src/{type}.config.src`
 ```sh
 cp config/src/local.config.src config/local.config
 ```
 
-## Change database connection
+## 更改数据库配置
 ```erl
         {mysql_connector, [                                                                        %% database connector config
             {host,                                    "127.0.0.1"},                                %% database address
@@ -26,7 +26,7 @@ cp config/src/local.config.src config/local.config
         ]},
 ```
 
-## Build
+## 构建
 ```sh
 ./script/shell/maker release
 ```
@@ -37,7 +37,7 @@ cp config/src/local.config.src config/local.config
 ./script/batch/maker.bat release
 ```
 
-## Run
+## 运行
 ```sh
 ./script/shell/run.sh interactive
 ```

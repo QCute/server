@@ -123,6 +123,10 @@ parse_field(#field{name = Name, default = Default, type = Type, comment = Commen
             FiledDefault = " = <<>>";
         <<"varchar", _/binary>> ->
             FiledDefault = " = []";
+        <<"enum", _/binary>> ->
+            FiledDefault = " = undefined";
+        <<"set", _/binary>> ->
+            FiledDefault = " = []";
         _ when Expression =/= undefined ->
             FiledDefault = lists:concat([" = ", binary_to_list(Expression)]);
         _ ->

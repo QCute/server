@@ -19,8 +19,8 @@ to_book(Table, Path) ->
     maker:connect_database(),
 
     %% take configure from data script
-    {ErlFlag, ErlForm} = epp:parse_file(maker:relative_path("script/make/data/data_script.erl"), [], []),
-    ErlFlag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("cound not found data script: ~p", [ErlForm]))),
+    {ErlFlag, ErlForm} = epp:parse_file(maker:relative_path("script/make/erl/erl_script.erl"), [], []),
+    ErlFlag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("cound not found erl script: ~p", [ErlForm]))),
     {function, _, data, _, [{clause, _, [], [], ErlCons}]} = lists:keyfind(data, 3, ErlForm),
     ErlDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(ErlCons))),
     %% ErlConfigure = [#{comment => Comment, sql => Sql} || #{file := File, comment := Comment, sql := Sql} <- ErlDataConfigureList, filename:basename(File) == Table orelse filename:basename(File, ".erl") == Table],
@@ -41,11 +41,11 @@ to_book(Table, Path) ->
 
     %% all configure list
     Configure = [Configure || Configure = #{file := File} <- ErlDataConfigureList ++ JsDataConfigureList ++ LuaDataConfigureList, filename:basename(File) == Table],
-    #{comment := Comment, sql := Sql} = (length(Configure) =/= 1 andalso erlang:throw(lists:flatten(io_lib:format("cound not found file `~ts` in data/js/lua script", [Table])))) orelse hd(Configure),
+    #{comment := Comment, sql := Sql} = (length(Configure) =/= 1 andalso erlang:throw(lists:flatten(io_lib:format("cound not found file `~ts` in erl/js/lua script", [Table])))) orelse hd(Configure),
     %% TableList = listing:unique([lists:concat(string:replace(string:trim(element(3, lists:keyfind('FROM', 1, Form))), "`", "", all)) || Form <- Configure]),
     %% take table from sql
     TableList = listing:unique([From || #{from := From} <- Sql]),
-    TableList == [] andalso erlang:throw(lists:flatten(io_lib:format("cound not found table in data/js/lua script", []))),
+    TableList == [] andalso erlang:throw(lists:flatten(io_lib:format("cound not found table in erl/js/lua script", []))),
 
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name

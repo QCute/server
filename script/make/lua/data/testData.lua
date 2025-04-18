@@ -615,13 +615,525 @@ return {
             ["description"] = "文本"
         }
     },
+    ["text_list"] = {
+        {
+            ["key"] = "account_create_max",
+            ["zhCN"] = "服务器角色数量已达到上限",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "account_login_forbidden",
+            ["zhCN"] = "账号禁止登录",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "account_logout",
+            ["zhCN"] = "登出",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "account_not_found",
+            ["zhCN"] = "没有找到此账号",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "account_permission_denied",
+            ["zhCN"] = "账号权限不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "achievement_not_completed",
+            ["zhCN"] = "成就未完成",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "achievement_not_found",
+            ["zhCN"] = "没有找到此成就",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "asset_copper_not_enough",
+            ["zhCN"] = "铜币不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "asset_gold_not_enough",
+            ["zhCN"] = "金币不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "asset_not_enough",
+            ["zhCN"] = "资产不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "asset_silver_not_enough",
+            ["zhCN"] = "银币不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "auction_not_found",
+            ["zhCN"] = "没有找到此拍品",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "auction_price_changed",
+            ["zhCN"] = "拍品价格已发生变化",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "award_already_received",
+            ["zhCN"] = "奖励已经领取过了",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "award_error",
+            ["zhCN"] = "奖励领取错误",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "award_pre_not_received",
+            ["zhCN"] = "前置奖励未领取",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "boss_dead",
+            ["zhCN"] = "BOSS已经死亡",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "boss_not_found",
+            ["zhCN"] = "没有找到此Boss",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "bubble_duplicated",
+            ["zhCN"] = "气泡重复",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "buff_duplicated",
+            ["zhCN"] = "Buff重复",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "chat_cannot_with_self",
+            ["zhCN"] = "不能和自己聊天",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "chat_too_frequently",
+            ["zhCN"] = "发言太频繁",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "cheat_command_not_found",
+            ["zhCN"] = "没有找到此命令",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "condition_not_met",
+            ["zhCN"] = "条件不满足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "configure_not_found",
+            ["zhCN"] = "没有找到此配置",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "daily_not_completed",
+            ["zhCN"] = "日常任务未完成",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "daily_score_not_enough",
+            ["zhCN"] = "日常活跃度不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "dungeon_not_found",
+            ["zhCN"] = "没有找到此副本",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "dungeon_today_number_limit",
+            ["zhCN"] = "今日进入次数已达到上限",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "fashion_duplicated",
+            ["zhCN"] = "时装重复",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_apply_not_found",
+            ["zhCN"] = "没有找到此好友的申请",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_in_apply",
+            ["zhCN"] = "对方已在申请列表中",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_in_be_block",
+            ["zhCN"] = "你已被对方拉黑",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_in_block",
+            ["zhCN"] = "对方已在黑名单中",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_in_list",
+            ["zhCN"] = "对方已在好友列表中",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_level_not_met",
+            ["zhCN"] = "对方好友等级不满足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_not_found",
+            ["zhCN"] = "没有找到此好友",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "friend_number_max",
+            ["zhCN"] = "好友数量达到上限",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_already_joined",
+            ["zhCN"] = "你已经加入过公会了",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_apply_frequently",
+            ["zhCN"] = "公会申请太频繁",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_apply_not_found",
+            ["zhCN"] = "没有找到此申请",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_cannot_kick_self",
+            ["zhCN"] = "不可剔除自己",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_cannot_update_self",
+            ["zhCN"] = "不可升级自己",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_create_frequently",
+            ["zhCN"] = "公会创建太频繁",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_member_not_found",
+            ["zhCN"] = "没有找到此成员",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_member_number_limit",
+            ["zhCN"] = "公会成员数量已达到上限",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_not_found",
+            ["zhCN"] = "没有找到此商会",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_not_joined",
+            ["zhCN"] = "没有加入公会",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "guild_permission_denied",
+            ["zhCN"] = "公会权限不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "invalid_classes",
+            ["zhCN"] = "无效职业",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "invalid_item",
+            ["zhCN"] = "无效物品",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "invalid_number",
+            ["zhCN"] = "无效数量",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "invalid_sex",
+            ["zhCN"] = "无效性别",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "invalid_type",
+            ["zhCN"] = "无效类型",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "item_bag_full",
+            ["zhCN"] = "背包已满",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "item_cannot_use_directly",
+            ["zhCN"] = "物品不能直接使用",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "item_not_enough",
+            ["zhCN"] = "物品不足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "item_use_number_max",
+            ["zhCN"] = "使用个数超过单次使用上限",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "key_already_activated",
+            ["zhCN"] = "激活码已激活过",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "key_already_active",
+            ["zhCN"] = "此兑换码已经兑换过了",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "level_not_met",
+            ["zhCN"] = "等级不满足",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "lucky_money_already_received",
+            ["zhCN"] = "红包已领取过",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "lucky_money_expired",
+            ["zhCN"] = "红包已过期",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "lucky_money_not_found",
+            ["zhCN"] = "没有找到此红包",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "mail_already_read",
+            ["zhCN"] = "邮件已阅读过",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "mail_attachment_empty",
+            ["zhCN"] = "附件为空",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "mail_not_found",
+            ["zhCN"] = "没有找到此邮件",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "mail_text_add_item_content",
+            ["zhCN"] = "您的背包已满，新增的道具已经放到了邮件里，请注意查收。",
+            ["description"] = "背包满内容"
+        },
+        {
+            ["key"] = "mail_text_add_item_title",
+            ["zhCN"] = "背包已满",
+            ["description"] = "背包满标题"
+        },
+        {
+            ["key"] = "mail_text_auction_income_content",
+            ["zhCN"] = "您的拍卖收入分成。",
+            ["description"] = "拍卖分红内容"
+        },
+        {
+            ["key"] = "mail_text_auction_income_title",
+            ["zhCN"] = "拍卖收入",
+            ["description"] = "拍卖分红标题"
+        },
+        {
+            ["key"] = "mail_text_auction_success_content",
+            ["zhCN"] = "您的拍卖物品，请注意查收。",
+            ["description"] = "拍卖成功内容"
+        },
+        {
+            ["key"] = "mail_text_auction_success_title",
+            ["zhCN"] = "拍卖成功",
+            ["description"] = "拍卖成功标题"
+        },
+        {
+            ["key"] = "name_duplicate",
+            ["zhCN"] = "名字重复",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "name_duplicated",
+            ["zhCN"] = "名字重复",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "name_length",
+            ["zhCN"] = "名字长度不对",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "name_length_invalid",
+            ["zhCN"] = "名字长度无效",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "name_not_utf8_charset",
+            ["zhCN"] = "名字非UTF8字符",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "name_sensitive",
+            ["zhCN"] = "名字敏感",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "notice_text_guild_create",
+            ["zhCN"] = "<id>~w</id>~s创建公会<id>~w</id>~s",
+            ["description"] = "创建公会公告"
+        },
+        {
+            ["key"] = "notice_text_level_upgrade",
+            ["zhCN"] = "恭喜<id>~w</id>~s升到~w级",
+            ["description"] = "升级公告"
+        },
+        {
+            ["key"] = "notice_text_vip_upgrade",
+            ["zhCN"] = "恭喜<id>~w</id>~sVip升到~w级",
+            ["description"] = "Vip升级公告"
+        },
+        {
+            ["key"] = "packet_heartbeat_too_fast",
+            ["zhCN"] = "心跳包速度过快",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "packet_too_fast",
+            ["zhCN"] = "包速度过快",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "role_cannot_change_same_classes",
+            ["zhCN"] = "职业不能相同",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "role_cannot_change_same_name",
+            ["zhCN"] = "名字不能相同",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "role_cannot_change_same_sex",
+            ["zhCN"] = "性别不能相同",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "server_create_forbidden",
+            ["zhCN"] = "服务器禁止创建角色",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "server_id_mismatch",
+            ["zhCN"] = "服务器ID不匹配",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "server_login_forbidden",
+            ["zhCN"] = "服务器禁止登录",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "server_update",
+            ["zhCN"] = "服务器更新",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "shop_buy_num_max",
+            ["zhCN"] = "已达到购买数量上限",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "signed_already",
+            ["zhCN"] = "已经签到过了",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "task_already_submitted",
+            ["zhCN"] = "任务已提交",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "task_not_completed",
+            ["zhCN"] = "任务还没完成",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "task_not_found",
+            ["zhCN"] = "没有找到此任务",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "task_not_next",
+            ["zhCN"] = "请按顺序完成",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "task_pre_not_completed",
+            ["zhCN"] = "前置任务还没完成",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "timeout",
+            ["zhCN"] = "请求超时",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "title_duplicated",
+            ["zhCN"] = "称号重复",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "user_offline",
+            ["zhCN"] = "对方不在线",
+            ["description"] = "文本"
+        },
+        {
+            ["key"] = "vip_level_not_met",
+            ["zhCN"] = "Vip等级不满足",
+            ["description"] = "文本"
+        }
+    },
     ["type"] = {
-        [1] = {1},
-        [2] = {2},
-        [3] = {3},
-        [4] = {4},
-        [5] = {5, 7},
-        [6] = {6, 8}
+        [1] = {201100100},
+        [2] = {201100200},
+        [3] = {201100300},
+        [4] = {201100400},
+        [5] = {201100500, 201100700},
+        [6] = {201100600, 201100800}
     },
     ["level"] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
     ["type_list"] = {1, 2, 3, 4, 5, 6},
@@ -683,12 +1195,12 @@ return {
         end
     end,
     ["get"] = {
-        ["bag_size"] = "100",
-        ["chat_guild_size_limit"] = "100",
-        ["chat_private_size_limit"] = "100",
-        ["chat_system_size_limit"] = "100",
-        ["chat_world_size_limit"] = "100",
-        ["item_size"] = "100",
-        ["store_size"] = "100"
+        ["bag_size"] = 100,
+        ["chat_guild_size_limit"] = 100,
+        ["chat_private_size_limit"] = 100,
+        ["chat_system_size_limit"] = 100,
+        ["chat_world_size_limit"] = 100,
+        ["item_size"] = 100,
+        ["store_size"] = 100
     }
 }

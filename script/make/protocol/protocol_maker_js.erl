@@ -575,10 +575,11 @@ parse_encode_js_loop([#meta{name = Name, type = tuple, explain = Explain} | T], 
     %% flatten
     parse_encode_js_loop(T, Depth, Parent, Ancestor, Scope, lists:reverse(SubNames), lists:reverse(SubCodes));
 
-parse_encode_js_loop([#meta{name = Name, type = record, explain = Explain} | T], Depth, Parent, Ancestor, Scope, Names, List) ->
+parse_encode_js_loop([#meta{name = Name, tag = Tag, type = record, explain = Explain} | T], Depth, Parent, Ancestor, Scope, Names, List) ->
     Padding = lists:duplicate(Depth, "    "),
     NewAncestor = [Name | Ancestor],
-    PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
+    NewTagAncestor = lists:append([[Name || Ancestor == []], [Tag || Ancestor =/= []], Ancestor]),
+    PathNames = lists:reverse(lists:sublist(NewTagAncestor, max(1, length(NewTagAncestor) - 1))),
     PathHumpName = word:to_lower_hump(string:join([word:to_hump(PathName) || PathName <- PathNames], "")),
     LastGetNames = lists:sublist(NewAncestor, 1),
     PathGetName = [lists:concat(["[\"", word:to_lower_hump(PathName), "\"]"]) || PathName <- LastGetNames],
@@ -956,7 +957,7 @@ parse_decode_js_loop([#meta{name = Name, type = tuple, explain = Explain, commen
     PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = word:to_lower_hump(string:join([word:to_hump(PathName) || PathName <- PathNames], "")),
 
-    SubExplain = tuple_to_list(Explain),
+    SubExplain = [Meta || Meta = #meta{type = SubType} <- tuple_to_list(Explain), SubType =/= zero],
     NewNextAncestor = lists:append([Name || Parent =/= list andalso Parent =/= ets], Ancestor),
 
     %% recursive
@@ -972,10 +973,10 @@ parse_decode_js_loop([#meta{name = Name, type = tuple, explain = Explain, commen
     %% flatten
     parse_decode_js_loop(T, Depth, Parent, Ancestor, [PathHumpName | Fields], [Code | List]);
 
-parse_decode_js_loop([#meta{name = Name, type = record, explain = Explain, comment = Comment} | T], Depth, Parent, Ancestor, Fields, List) ->
+parse_decode_js_loop([#meta{name = Name, tag = Tag, type = record, explain = Explain, comment = Comment} | T], Depth, Parent, Ancestor, Fields, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
-    NewAncestor = [Name | Ancestor],
+    NewAncestor = [Tag | Ancestor],
     PathNames = lists:reverse(lists:sublist(NewAncestor, max(1, length(NewAncestor) - 1))),
     PathHumpName = word:to_lower_hump(string:join([word:to_hump(PathName) || PathName <- PathNames], "")),
 
@@ -984,7 +985,7 @@ parse_decode_js_loop([#meta{name = Name, type = record, explain = Explain, comme
 
     %% recursive
     {SubFields, SubCodes} = parse_decode_js_loop(SubExplain, Depth, record, NewNextAncestor, [], []),
-
+    
     Code = [
         Padding, "// ", Comment, "\n",
         string:join(SubCodes, "\n"), "\n",

@@ -84,10 +84,10 @@ convert({tuple, Line, Form}, Name, Comment) ->
     ThisLineComment = maps:get(element(1, Line), Comment, ""),
     {call, Line, {atom, Line, '$tuple$'}, [{atom, Line, Name}, {tuple, Line, Field}, {string, Line, ThisLineComment}]};
 
-convert({record, Line, Name, Form}, _, Comment) ->
+convert({record, Line, Tag, Form}, Name, Comment) ->
     Field = convert_from_record(Form, Comment, []),
     ThisLineComment = maps:get(element(1, Line), Comment, ""),
-    {call, Line, {atom, Line, '$record$'}, [{atom, Line, Name}, {record, Line, Name, Field}, {string, Line, ThisLineComment}]};
+    {call, Line, {atom, Line, '$record$'}, [{atom, Line, Name}, {atom, Line, Tag}, {record, Line, Tag, Field}, {string, Line, ThisLineComment}]};
 
 convert({map, Line, Form}, Name, Comment) ->
     Field = convert_from_maps(Form, Comment, []),

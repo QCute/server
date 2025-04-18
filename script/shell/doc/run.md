@@ -64,10 +64,10 @@ run.sh config_file_name sql "SELECT 1"
 
 #### 执行更新SQL脚本文件
 ```sh
-run.sh config_file_name sql update.sql
+run.sh config_file_name sql path/to/update.sql
 ```
 
-#### 执行文件夹下所有更新SQL脚本文件
+#### 执行[script/sql/alpha](/script/sql/alpha)文件夹下所有更新SQL脚本文件
 ```sh
 run.sh config_file_name sql alpha
 ```

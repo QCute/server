@@ -29,12 +29,12 @@ lua() ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> {binary(), binary()} | undefined.
-get(<<"key">>) ->
-    {<<"key">>, <<"value">>};
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { ["key"] = "key", ["value"] = "value" }
+    }
+}
 ```
 
 #### 指定列
@@ -50,12 +50,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> binary() | undefined.
-get(<<"key">>) ->
-    <<"value">>;
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = "value"
+    }
+}
 ```
 
 #### 指定多列
@@ -71,12 +71,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> {binary(), binary()} | undefined.
-get(<<"key">>) ->
-    {<<"key">>, <<"value">>};
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { ["key"] = "key", ["value"] = "value" }
+    }
+}
 ```
 
 #### 添加排除列
@@ -93,12 +93,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> binary() | undefined.
-get(<<"key">>) ->
-    <<"value">>;
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { ["value"] = "value" }
+    }
+}
 ```
 
 #### 指定多列数据为列表
@@ -125,12 +125,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> [term()] | undefined.
-get(<<"key">>) ->
-    [<<"key">>, <<"value">>];
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { "key", "value" }
+    }
+}
 ```
 
 #### 指定多列数据为元组
@@ -157,12 +157,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> {binary(), binary()} | undefined.
-get(<<"key">>) ->
-    {<<"key">>, <<"value">>};
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { ["key"] = "key", ["value"] = "value" }
+    }
+}
 ```
 
 #### 指定多列数据为键值表
@@ -178,12 +178,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> #{} | undefined.
-get(<<"key">>) ->
-    #{key => <<"key">>, value => <<"value">>};
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { ["key"] = "key", ["value"] = "value" }
+    }
+}
 ```
 
 #### 指定多列数据为记录
@@ -199,12 +199,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> #record{} | undefined.
-get(<<"key">>) ->
-    #record{key = <<"key">>, value = <<"value">>};
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key"] = { ["key"] = "key", ["value"] = "value" }
+    }
+}
 ```
 
 #### 使用聚合窗口函数
@@ -219,10 +219,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> binary().
-get(<<"key">>) ->
-    <<"value">>.
+```lua
+return {
+    ["get"] = {
+        ["key"] = "value"
+    }
+}
 ```
 
 #### 使用[all]()聚合多个数据
@@ -237,10 +239,12 @@ get(<<"key">>) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> binary().
-get(<<"key">>) ->
-    [<<"value">>, <<"other_value_over_key">>, <<"another_value_over_key">>].
+```lua
+return {
+    ["get"] = {
+        ["key"] = { "value", "other_value_over_key", "another_value_over_key" }
+    }
+}
 ```
 
 #### 使用其他查询方式
@@ -263,12 +267,16 @@ get(<<"key">>) ->
 ```
 
 * 代码
-```erl
--spec get(Key1 :: binary(), Key2 :: binary(), Key3 :: binary()) -> binary() | undefined.
-get(<<"Key1">>, <<"Key2">>, <<"Key3">>) ->
-    <<"value">>;
-get(_) ->
-    undefined.
+```lua
+return {
+    ["get"] = {
+        ["key1"] = {
+            ["key2"] = {
+                ["key3"] = "value"
+            }
+        }
+    }
+}
 ```
 
 #### 对数据进行过滤
@@ -289,34 +297,12 @@ get(_) ->
 ```
 
 * 代码
-```erl
--spec get(Key :: binary()) -> binary() | undefined.
-get(<<"key">>) ->
-    <<"value">>;
-get(_) ->
-    undefined.
-```
-
-#### 使用默认值
-
-* 配置
-```erl
-#{
-    select => value,
-    from => table,
-    by => key,
-    default => <<>>,
-    as => get
+```lua
+return {
+    ["get"] = {
+        ["key"] = "value"
+    }
 }
-```
-
-* 代码
-```erl
--spec get(Key :: binary()) -> binary().
-get(<<"key">>) ->
-    <<"value">>;
-get(_) ->
-    <<>>.
 ```
 
 ## 生成  
@@ -336,14 +322,12 @@ maker lua 文件名(不含扩展名)
 | group_by                      | GROUP BY                      | 组合条件
 | having                        | HAVING                        | 组合查询条件
 | order_by                      | ORDER BY                      | 排序条件
-| default                       |                               | 默认值
 | as                            |                               | 函数名字
 
 * [select]() => 
 
 | Value                         | SQL                           | Description                 
 | ----------------------------- | ----------------------------- | -----------------------------
-| raw("my sql")                 | my sql                        | 原生SQL
 | value                         | \`value\`                     | 单个
 | []                            | *                             | 全部, 顺序表形式
 | {}                            | *                             | 全部, 键值表形式
@@ -416,17 +400,6 @@ maker lua 文件名(不含扩展名)
 | k1 => asc                     | \`k1\` ASC                    | 指定升序
 | k2 => desc                    | \`k2\` DESC                   | 指定降序
 
-* [default]() => 
-
-| Value                         | SQL                           | Description                 
-| ----------------------------- | ----------------------------- | -----------------------------
-| raw("my sql")                 | my sql                        | 原生SQL
-| value                         | value                         | 原生代码
-| []                            | *                             | 全部, 顺序表形式
-| {}                            | *                             | 全部, 键值表形式
-| list()                        | *                             | 全部, 顺序表形式
-| map()                         | *                             | 全部, 键值表形式
-
 ## 规则  
 
 * 可选项
@@ -437,7 +410,6 @@ maker lua 文件名(不含扩展名)
     * [order_by]()
     * [limit]()
     * [offset]()
-    * [default]()
 * [by]()/[having]()比较支持所有预设值, 但参数化值只支持如下
     * 支持
         * 等于(=)

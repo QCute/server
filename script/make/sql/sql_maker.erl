@@ -148,7 +148,7 @@ parse_sql(File, SQL = #{select := Select, from := Table, as := FunctionName}, Ma
     %% HumpName = word:to_hump(Table),
     Fields = collect_fields(File, SQL, Table),
 
-    KeyFields = parse_key(File, SQL, Table, select, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, [])),
+    KeyFields = parse_key(File, SQL, Table, select, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, []), maps:get(join, MapMeta, [])),
     UniqueKeyFields = listing:key_unique(#field.alias, KeyFields),
 
     %% spec and param use unique keys
@@ -170,7 +170,7 @@ parse_sql(File, SQL = #{select := Select, from := Table, as := FunctionName}, Ma
     ValueFields = parse_value(File, SQL, Table, select, PresetFields, Fields, maps:get(select, MapMeta, []), []),
 
     %% parse join
-    Join = parse_join(SQL, Table, Fields),
+    Join = parse_join(File, SQL, Table, select, Fields),
 
     %% format names SELECT `key`, `value`, ...
     TableFields = string:join([type:to_list(Value) || #field{value = Value} <- ValueFields], ", "),
@@ -229,7 +229,7 @@ parse_sql(File, SQL = #{update := Update, into := Table, as := FunctionName}, Ma
     ValueFields = parse_value(File, SQL, Table, update, PresetFields, Fields, maps:get(update, MapMeta, []), []),
 
     %% parse join
-    Join = parse_join(SQL, Table, Fields),
+    Join = parse_join(File, SQL, Table, update, Fields),
 
     %% args and spec
     %% Args = string:join(listing:unique([lists:concat([db:to_snake(Alias), " = ", db:to_hump(Alias)]) || #field{alias = Alias} <- AllValueFields]), ", "),
@@ -273,7 +273,7 @@ parse_sql(File, SQL = #{change := Change, into := Table, as := FunctionName}, Ma
     HumpName = word:to_hump(Table),
     Fields = collect_fields(File, SQL, Table),
 
-    Keys = parse_key(File, SQL, Table, change, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, [])),
+    Keys = parse_key(File, SQL, Table, change, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, []), maps:get(join, MapMeta, [])),
     UniqueKeys = listing:key_unique(#field.alias, Keys),
 
     Spec = string:join([lists:concat(["By", Alias, " :: ", Type]) || #field{alias = Alias, value = Type} <- UniqueKeys], ", "),
@@ -292,7 +292,7 @@ parse_sql(File, SQL = #{change := Change, into := Table, as := FunctionName}, Ma
     ValueFields = parse_value(File, SQL, Table, change, PresetFields, Fields, maps:get(change, MapMeta, []), []),
 
     %% parse join
-    Join = parse_join(SQL, Table, Fields),
+    Join = parse_join(File, SQL, Table, change, Fields),
 
     %% args and spec
     Args = string:join(listing:unique([lists:concat([db:to_snake(Alias), " = ", db:to_hump(Alias)]) || #field{alias = Alias} <- ValueFields]), ", "),
@@ -334,7 +334,7 @@ parse_sql(File, SQL = #{delete := [], from := Table, as := FunctionName}, MapMet
     %% HumpName = word:to_hump(Table),
     Fields = collect_fields(File, SQL, Table),
 
-    Keys = parse_key(File, SQL, Table, delete, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, [])),
+    Keys = parse_key(File, SQL, Table, delete, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, []), maps:get(join, MapMeta, [])),
     UniqueKeys = listing:key_unique(#field.alias, Keys),
 
     %% spec and param use unique keys
@@ -352,7 +352,7 @@ parse_sql(File, SQL = #{delete := [], from := Table, as := FunctionName}, MapMet
     Offset = parse_offset(File, SQL, Table, Fields),
 
     %% parse join
-    Join = parse_join(SQL, Table, Fields),
+    Join = parse_join(File, SQL, Table, delete, Fields),
 
     %% concat data
     List = [
@@ -607,34 +607,112 @@ parse_duplicate_update(#{}, _) ->
 %%%===================================================================
 %% @todo check join
 %% with join
-parse_join(#{join := Join}, LocalTable, _) ->
-    parse_join_table(maps:to_list(Join), LocalTable, []);
+parse_join(File, SQL = #{join := Join}, LocalTable, Operation, Fields) ->
+    parse_join_table(File, SQL, maps:to_list(Join), LocalTable, Operation, Fields, []);
 
-parse_join(#{}, _, _) ->
+parse_join(_, #{}, _, _, _) ->
     lists:concat([]).
 
 %% join table, ...
-parse_join_table([], _, List) ->
+parse_join_table(_, _, [], _, _, _, List) ->
     string:join(lists:reverse(List), " ");
 
-parse_join_table([{ForeignTable, Pairs} | Preset], LocalTable, List) ->
-    Condition = parse_join_condition(maps:to_list(Pairs), ForeignTable, LocalTable, []),
+parse_join_table(File, SQL, [{ForeignTable, Pairs} | Preset], LocalTable, Operation, Fields, List) ->
+    Condition = parse_join_condition(File, SQL, maps:to_list(Pairs), ForeignTable, LocalTable, Operation, Fields, []),
     Join = lists:concat(["INNER JOIN", " `", ForeignTable, "` ", Condition]),
-    parse_join_table(Preset, LocalTable, [Join | List]).
+    parse_join_table(File, SQL, Preset, LocalTable, Operation, Fields, [Join | List]).
 
 %% with join table on ... and ...
-parse_join_condition([], _, _, List) ->
+parse_join_condition(_, _, [], _, _, _, _, List) ->
     string:join(lists:reverse(List), " ");
 
 %% the first condition concat with on
-parse_join_condition([{Foreign, Local} | Preset], ForeignTable, LocalTable, []) ->
+parse_join_condition(File, SQL, [{Foreign, Join = #{}} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    Condition = [parse_join_compare_literal(File, SQL, LocalTable, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Join)],
+    On = lists:concat(["ON", " ", string:join(Condition, " AND ")]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$raw$', Raw}} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", Raw, ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$param$', []}} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    #field{value = Format} = parse_field_format(File, SQL, LocalTable, Operation, Fields, Name),
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Format), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, Value} | Preset], ForeignTable, LocalTable, Operation, Fields, []) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Value), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, Local} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
     On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "`", LocalTable, "`", ".", "`", Local, "`"]),
-    parse_join_condition(Preset, ForeignTable, LocalTable, [On]);
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
 
 %% other condition concat with and
-parse_join_condition([{Foreign, Local} | Preset], ForeignTable, LocalTable, List) ->
+parse_join_condition(File, SQL, [{Foreign, Join = #{}} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    Condition = [parse_join_compare_literal(File, SQL, LocalTable, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Join)],
+    And = lists:concat(["AND", " ", string:join(Condition, " AND ")]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$raw$', Raw}} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", Raw, ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$param$', []}} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    #field{value = Format} = parse_field_format(File, SQL, LocalTable, Operation, Fields, Name),
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Format), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, Value} | Preset], ForeignTable, LocalTable, Operation, Fields, List) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Value), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, Local} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
     And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "`", LocalTable, "`", ".", "`", Local, "`"]),
-    parse_join_condition(Preset, ForeignTable, LocalTable, [And | List]).
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]).
+
+
+%% raw
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
+
+%% in => binding param
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% in => literal value
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = in, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format(string:join(lists:duplicate(length(Literal), "?"), ", "), Literal)), ")"]);
+
+%% between => binding param
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
+
+%% between => literal value
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {Left, Right}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
+    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
+
+%% binding param
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% literal value
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]).
 
 %%%===================================================================
 %%% where part
@@ -665,6 +743,18 @@ parse_where(_, #{}, _, _, _, _) ->
 parse_where_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     Condition = [parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
     string:join(Condition, " AND ");
+
+parse_where_compare(File, SQL, Table, Operation, Name, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Raw), ")"]);
+
+parse_where_compare(File, SQL, Table, Operation, Name, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Format), ")"]);
+
+parse_where_compare(File, SQL, Table, Operation, Name, Value, Fields) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Value), ")"]);
 
 parse_where_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
@@ -754,6 +844,18 @@ parse_having(_, #{}, _, _, _, _) ->
 parse_having_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     Condition = [parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
     string:join(Condition, " AND ");
+
+parse_having_compare(File, SQL, Table, Operation, Name, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Raw), ")"]);
+
+parse_having_compare(File, SQL, Table, Operation, Name, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Format), ")"]);
+
+parse_having_compare(File, SQL, Table, Operation, Name, Value, Fields) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Value), ")"]);
 
 parse_having_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
     #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
@@ -848,8 +950,8 @@ parse_offset(_, #{}, _, _) ->
 %%% key part
 %%%===================================================================
 
-parse_key(File, SQL, Table, Operation, Fields, WhereMapMeta, HavingMapMeta) ->
-    lists:append([parse_key_where(File, SQL, Table, Operation, Fields, WhereMapMeta), parse_key_having(File, SQL, Table, Operation, Fields, HavingMapMeta)]).
+parse_key(File, SQL, Table, Operation, Fields, WhereMapMeta, HavingMapMeta, JoinMeta) ->
+    lists:append([parse_table_key_join(File, SQL, Table, Operation, Fields, JoinMeta), parse_key_where(File, SQL, Table, Operation, Fields, WhereMapMeta), parse_key_having(File, SQL, Table, Operation, Fields, HavingMapMeta)]).
 
 %% spec key
 parse_key_where(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
@@ -889,13 +991,30 @@ parse_key_having(_, #{}, _, _, _, _) ->
     [].
 
 
+parse_table_key_join(File, SQL = #{join := Preset}, Table, Operation, Fields, MapMeta) ->
+    lists:append([parse_table_field_key_join(File, SQL, Table, Operation, Fields, Name, maps:get(Name, Preset)) || Name <- MapMeta]);
+
+parse_table_key_join(_, _, _, _, _, _) ->
+    [].
+
+parse_table_field_key_join(File, SQL, Table, Operation, Fields, Foreign, MapMeta) ->
+    lists:append([parse_key_compare(File, SQL, Table, Operation, lists:concat([Foreign, ".", Name]), Preset, Fields) || {Name, Preset} <- maps:to_list(MapMeta), not is_atom(Preset)]).
+
+
 %% spec compare or literal value
 parse_key_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
     lists:append([parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)]);
 
-parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) ->
+parse_key_compare(File, SQL, Table, Operation, Name, {'$param$', []}, Fields) ->
     Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
-    [Field#field{transform = Alias, preset = Compare}].
+    [Field#field{transform = Alias, preset = '='}];
+
+parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) when is_atom(Compare) ->
+    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
+    [Field#field{transform = Alias, preset = Compare}];
+
+parse_key_compare(_, _, _, _, _, _, _) ->
+    [].
 
 
 %% binding param

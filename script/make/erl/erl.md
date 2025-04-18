@@ -94,9 +94,9 @@ get(_) ->
 
 * 代码
 ```erl
--spec get(Key :: binary()) -> binary() | undefined.
+-spec get(Key :: binary()) -> {binary()} | undefined.
 get(<<"key">>) ->
-    <<"value">>;
+    {<<"value">>};
 get(_) ->
     undefined.
 ```
@@ -343,7 +343,6 @@ maker erl 文件名(不含扩展名)
 
 | Value                         | SQL                           | Description                 
 | ----------------------------- | ----------------------------- | -----------------------------
-| raw("my sql")                 | my sql                        | 原生SQL
 | value                         | \`value\`                     | 单个
 | []                            | *                             | 全部, 列表形式
 | {}                            | *                             | 全部, 元组形式
@@ -424,7 +423,6 @@ maker erl 文件名(不含扩展名)
 
 | Value                         | SQL                           | Description                 
 | ----------------------------- | ----------------------------- | -----------------------------
-| raw("my sql")                 | my sql                        | 原生SQL
 | value                         | value                         | 原生代码
 | []                            | *                             | 空列表
 | {}                            | *                             | 空元组

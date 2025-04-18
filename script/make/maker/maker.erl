@@ -87,7 +87,7 @@ collect_map_order(Script, File) ->
     [SqlCons | _] = lists:append([[Cons || {map_field_assoc, _, {atom, _, sql}, Cons} <- Map] || {map, _, Map} <- FlatFileCons, length([Association || Association = {map_field_assoc, _, {atom, _, file}, {_, _, String}} <- Map, String == File]) > 0]),
     FlatSqlCons = fun FlatMapCons(Acc, {nil, _}) -> Acc; FlatMapCons(Acc, {cons, _, Item, Next}) -> [Item | FlatMapCons(Acc, Next)] end([], SqlCons),
     %% take insert/select/update/delete/where/by/group by/having/order by cons
-    OperationCons = [maps:from_list([{Key, [Target || {_, _, {_, _, Target}, _} <- Inner]} || {map_field_assoc, _, {atom, _, Key}, {map, _, Inner}} <- Association, listing:is_in(Key, [insert, select, update, delete, where, by, group_by, having, order_by])]) || {map, _, Association} <- FlatSqlCons],
+    OperationCons = [maps:from_list([{Key, [Target || {_, _, {_, _, Target}, _} <- Inner]} || {map_field_assoc, _, {atom, _, Key}, {map, _, Inner}} <- Association, listing:is_in(Key, [insert, select, update, delete, join, where, by, group_by, having, order_by])]) || {map, _, Association} <- FlatSqlCons],
     OperationCons.
 
 %% @doc collect includes by tables

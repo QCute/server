@@ -68,13 +68,18 @@ maker.sh clean
 
 ## 开发辅助相关
 
-#### 生成record beam代码
+#### 为[user_default.erl](/src/tool/extension/user_default.erl)文件生成全部头文件导入语句
 ```sh
+# user_default.erl
+# ...
+# -include("../../../include/common.hrl").
+# ...
 maker.sh beam
 ```
 
 #### 生成plt代码
 ```sh
+# 生成文件 ~/.dialyzer.plt
 maker.sh plt
 ```
 
@@ -83,66 +88,65 @@ maker.sh plt
 maker.sh dialyzer
 ```
 
-#### 生成excel(多个表)
+#### 生成excel(多个表), [使用文档](/script/make/excel/excel.md)
 ```sh
-maker.sh book
+# 生成文件 comment.xlsm
+maker.sh book file
 ```
 
-#### 生成excel(单个表)
+#### 生成excel(单个表), [使用文档](/script/make/excel/excel.md)
 ```sh
-maker.sh sheet
+# 生成文件 comment.xlsm
+maker.sh sheet table
 ```
 
-#### 导入excel(多个表)
+#### 导入excel(多个表), [使用文档](/script/make/excel/excel.md)
 ```sh
-maker.sh collection
+# 使用 comment.xlsm 导入到 table, table2 ...
+maker.sh collection comment.xlsm
 ```
 
-#### 导入excel(单个表)
+#### 导入excel(单个表), [使用文档](/script/make/excel/excel.md)
 ```sh
-maker.sh table
+# 使用 comment.xlsm 导入到 table
+maker.sh table comment.xlsm
 ```
 
 ## 代码生成相关
 
-#### 生成record代码
+#### 生成record代码, [使用文档](/script/make/record/record.md)
 ```sh
 maker.sh record name
 ```
 
-#### 生成sql代码
+#### 生成sql代码, [使用文档](/script/make/sql/sql.md)
 ```sh
 maker.sh sql name
 ```
 
-#### 生成erl代码
+#### 生成erl代码, [使用文档](/script/make/erl/erl.md)
 ```sh
 maker.sh erl name
 ```
 
-#### 生成lua代码
+#### 生成lua代码, [使用文档](/script/make/lua/lua.md)
 ```sh
 maker.sh lua name
 ```
 
-#### 生成js代码
+#### 生成js代码, [使用文档](/script/make/js/js.md)
 ```sh
 maker.sh js name
 ```
 
-#### 生成log代码
-```sh
-maker.sh log
-```
-
-#### 生成协议代码
+#### 生成协议代码, [使用文档](/script/make/protocol/protocol.md)
 ```sh
 maker.sh pt name
 ```
 
-#### 生成Router代码
+#### 生成log代码, [使用文档](/script/make/log/log.md)
 ```sh
-maker.sh router
+maker.sh log
 ```
 
 #### 生成Config代码
