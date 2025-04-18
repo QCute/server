@@ -134,48 +134,6 @@ parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, KeyRa
     #{code => Code}.
 
 %%%===================================================================
-%%% collect data part
-%%%===================================================================
-
-%% n degree array product
-compose([Head]) ->
-    [{X, []} || [X] <- Head];
-
-compose([Head, Tail]) ->
-    [{X, [Y || [Y] <- Tail]} || [X] <- Head];
-
-compose([Head | Tail]) ->
-    [{X, [Y || Y <- compose(Tail)]} || [X] <- Head].
-
-
-%% collect value by key
-collect_data([], _, _, _, _, _, List) ->
-    lists:reverse(List);
-
-%% recursive child
-collect_data([{Key, []} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
-    Result = collect_data([Key], Parent, Sql, KeyFields, ValueFields, 1, []),
-    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, lists:append(Result, List));
-
-collect_data([{Key, Value} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
-    Result = collect_data(Value, [Key | Parent], Sql, KeyFields, ValueFields, Depth + 1, []),
-    Field = lists:nth(Depth, KeyFields),
-    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{[Field#field{value = Key}], Result} | List]);
-
-collect_data([Child | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
-    Binding = lists:reverse([Child | Parent]),
-    RawValue = db:select(Sql, Binding),
-    %% filter empty value
-    case RawValue of
-        [] ->
-            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, List);
-        _ ->
-            Key = [(lists:last(KeyFields))#field{value = lists:last(Binding)}],
-            Value = [[Field#field{value = Column} || {Column, Field} <- lists:zip(Row, ValueFields)] || Row <- RawValue],
-            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{Key, Value} | List])
-    end.
-
-%%%===================================================================
 %%% collect fields part
 %%%===================================================================
 
@@ -1399,3 +1357,45 @@ convert(<<$_, Rest/binary>>, Word, Object, Acc) when 0 < byte_size(Word) ->
 
 convert(<<C, Rest/binary>>, Word, Object, Acc) ->
     convert(Rest, Word, Object, <<Acc/binary, C>>).
+
+%%%===================================================================
+%%% collect data part
+%%%===================================================================
+
+%% n degree array product
+compose([Head]) ->
+    [{X, []} || [X] <- Head];
+
+compose([Head, Tail]) ->
+    [{X, [Y || [Y] <- Tail]} || [X] <- Head];
+
+compose([Head | Tail]) ->
+    [{X, [Y || Y <- compose(Tail)]} || [X] <- Head].
+
+
+%% collect value by key
+collect_data([], _, _, _, _, _, List) ->
+    lists:reverse(List);
+
+%% recursive child
+collect_data([{Key, []} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
+    Result = collect_data([Key], Parent, Sql, KeyFields, ValueFields, 1, []),
+    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, lists:append(Result, List));
+
+collect_data([{Key, Value} | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
+    Result = collect_data(Value, [Key | Parent], Sql, KeyFields, ValueFields, Depth + 1, []),
+    Field = lists:nth(Depth, KeyFields),
+    collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{[Field#field{value = Key}], Result} | List]);
+
+collect_data([Child | Tail], Parent, Sql, KeyFields, ValueFields, Depth, List) ->
+    Binding = lists:reverse([Child | Parent]),
+    RawValue = db:select(Sql, Binding),
+    %% filter empty value
+    case RawValue of
+        [] ->
+            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, List);
+        _ ->
+            Key = [(lists:last(KeyFields))#field{value = lists:last(Binding)}],
+            Value = [[Field#field{value = Column} || {Column, Field} <- lists:zip(Row, ValueFields)] || Row <- RawValue],
+            collect_data(Tail, Parent, Sql, KeyFields, ValueFields, Depth, [{Key, Value} | List])
+    end.

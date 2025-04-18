@@ -137,42 +137,11 @@ parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, Value
 
     Code = lists:concat([
         "-spec ", FunctionName, "(", KeySpec, ") -> ", ValueSpec, ".", "\n",
-        Return,
+        [[Return, ";", "\n"] || Return =/= []],
         Default
     ]),
 
     #{export => Export, code => Code}.
-
-%%%===================================================================
-%%% collect data part
-%%%===================================================================
-
-%% n degree array product
-compose([Head]) ->
-    [lists:flatten([X]) || X <- Head];
-
-compose([Head, Tail]) ->
-    [lists:flatten([X, Y]) || X <- Head, Y <- Tail];
-
-compose([Head | Tail]) ->
-    [lists:flatten([X, Y]) || X <- Head, Y <- compose(Tail)].
-
-
-%% collect value by key
-collect_data([], _, _, _, List) ->
-    lists:reverse(List);
-
-collect_data([Binding | Tail], Sql, KeyFields, ValueFields, List) ->
-    RawValue = db:select(Sql, Binding),
-    %% filter empty value
-    case RawValue of
-        [] ->
-            collect_data(Tail, Sql, KeyFields, ValueFields, List);
-        _ ->
-            Key = [Field#field{value = Column} || {Column, Field} <- lists:zip(Binding, KeyFields)],
-            Value = [[Field#field{value = Column} || {Column, Field} <- lists:zip(Row, ValueFields)] || Row <- RawValue],
-            collect_data(Tail, Sql, KeyFields, ValueFields, [{Key, Value} | List])
-    end.
 
 %%%===================================================================
 %%% collect fields part
@@ -1294,7 +1263,6 @@ format_term(_, #field{format = <<"set">>, value = Value}) ->
 format_default(_, SQL, _, _, KeyFields, FunctionName) when not is_map_key(default, SQL) ->
     Args = string:join(lists:duplicate(length(KeyFields), "_"), ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", "undefined", "."
     ]);
@@ -1303,7 +1271,6 @@ format_default(_, #{default := {'$raw$', Query}}, _, _, KeyFields, FunctionName)
     [[Data]] = db:select(Query),
     Args = string:join([db:to_hump(Alias) || #field{alias = Alias} <- KeyFields], ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", type:to_list(Data), "."
     ]);
@@ -1311,7 +1278,6 @@ format_default(_, #{default := {'$raw$', Query}}, _, _, KeyFields, FunctionName)
 format_default(_, #{default := {'$list$', _}}, _, _, KeyFields, FunctionName) ->
     Args = string:join(lists:duplicate(length(KeyFields), "_"), ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", "[]", "."
     ]);
@@ -1319,7 +1285,6 @@ format_default(_, #{default := {'$list$', _}}, _, _, KeyFields, FunctionName) ->
 format_default(_, #{default := {'$map$', _}}, _, _, KeyFields, FunctionName) ->
     Args = string:join(lists:duplicate(length(KeyFields), "_"), ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", "#", "{}", "."
     ]);
@@ -1327,7 +1292,6 @@ format_default(_, #{default := {'$map$', _}}, _, _, KeyFields, FunctionName) ->
 format_default(_, #{default := {'$record$', _}}, _, Table, KeyFields, FunctionName) ->
     Args = string:join(lists:duplicate(length(KeyFields), "_"), ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", "#", Table, "{}", "."
     ]);
@@ -1335,7 +1299,6 @@ format_default(_, #{default := {'$record$', _}}, _, Table, KeyFields, FunctionNa
 format_default(_, #{default := {'$tuple$', _}}, _, _, KeyFields, FunctionName) ->
     Args = string:join(lists:duplicate(length(KeyFields), "_"), ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", "{}", "."
     ]);
@@ -1343,11 +1306,37 @@ format_default(_, #{default := {'$tuple$', _}}, _, _, KeyFields, FunctionName) -
 format_default(_, #{default := Default}, _, _, KeyFields, FunctionName) ->
     Args = string:join(lists:duplicate(length(KeyFields), "_"), ", "),
     lists:concat([
-        ";", "\n",
         FunctionName, "(", Args, ") ->", "\n",
         "    ", type:to_list(Default), "."
     ]).
 
 %%%===================================================================
-%%% tool part
+%%% collect data part
 %%%===================================================================
+
+%% n degree array product
+compose([Head]) ->
+    [lists:flatten([X]) || X <- Head];
+
+compose([Head, Tail]) ->
+    [lists:flatten([X, Y]) || X <- Head, Y <- Tail];
+
+compose([Head | Tail]) ->
+    [lists:flatten([X, Y]) || X <- Head, Y <- compose(Tail)].
+
+
+%% collect value by key
+collect_data([], _, _, _, List) ->
+    lists:reverse(List);
+
+collect_data([Binding | Tail], Sql, KeyFields, ValueFields, List) ->
+    RawValue = db:select(Sql, Binding),
+    %% filter empty value
+    case RawValue of
+        [] ->
+            collect_data(Tail, Sql, KeyFields, ValueFields, List);
+        _ ->
+            Key = [Field#field{value = Column} || {Column, Field} <- lists:zip(Binding, KeyFields)],
+            Value = [[Field#field{value = Column} || {Column, Field} <- lists:zip(Row, ValueFields)] || Row <- RawValue],
+            collect_data(Tail, Sql, KeyFields, ValueFields, [{Key, Value} | List])
+    end.
