@@ -324,7 +324,7 @@ do_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, User = #user
     %% cancel stop timer
     catch erlang:cancel_timer(LoopTimer),
     %% send duplicate login message
-    user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGIN, duplicate),
+    user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGOUT, duplicate),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, SocketType, Socket, ProtocolType),
     %% first loop after 3 minutes
